@@ -1,0 +1,3 @@
+- 👋 Hi, I’m @pho0m
+- 👀 I’m interested in programming 
+- 🌱 I’m currently learning everything in programming
