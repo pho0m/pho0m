@@ -42,5 +42,4 @@
 ![Battle.net](https://img.shields.io/badge/battle.net-%2300AEFF.svg?style=for-the-badge&logo=battle.net&logoColor=white)
 
 
- <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="300px" height="300px">  
- <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="300px">  
+ <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="200px" height="200px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="200px">  
