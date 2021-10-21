@@ -1,20 +1,16 @@
 
 #  Let me introduce 💬
 
-
-
 - 👋 Hi, I’m pho0m, Kiattiphoom Poonketkit.
 - 🗨️ Study at KMUTNB Faculty of Education TCT-R31
-- 👀 I’m interested in programming 
 - 🌱 I’m currently learning everything in programming
 - 🙍‍♂️ Part-timer at Studio Twist https://www.studiotwist.co/
 - 🖖 Leader in Tweed https://tweed-24ad1.web.app/
 - 🍁 Fun Fact I am available and ready to mingle.
 - 🌍 It's always seem imposible until it done.
 
-
 # My Skill 💬
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/anuraghazra/github-readme-stats) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="200px" height="200px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="200px">  
+[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="200px" height="200px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="200px">  
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white) 
