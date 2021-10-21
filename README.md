@@ -11,4 +11,5 @@
 # My Skill 💬
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/anuraghazra/github-readme-stats)
 
-https://raw.githubusercontent.com/ooesili/partygif/master/images/gopher-dance.gif
+# My Spend Time 💬
+[![willianrod's wakatime stats](https://github-readme-stats.vercel.app/api/wakatime?username=pho0m)](https://github.com/pho0m/github-readme-stats)
