@@ -11,10 +11,4 @@
 # My Skill 💬
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/anuraghazra/github-readme-stats)
 
-# Blog posts
-<!-- BLOG-POST-LIST:START -->
-<!-- BLOG-POST-LIST:END -->
-
-# Youtube Activity
-<!-- Youtube:START -->
-<!-- Youtube:END -->
+https://raw.githubusercontent.com/ooesili/partygif/master/images/gopher-dance.gif
