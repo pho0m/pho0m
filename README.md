@@ -13,6 +13,13 @@
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="150px" height="150px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="150px">  
 
 <!--START_SECTION:waka-->
+```text
+Dart       1 hr 41 mins    ████████████▓░░░░░░░░░░░░   51.07 % 
+Markdown   1 hr 18 mins    ██████████░░░░░░░░░░░░░░░   39.51 % 
+Java       12 mins         █▓░░░░░░░░░░░░░░░░░░░░░░░   06.24 % 
+JSON       3 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.72 % 
+YAML       1 min           ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.73 % 
+```
 <!--END_SECTION:waka-->
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white)
