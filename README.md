@@ -9,7 +9,10 @@
 
 
 # My Skill 💬
+
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="150px" height="150px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="150px">  
+
+# 
 
 <!--START_SECTION:waka-->
 ```text
