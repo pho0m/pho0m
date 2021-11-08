@@ -6,8 +6,7 @@
 - 🌱 I’m currently learning everything in programming
 - 🙍‍♂️ Part-timer at Studio Twist https://www.studiotwist.co/
 - 🖖 Leader in Tweed https://tweed-24ad1.web.app/
-- 🍁 Fun Fact I am available and ready to mingle.
-- 🌍 It's always seem imposible until it done.
+
 
 # My Skill 💬
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="150px" height="150px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="150px">  
@@ -35,6 +34,4 @@
 ![Facebook](https://img.shields.io/badge/Facebook-%231877F2.svg?style=flat-square&logo=Facebook&logoColor=white)
 ![Line](https://img.shields.io/badge/Line-00C300?style=flat-square&logo=line&logoColor=white)
 ![Steam](https://img.shields.io/badge/steam-%23000000.svg?style=flat-square&logo=steam&logoColor=white)
-![Ubisoft](https://img.shields.io/badge/Ubisoft-%23F5F5F5.svg?style=flat-square&logo=Ubisoft&logoColor=black)
-![Epic Games](https://img.shields.io/badge/epicgames-%23313131.svg?style=flat-square&logo=epicgames&logoColor=white)
-![Battle.net](https://img.shields.io/badge/battle.net-%2300AEFF.svg?style=flat-square&logo=battle.net&logoColor=white)
+
