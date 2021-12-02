@@ -3,9 +3,8 @@
 
 - 👋 Hi, I’m pho0m, Kiattiphoom Poonketkit.
 - 🗨️ Study at KMUTNB Faculty of Education TCT-R31
-- 🌱 I’m currently learning everything in programming
-- 🙍‍♂️ Part-timer at Studio Twist https://www.studiotwist.co/
-- 🖖 Leader in Tweed https://tweed-24ad1.web.app/
+- 🙍‍♂️ Studio Twist https://www.studiotwist.co/
+
 
 
 # My Skill 💬
