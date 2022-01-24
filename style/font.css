@@ -1,0 +1,14 @@
+@font-face {
+  font-family: fcSubRounded;
+  src: url(/src/font/FCSubjectRoundedRegular.ttf);
+}
+
+@font-face {
+  font-family: fcSubRounded;
+  src: url(/src/font/FCSubjectRoundedBold.ttf);
+  font-weight: bold;
+}
+
+div {
+  font-family: fcSubRounded;
+}

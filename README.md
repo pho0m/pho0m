@@ -1,30 +1,29 @@
-
-#  Let me introduce 💬
+# Let me introduce 💬
 
 - 👋 Hi, I’m pho0m, Kiattiphoom Poonketkit.
 - 🗨️ Study at KMUTNB Faculty of Education TCT-R31
 - 🙍‍♂️ Studio Twist https://www.studiotwist.co/
 
-
-
 # My Skill 💬
 
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="150px" height="150px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="150px">  
+[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=pho0m&layout=compact)](https://github.com/pho0m) <img src="https://media.discordapp.net/attachments/886549229961609226/900833108339867778/giphy_2.gif" width="150px" height="150px"> <img src="https://media.discordapp.net/attachments/886549229961609226/900833107287109683/giphy_3.gif?width=290&height=564" height="150px">
 
-# 
+#
 
 <!--START_SECTION:waka-->
+
 ```text
-Dart         14 hrs 14 mins  ████████████▓░░░░░░░░░░░░   50.64 % 
-TypeScript   6 hrs 17 mins   █████▓░░░░░░░░░░░░░░░░░░░   22.34 % 
-Go           2 hrs 11 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.82 % 
-HTML         1 hr 30 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.38 % 
-YAML         58 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   03.44 % 
+Dart         14 hrs 14 mins  ████████████▓░░░░░░░░░░░░   50.64 %
+TypeScript   6 hrs 17 mins   █████▓░░░░░░░░░░░░░░░░░░░   22.34 %
+Go           2 hrs 11 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.82 %
+HTML         1 hr 30 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.38 %
+YAML         58 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   03.44 %
 ```
+
 <!--END_SECTION:waka-->
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=flat-square&logo=dart&logoColor=white) 
+![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=flat-square&logo=dart&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E)
 ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=flat-square&logo=go&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=flat-square&logo=postgresql&logoColor=white)
@@ -39,8 +38,8 @@ YAML         58 mins         █░░░░░░░░░░░░░░░░
 ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84.svg?style=flat-square&logo=android-studio&logoColor=white)
 
 # Contact 💬
+
 ![Discord](https://img.shields.io/badge/-Discord-7289DA?style=flat-square&logo=discord&logoColor=white)
 ![Facebook](https://img.shields.io/badge/Facebook-%231877F2.svg?style=flat-square&logo=Facebook&logoColor=white)
 ![Line](https://img.shields.io/badge/Line-00C300?style=flat-square&logo=line&logoColor=white)
 ![Steam](https://img.shields.io/badge/steam-%23000000.svg?style=flat-square&logo=steam&logoColor=white)
-
