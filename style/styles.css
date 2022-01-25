@@ -4,6 +4,12 @@
   padding: 0;
 }
 
+body {
+  font-family: Consolas;
+  color: white;
+  padding-right: 100px;
+}
+
 html {
   background-color: black;
 }
