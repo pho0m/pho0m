@@ -9,6 +9,8 @@
   font-weight: bold;
 }
 
-div {
-  font-family: fcSubRounded;
+body {
+  font-family: Consolas;
+  color: white;
+  padding-right: 100px;
 }
