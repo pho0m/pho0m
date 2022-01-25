@@ -11,15 +11,13 @@
 #
 
 <!--START_SECTION:waka-->
-
 ```text
-Dart         14 hrs 14 mins  ████████████▓░░░░░░░░░░░░   50.64 %
-TypeScript   6 hrs 17 mins   █████▓░░░░░░░░░░░░░░░░░░░   22.34 %
-Go           2 hrs 11 mins   ██░░░░░░░░░░░░░░░░░░░░░░░   07.82 %
-HTML         1 hr 30 mins    █▒░░░░░░░░░░░░░░░░░░░░░░░   05.38 %
-YAML         58 mins         █░░░░░░░░░░░░░░░░░░░░░░░░   03.44 %
+Dart         13 hrs 55 mins  ██████████▒░░░░░░░░░░░░░░   41.95 % 
+Go           6 hrs 34 mins   █████░░░░░░░░░░░░░░░░░░░░   19.82 % 
+TypeScript   6 hrs 17 mins   ████▓░░░░░░░░░░░░░░░░░░░░   18.92 % 
+HTML         2 hrs 12 mins   █▓░░░░░░░░░░░░░░░░░░░░░░░   06.67 % 
+YAML         1 hr 4 mins     ▓░░░░░░░░░░░░░░░░░░░░░░░░   03.25 % 
 ```
-
 <!--END_SECTION:waka-->
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white)
