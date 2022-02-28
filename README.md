@@ -11,12 +11,16 @@
 #
 
 <!--START_SECTION:waka-->
+
 ```text
-Go           6 hrs 21 mins   █████████████████▓░░░░░░░   71.00 % 
-TypeScript   1 hr 36 mins    ████▓░░░░░░░░░░░░░░░░░░░░   18.04 % 
-JavaScript   55 mins         ██▓░░░░░░░░░░░░░░░░░░░░░░   10.36 % 
-JSON         2 mins          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.51 % 
+Go           6 hrs 21 mins   █████████████░░░░░░░░░░░░   51.78 %
+JavaScript   3 hrs 34 mins   ███████▒░░░░░░░░░░░░░░░░░   29.17 %
+TypeScript   1 hr 47 mins    ███▓░░░░░░░░░░░░░░░░░░░░░   14.56 %
+JSON         15 mins         ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.09 %
+CSS          14 mins         ▒░░░░░░░░░░░░░░░░░░░░░░░░   01.97 %
+Other        3 mins          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.42 %
 ```
+
 <!--END_SECTION:waka-->
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white)
