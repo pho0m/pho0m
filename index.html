@@ -1,449 +1,582 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./style/styles.css" />
-
-    <link rel="icon" type="image/jpg" href="./src/images/P.png" />
+    <meta charset="utf-8" />
     <title>Pho0m</title>
-    <style>
-      .sidebar {
-        margin: 0;
-        padding: 0;
-        width: 200px;
-        position: fixed;
-        height: 100%;
-        overflow: auto;
-        background-color: #323232;
-      }
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="" name="keywords" />
+    <meta content="" name="description" />
 
-      .sidebar a {
-        display: block;
-        padding: 16px;
-        text-decoration: none;
-        background-color: #323232;
-        color: white;
-      }
+    <!-- Favicons -->
+    <link href="./img/favicon.png" rel="icon" />
 
-      .sidebar a.active {
-        background-color: #7f7f7f;
-        color: white;
-      }
+    <!-- Bootstrap CSS File -->
+    <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 
-      .sidebar a:hover:not(.active) {
-        background-color: #555;
-        color: white;
-      }
+    <!-- Libraries CSS Files -->
+    <script
+      src="https://kit.fontawesome.com/86107b92fc.js"
+      crossorigin="anonymous"
+    ></script>
+    <link href="lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="lib/animate/animate.min.css" rel="stylesheet" />
+    <link href="lib/ionicons/css/ionicons.min.css" rel="stylesheet" />
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet" />
 
-      div.content {
-        margin-left: 200px;
-        padding: 50px 16px;
-        height: auto;
-        text-align: center;
-      }
-
-      .center {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 50%;
-        opacity: 0.8;
-      }
-
-      #topic {
-        font-weight: bold;
-        text-align: left;
-        padding-left: 100px;
-        padding-top: 100px;
-        font-size: 50px;
-      }
-
-      #ft {
-        padding-left: 100px;
-        text-align: center;
-        height: 100px;
-      }
-
-      @media screen and (max-width: 700px) {
-        .sidebar {
-          width: 100%;
-          height: auto;
-          position: relative;
-        }
-        .sidebar a {
-          float: left;
-        }
-        div.content {
-          margin-left: 0;
-        }
-      }
-
-      @media screen and (max-width: 400px) {
-        .sidebar a {
-          text-align: center;
-          float: none;
-        }
-        .center {
-          display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 100%;
-          opacity: 0.8;
-        }
-      }
-    </style>
+    <!-- Main Stylesheet File -->
+    <link href="css/style-red.css" rel="stylesheet" />
   </head>
 
-  <body>
-    <section id="home">
-      <div class="sidebar">
-        <a class="active" href="#home">Home</a>
-        <a href="#introduce">Introduce</a>
-        <a href="#education">Education</a>
-        <a href="#skills">Skills</a>
-        <a href="#FCL">Favorite Language</a>
-        <a href="#gallery">Gallery</a>
+  <body id="page-top">
+    <!--/ Nav Start /-->
+    <nav
+      class="navbar navbar-b navbar-trans navbar-expand-md fixed-top"
+      id="mainNav"
+    >
+      <div class="container">
+        <a class="navbar-brand js-scroll" href="#page-top">Pho0m</a>
+        <button
+          class="navbar-toggler collapsed"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarDefault"
+          aria-controls="navbarDefault"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div
+          class="navbar-collapse collapse justify-content-end"
+          id="navbarDefault"
+        >
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link js-scroll active" href="#home">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link js-scroll" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link js-scroll" href="#homework"
+                >My Home work (KMUTNB)</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link js-scroll" href="#work">Workings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link js-scroll" href="#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="content">
-        <p style="font-size: 50px">I'm Kiattiphoom Poonketkit.</p>
-        <h2>Can call me Pho0m.</h2>
-        <br /><br /><br /><br />
+    </nav>
+    <!--/ Nav End /-->
 
-        <div class="center">
-          <img src="./src/images/base/homepage.png" alt="pho0m image" />
+    <!--/ Intro Skew Star /-->
+    <div
+      id="home"
+      class="intro route bg-image"
+      style="background-image: url(./img/intro-bg.jpg)"
+    >
+      <div class="overlay-itro"></div>
+      <div class="intro-content display-table">
+        <div class="table-cell">
+          <div class="container">
+            <!--<p class="display-6 color-d">Hello, world!</p>-->
+            <h1 class="intro-title mb-4">I am Kiattiphoom Poonketkit</h1>
+            <p class="intro-subtitle">
+              <span class="text-slider-items"
+                >I'm want to be Rich,I'm want to be Developer,I'm study at
+                KMUTNB,I'm 21 years old,I'm so handsome ♥</span
+              ><strong class="text-slider"></strong>
+            </p>
+            <!-- <p class="pt-3"><a class="btn btn-primary btn js-scroll px-4" href="#about" role="button">Learn More</a></p> -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/ Intro Skew End /-->
+
+    <section id="about" class="about-mf sect-pt4 route">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="box-shadow-full">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="row">
+                    <div class="col-sm-6 col-md-5">
+                      <div class="about-img">
+                        <img
+                          src="./img/profile.jpg"
+                          class="img-fluid rounded b-shadow-a"
+                          alt=""
+                        />
+                        <br />
+                        <br />
+                        <a href="https://github.com/pho0m" target="_blank"
+                          ><i class="fa-brands fa-github"></i> github</a
+                        >
+                        <br />
+                        <a
+                          href="https://www.facebook.com/Pho0m/"
+                          target="_blank"
+                          ><i class="fa-brands fa-facebook"></i> facebook</a
+                        >
+                        <br />
+                        <a
+                          href="https://www.instagram.com/pho0m/"
+                          target="_blank"
+                          ><i class="fa-brands fa-instagram"></i> instagram</a
+                        >
+                      </div>
+                    </div>
+                    <div class="col-sm-6 col-md-7">
+                      <div class="about-info">
+                        <p>
+                          <span class="title-s">Name: </span>
+                          <span>Kiattiphoom Poonketkit</span><br />
+                        </p>
+                        <p>
+                          <span class="title-s">Nickname: </span>
+                          <span>phoom</span><br />
+                        </p>
+                        <p>
+                          <span class="title-s">Brithday: </span>
+                          <span>October 22, 2000</span>
+                        </p>
+                        <p>
+                          <span class="title-s">Profile: </span>
+                          <span>Bachelor's degree student at</span>
+                          <span
+                            >King Mongkut's University of Technology North
+                            Bangkok (KMUTNB)</span
+                          >
+                        </p>
+                        <p>
+                          <span class="title-s">Email: </span>
+                          <span>pho0m2000s@gmail.com</span>
+                        </p>
+                        <p>
+                          <span class="title-s">Nationality: </span>
+                          <span>Thai</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="skill-mf">
+                    <p class="title-s">Skill</p>
+                    <span>BACKEND</span> <span class="pull-right">85%</span>
+                    <div class="progress">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: 85%"
+                        aria-valuenow="85"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                    <span>FRONTEND</span> <span class="pull-right">75%</span>
+                    <div class="progress">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: 75%"
+                        aria-valuenow="75"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                    <span>DEVOPS</span> <span class="pull-right">50%</span>
+                    <div class="progress">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: 50%"
+                        aria-valuenow="50"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                    <span>BUSINESS</span> <span class="pull-right">30%</span>
+                    <div class="progress">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: 30%"
+                        aria-valuenow="30"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="about-me pt-4 pt-md-0">
+                    <div class="title-box-2">
+                      <h5 class="title-left">About me</h5>
+                    </div>
+                    <p class="lead">
+                      Hello, I'm pho0m. Buddhism thai nationality and ethnicity.
+                      Now I'm 21 years old in 2022. I'm study at KMUTNB Faculty
+                      of Education TCT-R31. My hobbies are listening to music,
+                      playing games, and everything about Technology and
+                      Innovations.
+                    </p>
+                    <p class="lead">
+                      We are talking about listening. Listening makes me happy.
+                      Every time I listen, I relax. Because it has a heavy
+                      weight and can convey profound feelings. That's why I like
+                      playing, because I forget all the pain.
+                    </p>
+                    <p class="lead">
+                      Finally, my favorite hobby is writing time coding. It
+                      makes me happy, happy and enjoy. But sometimes I'm
+                      nervous, but I'm a good manager to some extent, so it's
+                      not my problem. Not only coding, but everything is
+                      technology. It makes me excited to learn and do new
+                      things.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="introduce">
-      <div class="content">
-        <h1 id="topic">Introduce</h1>
-        <h2
-          style="
-            text-align: left;
-            padding-left: 100px;
-            padding-top: 10px;
-            padding-right: 100px;
-          "
-        >
-          Born on October 22, 2000. Now I'm 21 year old.<br />
-          I'm Buddhism thai nationality and ethnicity. <br />
-          Now study at KMUTNB Faculty of Education TCT-R31. <br /><br />
-          Hello, I'm pho0m. My hobbies are listening to music, playing games,
-          and everything about technology. <br />
-          We are talking about listening. Listening makes me happy. Every time I
-          listen, I relax. <br />
-          Because it has a heavy weight and can convey profound feelings.
-          <br />That's why I like playing, because I forget all the pain.
-          <br />Finally, my favorite hobby is writing time code. It makes me
-          happy, happy and enjoy. <br />
-          But sometimes I'm nervous, but I'm a good manager to some extent, so
-          it's not my problem. <br />
-          Not only coding, but everything is technology. <br /><br />
-        </h2>
-        <h1 style="text-align: left; padding-left: 100px; padding-top: 10px">
-          It makes me excited to learn and do new things.<span
-            style="font-size: 40px"
-            >&#128152;</span
-          >
-        </h1>
-
-        <section id="education">
-          <h1 id="topic">Education</h1>
-          <br />
-          <table>
-            <tr>
-              <td>
-                <div class="card">
-                  <img
-                    src="./src/images/education/sv.png"
-                    alt="sv"
-                    style="width: 100%"
-                  />
-                  <br />
-                  <br />
-                  <p>SUROAJWITTAYA SCHOOL</p>
-                </div>
-              </td>
-              <td>
-                <div class="card">
-                  <img
-                    src="./src/images/education/psm.jpg"
-                    alt="psm"
-                    style="width: 100%"
-                  />
-                  <br />
-                  <br />
-                  <p>PHRATAMNAKSUANKULAP MAHAMONGKHON SCHOOL (PSM)</p>
-                </div>
-              </td>
-              <td>
-                <div class="card">
-                  <img
-                    src="./src/images/education/cda.png"
-                    alt="biac"
-                    style="width: 100%"
-                  />
-                  <br />
-                  <br />
-                  <p>THE COLLEGE OF DRAMATIC ARTS (CDA)</p>
-                </div>
-              </td>
-              <td>
-                <div class="card">
-                  <img
-                    src="./src/images/education/biac.jpg"
-                    alt="Avatar"
-                    style="width: 100%"
-                  />
-                  <br />
-                  <br />
-                  <p>
-                    BUDDHAMONTHON INDUSTRIAL AND COMMUNITY EDUCATION COLLEGE
-                    (BIAC)
-                  </p>
-                </div>
-              </td>
-              <td>
-                <div class="card">
-                  <img
-                    src="./src/images/education/kmutnb.png"
-                    alt="Avatar"
-                    style="width: 100%"
-                  />
-                  <br />
-                  <br />
-                  <p>
-                    King Mongkut's University of Technology North Bangkok
-                    (KMUTNB)
-                  </p>
-                </div>
-              </td>
-            </tr>
-            <tr></tr>
-          </table>
-        </section>
-
-        <section id="skills">
-          <h1 id="topic">Skills</h1>
-          <div class="container">
-            <p class="flexHeader">Object-oriented programming (OOP)</p>
-            <div class="skills oop">60%</div>
-          </div>
-          <div class="container">
-            <p class="flexHeader">Functional programming</p>
-            <div class="skills func">40%</div>
-          </div>
-          <div class="container">
-            <p class="flexHeader">Frontend</p>
-            <div class="skills frontend">20%</div>
-          </div>
-          <div class="container">
-            <p class="flexHeader">Backend</p>
-            <div class="skills backend">85%</div>
-          </div>
-        </section>
-
-        <section id="FCL">
-          <h1 id="topic">Favorite Computer Language</h1>
-          <div id="cl-container">
-            <img
-              style="width: 200px"
-              src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white"
-              alt="flutter"
-            />
-            <img
-              style="width: 160px"
-              src="https://img.shields.io/badge/dart-%230175C2.svg?style=flat-square&logo=dart&logoColor=white"
-              alt="dart"
-            />
-            <img
-              style="width: 260px"
-              src="https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E"
-              alt="javascript"
-            />
-            <img
-              style="width: 130px"
-              src="https://img.shields.io/badge/go-%2300ADD8.svg?style=flat-square&logo=go&logoColor=white"
-              alt="go"
-            />
-            <br />
-            <img
-              style="width: 240px"
-              src="https://img.shields.io/badge/postgres-%23316192.svg?style=flat-square&logo=postgresql&logoColor=white"
-              alt="postgres"
-            />
-            <img
-              style="width: 220px"
-              src="https://img.shields.io/badge/Insomnia-black?style=flat-square&logo=insomnia&logoColor=5849BE"
-              alt="Insomnia"
-            />
-            <img
-              style="width: 180px"
-              src="https://img.shields.io/badge/c++-%2300599C.svg?style=flat-square&logo=c%2B%2B&logoColor=white"
-              alt="c++"
-            />
-            <img
-              style="width: 200px"
-              src="https://img.shields.io/badge/-Arduino-00979D?style=flat-square&logo=Arduino&logoColor=white"
-              alt="Arduino"
-            />
-          </div>
-        </section>
-
-        <section id="gallery">
-          <h1 id="topic">My Gallery</h1>
-
-          <div class="content">
-            <div class="row">
-              <div class="column">
-                <img
-                  id="myImg-1"
-                  src="./src/images/etc/act-1.jpg"
-                  alt="My Favorite Car"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-2"
-                  src="./src/images/etc/act-2.jpg"
-                  alt="My Favorite Image"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-3"
-                  src="./src/images/etc/suit.jpg"
-                  alt="My Favorite Suit"
-                  style="width: 100%; max-width: 300px"
-                />
-              </div>
-              <div class="column">
-                <img
-                  id="myImg-4"
-                  src="./src/images/etc/student.jpg"
-                  alt="When i was in high school"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-5"
-                  src="./src/images/etc/guitar.jpg"
-                  alt="Guitarist"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-6"
-                  src="./src/images/etc/twist.jpg"
-                  alt="First work with studio twist"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-7"
-                  src="./src/images/etc/getsound-1.jpg"
-                  alt="Get Sound Light"
-                  style="width: 100%; max-width: 300px"
-                />
-              </div>
-              <div class="column">
-                <img
-                  id="myImg-8"
-                  src="./src/images/etc/getsound-2.jpg"
-                  alt="Organizing an event at starbuck siam"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-9"
-                  src="./src/images/etc/getsound-5.jpg"
-                  alt="Organizing an event at SCB Academy Hall"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-10"
-                  src="./src/images/etc/getsound-7.jpg"
-                  alt="Organizing an event at SCB Bank"
-                  style="width: 100%; max-width: 300px"
-                />
-              </div>
-              <div class="column">
-                <img
-                  id="myImg-11"
-                  src="./src/images/etc/cda-1.jpg"
-                  alt="Dancing at Sanam Luang"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-12"
-                  src="./src/images/etc/cda-2.jpg"
-                  alt="Khon at National Theater"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-13"
-                  src="./src/images/etc/cloud-2.jpg"
-                  alt="Love Mountain"
-                  style="width: 100%; max-width: 300px"
-                />
-                <img
-                  id="myImg-14"
-                  src="./src/images/etc/twister.jpg"
-                  alt="My twister at studio twist"
-                  style="width: 100%; max-width: 300px"
-                />
-              </div>
+    <!--/ Section Portfolio Star /-->
+    <section id="homework" class="portfolio-mf sect-pt4 route">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="title-box text-center">
+              <h3 class="title-a">Home Work</h3>
+              <p class="subtitle-a">
+                This below is my home work from KMUTNB class can click to see
+                it.
+              </p>
+              <div class="line-mf"></div>
             </div>
-
-            <div id="myModal" class="modal">
-              <span class="close">&times;</span>
-              <img class="modal-content" id="img01" />
-              <div id="caption"></div>
-            </div>
-
-            <script>
-              const images = [
-                "./src/images/etc/act-1.jpg",
-                "./src/images/etc/act-2.jpg",
-                "./src/images/etc/suit.jpg",
-                "./src/images/etc/student.jpg",
-                "./src/images/etc/guitar.jpg",
-                "./src/images/etc/twist.jpg",
-                "./src/images/etc/getsound-1.jpg",
-                "./src/images/etc/getsound-2.jpg",
-                "./src/images/etc/getsound-5.jpg",
-                "./src/images/etc/getsound-7.jpg",
-                "./src/images/etc/cda-1.jpg",
-                "./src/images/etc/cda-2.jpg",
-                "./src/images/etc/cloud-2.jpg",
-                "./src/images/etc/twister.jpg",
-              ];
-
-              for (i = 1; i <= images.length; i++) {
-                var img = document.getElementById("myImg-" + i);
-                img.onclick = function () {
-                  modal.style.display = "block";
-                  modalImg.src = this.src;
-                  captionText.innerHTML = this.alt;
-                };
-              }
-
-              var modal = document.getElementById("myModal");
-              var modalImg = document.getElementById("img01");
-              var captionText = document.getElementById("caption");
-
-              var span = document.getElementsByClassName("close")[0];
-
-              span.onclick = function () {
-                modal.style.display = "none";
-              };
-            </script>
           </div>
-        </section>
-        <div style="height: 100px"></div>
-        <img
-          src="https://zeven-counter.zevenelx.repl.co/get/@pho0m"
-          style="margin-left: -90px"
-        />
+        </div>
+        <div id="hwCard"></div>
       </div>
     </section>
+
+    <!--/ Section Portfolio End /-->
+    <div
+      class="section-counter paralax-mf bg-image"
+      style="
+        background-image: url(https://media.discordapp.net/attachments/939232005386809425/947942917505445908/247807.jpg?width=901&height=676);
+      "
+    >
+      <div class="overlay-mf"></div>
+      <div class="container col-sm-12 testimonial-box">
+        <p class="intro-title mb-4">The number of visitors to our website.</p>
+        <img src="https://zeven-counter.zevenelx.repl.co/get/@pho0m" />
+      </div>
+    </div>
+
+    <!--/ Section Blog Star /-->
+    <section id="work" class="blog-mf sect-pt4 route">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="title-box text-center">
+              <h3 class="title-a">Workings</h3>
+              <p class="subtitle-a">work in progress - comming soon.</p>
+              <div class="line-mf"></div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="row">
+          <div class="col-md-4">
+            <div class="card card-blog">
+              <div class="card-img">
+                <a href="blog-single.html"
+                  ><img src="img/post-1.jpg" alt="" class="img-fluid"
+                /></a>
+              </div>
+              <div class="card-body">
+                <div class="card-category-box">
+                  <div class="card-category">
+                    <h6 class="category">Travel</h6>
+                  </div>
+                </div>
+                <h3 class="card-title">
+                  <a href="blog-single.html">See more ideas about Travel</a>
+                </h3>
+                <p class="card-description">
+                  Proin eget tortor risus. Pellentesque in ipsum id orci porta
+                  dapibus. Praesent sapien massa, convallis a pellentesque nec,
+                  egestas non nisi.
+                </p>
+              </div>
+              <div class="card-footer">
+                <div class="post-author">
+                  <a href="#">
+                    <img
+                      src="img/testimonial-2.jpg"
+                      alt=""
+                      class="avatar rounded-circle"
+                    />
+                    <span class="author">Morgan Freeman</span>
+                  </a>
+                </div>
+                <div class="post-date">
+                  <span class="ion-ios-clock-outline"></span> 10 min
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-blog">
+              <div class="card-img">
+                <a href="blog-single.html"
+                  ><img src="img/post-2.jpg" alt="" class="img-fluid"
+                /></a>
+              </div>
+              <div class="card-body">
+                <div class="card-category-box">
+                  <div class="card-category">
+                    <h6 class="category">Web Design</h6>
+                  </div>
+                </div>
+                <h3 class="card-title">
+                  <a href="blog-single.html">See more ideas about Travel</a>
+                </h3>
+                <p class="card-description">
+                  Proin eget tortor risus. Pellentesque in ipsum id orci porta
+                  dapibus. Praesent sapien massa, convallis a pellentesque nec,
+                  egestas non nisi.
+                </p>
+              </div>
+              <div class="card-footer">
+                <div class="post-author">
+                  <a href="#">
+                    <img
+                      src="img/testimonial-2.jpg"
+                      alt=""
+                      class="avatar rounded-circle"
+                    />
+                    <span class="author">Morgan Freeman</span>
+                  </a>
+                </div>
+                <div class="post-date">
+                  <span class="ion-ios-clock-outline"></span> 10 min
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-blog">
+              <div class="card-img">
+                <a href="blog-single.html"
+                  ><img src="img/post-3.jpg" alt="" class="img-fluid"
+                /></a>
+              </div>
+              <div class="card-body">
+                <div class="card-category-box">
+                  <div class="card-category">
+                    <h6 class="category">Web Design</h6>
+                  </div>
+                </div>
+                <h3 class="card-title">
+                  <a href="blog-single.html">See more ideas about Travel</a>
+                </h3>
+                <p class="card-description">
+                  Proin eget tortor risus. Pellentesque in ipsum id orci porta
+                  dapibus. Praesent sapien massa, convallis a pellentesque nec,
+                  egestas non nisi.
+                </p>
+              </div>
+              <div class="card-footer">
+                <div class="post-author">
+                  <a href="#">
+                    <img
+                      src="img/testimonial-2.jpg"
+                      alt=""
+                      class="avatar rounded-circle"
+                    />
+                    <span class="author">Morgan Freeman</span>
+                  </a>
+                </div>
+                <div class="post-date">
+                  <span class="ion-ios-clock-outline"></span> 10 min
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> -->
+    </section>
+    <!--/ Section Blog End /-->
+
+      <section id="contact" class="blog-mf sect-pt4 route">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="title-box text-center">
+              <h3 class="title-a">Contact</h3>
+              <p class="subtitle-a">work in progress - comming soon.</p>
+              <div class="line-mf"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      
+    <!--/ Section Testimonials Star /-->
+    <div
+      class="testimonials paralax-mf bg-image"
+      style="background-image: url(./img/overlay-bg.jpg)"
+    >
+      <div class="overlay-mf"></div>
+      
+      <!-- <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div id="testimonial-mf" class="owl-carousel owl-theme">
+              <div class="testimonial-box">
+                <div class="author-test">
+                  <img
+                    src="img/testimonial-2.jpg"
+                    alt=""
+                    class="rounded-circle b-shadow-a"
+                  />
+                  <span class="author">Xavi Alonso</span>
+                </div>
+                <div class="content-test">
+                  <p class="description lead">
+                    Curabitur arcu erat, accumsan id imperdiet et, porttitor at
+                    sem. Lorem ipsum dolor sit amet, consectetur adipiscing
+                    elit.
+                  </p>
+                  <span class="comit"><i class="fa fa-quote-right"></i></span>
+                </div>
+              </div>
+              <div class="testimonial-box">
+                <div class="author-test">
+                  <img
+                    src="img/testimonial-4.jpg"
+                    alt=""
+                    class="rounded-circle b-shadow-a"
+                  />
+                  <span class="author">Marta Socrate</span>
+                </div>
+                <div class="content-test">
+                  <p class="description lead">
+                    Curabitur arcu erat, accumsan id imperdiet et, porttitor at
+                    sem. Lorem ipsum dolor sit amet, consectetur adipiscing
+                    elit.
+                  </p>
+                  <span class="comit"><i class="fa fa-quote-right"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> -->
+
+      <!--/ Section Contact-Footer Star /-->
+      <br />
+      <br />
+      <br />
+
+      <footer>
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="copyright-box">
+                <p class="copyright">
+                  &copy; Copyright <strong>Pho0m</strong>. All Rights Reserved
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+    <div id="preloader"></div>
+
+    <script>
+    window.addEventListener("load", () => {      
+      fetch("./hw-data.json")
+      .then(res=>res.json())
+      .then((raw) => {
+        var box = `<div class="row">`;
+
+        for (let value of raw) {
+            box += `<div class="col-md-4">
+                      <div class="work-box">
+                        <div class="work-img">
+                          <a
+                            href="${value.image}"
+                            data-lightbox="gallery-mf"
+                          >
+                            <img
+                              src="${value.image}"
+                              alt=""
+                              class="img-fluid"
+                            />
+                          </a>
+                        </div>
+                        <div class="work-content">
+                          <div class="row">
+                            <div class="col-sm-8">
+                              <h2 class="w-title">${value.title}</h2>
+                              <div class="w-more">
+                                <span class="w-ctegory">${value.description}</span
+                                ><br />
+                                <span class="w-date">${value.date}</span><br /><br />
+                                <a
+                                  href="${value.classroom_link}"
+                                  target="_blank"
+                                  ><i class="fa-solid fa-chalkboard"></i> Classroom</a
+                                >
+                                <br />
+                                <a
+                                  href="${value.link}"
+                                  target="_blank"
+                                  ><i class="fa-solid fa-arrow-up-right-from-square"></i> See more</a
+                                >
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>`
+        }
+        box += `</div>`
+        document.getElementById("hwCard").innerHTML = box;
+      });
+    });
+    </script>
+
+
+    <script src="lib/jquery/jquery.min.js"></script>
+    <script src="lib/jquery/jquery-migrate.min.js"></script>
+    <script src="lib/popper/popper.min.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/counterup/jquery.waypoints.min.js"></script>
+    <script src="lib/counterup/jquery.counterup.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/lightbox/js/lightbox.min.js"></script>
+    <script src="lib/typed/typed.min.js"></script>
+    <script src="contactform/contactform.js"></script>
+
+    <script src="js/main.js"></script>
   </body>
-  <footer id="ft">❤ thank you for watching ❤</footer>
 </html>

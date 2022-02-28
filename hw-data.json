@@ -1,0 +1,34 @@
+[
+  {
+    "image": "https://media.discordapp.net/attachments/939232005386809425/947937360241373244/HW1.jpg",
+    "title": "HW1: Intro to HTML",
+    "description": "Use Notepad to create an HTML file that contains your name and student id.",
+    "date": "5 Jan. 2022",
+    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDUwOTg4NTkwMjE3/details",
+    "link": "./hw/hw1/index.html"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939232005386809425/947958990908821576/unknown.png?width=1333&height=676",
+    "title": "HW2: HTML and CSS",
+    "description": "No description.",
+    "date": "19 Jan. 2022",
+    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDU2NDM0MjcxNjQ2/details",
+    "link": "./hw/hw2/index.html"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939232005386809425/947962868467380264/unknown.png?width=1330&height=676",
+    "title": "HW3: Form",
+    "description": "Create a form that contains: (at least)\n-Textbox\n-Radio button\n-Select\n-Checkbox\n-Text area\n\n-Make sure to decorate your form using CSS, Bootstrap, or whatever you like to use",
+    "date": "2 Fab. 2022",
+    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY0NTM3ODE3OTEw/details",
+    "link": "./hw/hw3/index.html"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939232005386809425/947963426427240448/unknown.png?width=1341&height=676",
+    "title": "HW 4: JS 1",
+    "description": "Write a webpage that receives a number from window.prompt() - Then display Multiple Table in the form of <table> using Javascipt ( document.write()) - Deploy your work to Firebase Hosting. (using firebase deploy) Submit your source code and Link to your Firebase project to Google classroom.",
+    "date": "9 Fab. 2022",
+    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY2NDUzMTA1MTU3/details",
+    "link": "./hw/hw4/index.html"
+  }
+]
