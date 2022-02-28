@@ -18,7 +18,7 @@
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947962868467380264/unknown.png?width=1330&height=676",
     "title": "HW3: Form",
-    "description": "Create a form that contains: (at least)\n-Textbox\n-Radio button\n-Select\n-Checkbox\n-Text area\n\n-Make sure to decorate your form using CSS, Bootstrap, or whatever you like to use",
+    "description": "Create a form that contains: (at least) -Textbox -Radio button -Select -Checkbox -Text area -Make sure to decorate your form using CSS, Bootstrap, or whatever you like to use",
     "date": "2 Fab. 2022",
     "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY0NTM3ODE3OTEw/details",
     "link": "./hw/hw3/index.html"
@@ -26,9 +26,17 @@
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947963426427240448/unknown.png?width=1341&height=676",
     "title": "HW 4: JS 1",
-    "description": "Write a webpage that receives a number from window.prompt() - Then display Multiple Table in the form of <table> using Javascipt ( document.write()) - Deploy your work to Firebase Hosting. (using firebase deploy) Submit your source code and Link to your Firebase project to Google classroom.",
+    "description": "Write a webpage that receives a number from window.prompt() - Then display Multiple Table in the form of table using Javascipt ( document.write()) - Deploy your work to Firebase Hosting. (using firebase deploy) Submit your source code and Link to your Firebase project to Google classroom.",
     "date": "9 Fab. 2022",
     "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY2NDUzMTA1MTU3/details",
     "link": "./hw/hw4/index.html"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939232005386809425/947984493464141864/unknown.png?width=1323&height=676",
+    "title": "HW 5: Form Validation",
+    "description": "Validate Form: (You can use form from previous homework or edit the old one.) Use javascript to validate a form: -Textbox -Radio button -Select -Checkbox  (if you have multiple checkboxes, you can specify the minimum number of items to be selected.)",
+    "date": "23 Fab. 2022",
+    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDc0MzkxNzc1MDk1/details",
+    "link": "./hw/hw5/index.html"
   }
 ]

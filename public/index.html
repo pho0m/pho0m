@@ -415,8 +415,8 @@
               </div>
             </div>
           </div>
-        </div>
-      </div> -->
+        </div>-->
+      </div> 
     </section>
     <!--/ Section Blog End /-->
 
@@ -518,9 +518,10 @@
         var box = `<div class="row">`;
 
         for (let value of raw) {
-            box += `<div class="col-md-4">
-                      <div class="work-box">
-                        <div class="work-img">
+            box += `
+            <div class="col-md-4">
+                <div class="work-box">
+                    <div class="work-img">
                           <a
                             href="${value.image}"
                             data-lightbox="gallery-mf"
@@ -531,8 +532,8 @@
                               class="img-fluid"
                             />
                           </a>
-                        </div>
-                        <div class="work-content">
+                    </div>
+                    <div class="work-content">
                           <div class="row">
                             <div class="col-sm-8">
                               <h2 class="w-title">${value.title}</h2>
@@ -554,11 +555,14 @@
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>`
+                    </div>
+                </div>
+              </div>`
         }
         box += `</div>`
+
+        console.log(box)
+
         document.getElementById("hwCard").innerHTML = box;
       });
     });
@@ -575,8 +579,13 @@
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
     <script src="lib/lightbox/js/lightbox.min.js"></script>
     <script src="lib/typed/typed.min.js"></script>
-    <script src="contactform/contactform.js"></script>
 
     <script src="js/main.js"></script>
   </body>
 </html>
+
+
+
+
+
+
