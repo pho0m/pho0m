@@ -38,5 +38,21 @@
     "date": "23 Fab. 2022",
     "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDc0MzkxNzc1MDk1/details",
     "link": "./hw/hw5/index.html"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/954449447545348096/unknown.png?width=1440&height=567",
+    "title": "HW 6: React1",
+    "description": "No description.",
+    "date": "16 Mar. 2022",
+    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDgyMzM5ODY5MTIx/details",
+    "link": "https://kiattipho0m-react.web.app/"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/954448372029333614/unknown.png?width=1364&height=670",
+    "title": "Midterm Project",
+    "description": "Bangkok parallax website my midterm project",
+    "date": "9 Mar. 2022",
+    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDc0Mzk0NTg3NjIz/details",
+    "link": "https://bangkok-midterm-project.web.app/"
   }
 ]
