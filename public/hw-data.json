@@ -1,58 +1,51 @@
 [
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947937360241373244/HW1.jpg",
-    "title": "HW1: Intro to HTML",
+    "title": "Week 1",
     "description": "Use Notepad to create an HTML file that contains your name and student id.",
-    "date": "5 Jan. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDUwOTg4NTkwMjE3/details",
+    "date": "30 may - 2 june 2022",
     "link": "./hw/hw1/index.html"
   },
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947958990908821576/unknown.png?width=1333&height=676",
-    "title": "HW2: HTML and CSS",
+    "title": "Week 2",
     "description": "No description.",
-    "date": "19 Jan. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDU2NDM0MjcxNjQ2/details",
+    "date": "6 june - 10 june 2022",
     "link": "./hw/hw2/index.html"
   },
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947962868467380264/unknown.png?width=1330&height=676",
-    "title": "HW3: Form",
+    "title": "Week 3",
     "description": "Create a form that contains: (at least) -Textbox -Radio button -Select -Checkbox -Text area -Make sure to decorate your form using CSS, Bootstrap, or whatever you like to use",
-    "date": "2 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY0NTM3ODE3OTEw/details",
+    "date": "13 june - 17 june 2022",
     "link": "./hw/hw3/index.html"
   },
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947963426427240448/unknown.png?width=1341&height=676",
-    "title": "HW 4: JS 1",
+    "title": "Week 4",
     "description": "Write a webpage that receives a number from window.prompt() - Then display Multiple Table in the form of table using Javascipt ( document.write()) - Deploy your work to Firebase Hosting. (using firebase deploy) Submit your source code and Link to your Firebase project to Google classroom.",
-    "date": "9 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY2NDUzMTA1MTU3/details",
+    "date": "20 june - 24 june 2022",
     "link": "./hw/hw4/index.html"
   },
   {
     "image": "https://media.discordapp.net/attachments/939232005386809425/947984493464141864/unknown.png?width=1323&height=676",
-    "title": "HW 5: Form Validation",
+    "title": "Week 5",
     "description": "Validate Form: (You can use form from previous homework or edit the old one.) Use javascript to validate a form: -Textbox -Radio button -Select -Checkbox  (if you have multiple checkboxes, you can specify the minimum number of items to be selected.)",
-    "date": "23 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDc0MzkxNzc1MDk1/details",
+    "date": "27 june - 1 july 2022",
     "link": "./hw/hw5/index.html"
   },
   {
     "image": "https://media.discordapp.net/attachments/939231737488228375/954449447545348096/unknown.png?width=1440&height=567",
-    "title": "HW 6: React1",
+    "title": "Week 6",
     "description": "No description.",
-    "date": "16 Mar. 2022",
-    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDgyMzM5ODY5MTIx/details",
+    "date": "4 july - 8 july 2022",
     "link": "https://kiattipho0m-react.web.app/"
   },
   {
     "image": "https://media.discordapp.net/attachments/939231737488228375/954448372029333614/unknown.png?width=1364&height=670",
-    "title": "Midterm Project",
+    "title": "Week 7",
     "description": "Bangkok parallax website my midterm project",
-    "date": "9 Mar. 2022",
-    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDc0Mzk0NTg3NjIz/details",
+    "date": "11 july - 15 july 2022",
     "link": "https://bangkok-midterm-project.web.app/"
   }
 ]
