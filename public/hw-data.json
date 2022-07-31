@@ -1,58 +1,51 @@
 [
   {
-    "image": "https://media.discordapp.net/attachments/939232005386809425/947937360241373244/HW1.jpg",
-    "title": "HW1: Intro to HTML",
-    "description": "Use Notepad to create an HTML file that contains your name and student id.",
-    "date": "5 Jan. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDUwOTg4NTkwMjE3/details",
-    "link": "./hw/hw1/index.html"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003330639610789989/unknown.png?width=1298&height=676",
+    "title": "Week-1",
+    "description": "Starting internship with my friend Tueytep Thumma...",
+    "date": "30 may - 2 june 2022",
+    "data": "Starting internship with my friend Tueytep Thummawong at studio twist main office. First morning setup environment for work at office. and Design work flow with 'Intregration test' for RUSHS platform with my backend team (I work part time since before the internship)"
   },
   {
-    "image": "https://media.discordapp.net/attachments/939232005386809425/947958990908821576/unknown.png?width=1333&height=676",
-    "title": "HW2: HTML and CSS",
-    "description": "No description.",
-    "date": "19 Jan. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDU2NDM0MjcxNjQ2/details",
-    "link": "./hw/hw2/index.html"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003316440331452466/unknown.png?width=1298&height=676",
+    "title": "Week-2",
+    "description": "Coding and Testing intragration test and unit test...",
+    "date": "6 june - 10 june 2022",
+    "data": "Coding and Testing intragration test and unit test with GO LANGUAGE [Go (programming language)]. Go is a statically typed, compiled programming language designed at Google It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go."
   },
   {
-    "image": "https://media.discordapp.net/attachments/939232005386809425/947962868467380264/unknown.png?width=1330&height=676",
-    "title": "HW3: Form",
-    "description": "Create a form that contains: (at least) -Textbox -Radio button -Select -Checkbox -Text area -Make sure to decorate your form using CSS, Bootstrap, or whatever you like to use",
-    "date": "2 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY0NTM3ODE3OTEw/details",
-    "link": "./hw/hw3/index.html"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003316555548987502/unknown.png?width=1298&height=676",
+    "title": "Week-3",
+    "description": "Coding and Testing intragration test and unit test...",
+    "date": "13 june - 17 june 2022",
+    "data": "Coding and Testing intragration test and unit test and deploy with develop environment by feature such as CRUD apis (create, read, update, delete), LINE notification apis, Create order with POS, LIFF, Woocomerce apis etc."
   },
   {
-    "image": "https://media.discordapp.net/attachments/939232005386809425/947963426427240448/unknown.png?width=1341&height=676",
-    "title": "HW 4: JS 1",
-    "description": "Write a webpage that receives a number from window.prompt() - Then display Multiple Table in the form of table using Javascipt ( document.write()) - Deploy your work to Firebase Hosting. (using firebase deploy) Submit your source code and Link to your Firebase project to Google classroom.",
-    "date": "9 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDY2NDUzMTA1MTU3/details",
-    "link": "./hw/hw4/index.html"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003316724986294312/unknown.png?width=1298&height=676",
+    "title": "Week-4",
+    "description": "Coding Coding Coding Anddddd Testing !!!",
+    "date": "20 june - 24 june 2022",
+    "data": "Coding Coding Coding Anddddd Testing !!! "
   },
   {
-    "image": "https://media.discordapp.net/attachments/939232005386809425/947984493464141864/unknown.png?width=1323&height=676",
-    "title": "HW 5: Form Validation",
-    "description": "Validate Form: (You can use form from previous homework or edit the old one.) Use javascript to validate a form: -Textbox -Radio button -Select -Checkbox  (if you have multiple checkboxes, you can specify the minimum number of items to be selected.)",
-    "date": "23 Fab. 2022",
-    "classroom_link": "https://classroom.google.com/c/NDUwMTA1NzczMTQ2/a/NDc0MzkxNzc1MDk1/details",
-    "link": "./hw/hw5/index.html"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003316818779324517/unknown.png?width=1298&height=676",
+    "title": "Week-5",
+    "description": "Fixed Bugs Generate Barcode with SKU in RUSHS...",
+    "date": "27 june - 1 july 2022",
+    "data": "Fixed the bug of creating barcodes with sku codes in Rushs system that were already done for customers who use the service and write an Intregration Test to avoid any errors in terms of the size of the barcode. Barcode type and page setup until the document printer"
   },
   {
-    "image": "https://media.discordapp.net/attachments/939231737488228375/954449447545348096/unknown.png?width=1440&height=567",
-    "title": "HW 6: React1",
-    "description": "No description.",
-    "date": "16 Mar. 2022",
-    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDgyMzM5ODY5MTIx/details",
-    "link": "https://kiattipho0m-react.web.app/"
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003321824555302922/295580695_3290115467902288_3933593817882796934_n.jpg?width=1298&height=676",
+    "title": "Week-6",
+    "description": "Setup BIVOCOM Router use with CCTV for pump in...",
+    "date": "4 july - 8 july 2022",
+    "data": "Setup BIVOCOM Router use with CCTV for pump in Bangkok. BIVOCOM is IoT Gateways Tailor-designed for industrial applications require collecting, processing, storing the data at the edge, as well as high speed, seamless and secure communication with field devices. My work's configuration BIVOCOM port, user admin, connect 4g and connect with CCTV."
   },
   {
-    "image": "https://media.discordapp.net/attachments/939231737488228375/954448372029333614/unknown.png?width=1364&height=670",
-    "title": "Midterm Project",
-    "description": "Bangkok parallax website my midterm project",
-    "date": "9 Mar. 2022",
-    "classroom_link": "https://classroom.google.com/u/1/c/NDUwMTA1NzczMTQ2/a/NDc0Mzk0NTg3NjIz/details",
-    "link": "https://bangkok-midterm-project.web.app/"
+    "image": "https://cdn.discordapp.com/attachments/991024902872104981/991344363688972358/20220606_140212.jpg?width=1298&height=676",
+    "title": "Week-7",
+    "description": "Complete setup, configuration and testing ...",
+    "date": "11 july - 15 july 2022",
+    "data": "Complete setup, configuration and testing BIVOCOM before sent to customer"
   }
 ]
