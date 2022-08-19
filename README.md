@@ -13,9 +13,7 @@
 <!--START_SECTION:waka-->
 
 ```text
-Markdown   1 hr 57 mins    █████████████▒░░░░░░░░░░░   53.63 %
-Go         1 hr 39 mins    ███████████▒░░░░░░░░░░░░░   45.38 %
-Makefile   2 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.99 %
+Markdown   1 hr 57 mins    █████████████████████████   100.00 %
 ```
 
 <!--END_SECTION:waka-->
