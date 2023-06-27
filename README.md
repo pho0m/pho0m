@@ -1,12 +1,10 @@
-![alt text](./i'm%20pho0m.gif)
+# Hi 💬
 
-# Let me introduce 💬
+- 👋 I’m pho0m, Kiattiphoom Poonketkit.
+- 🗨️ Study at KMUTNB
+- 🙍‍♂️ working at Studio Twist https://www.studiotwist.co/
 
-- 👋 Hi, I’m pho0m, Kiattiphoom Poonketkit.
-- 🗨️ Study at KMUTNB Faculty of Education TCT-R31
-- 🙍‍♂️ Studio Twist https://www.studiotwist.co/
-
-# My Skill 💬
+# Current lang 💬
 
 <!--START_SECTION:waka-->
 
