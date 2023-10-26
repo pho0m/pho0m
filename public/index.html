@@ -1098,28 +1098,29 @@ Security: Implementing HTTPS, securing endpoints, and regularly auditing the sys
             for (let i = 0; i < jsonData.length; i++) {
               let isActive = i === 0 ? "active" : "";
               let videoElement = `
-    <div class="carousel-item ${isActive}" style="height: 1200px;">
-        <video id="video${i}" class="carousel-video" style="object-fit: cover;" autoplay muted width="100%">
-            <source src="${jsonData[i].video}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <div class="carousel-caption">
-            <p>${jsonData[i].description}</p>
-        </div>
-    </div>`;
+            <div class="carousel-item ${isActive}" style="height: 1200px;">
+                <video id="video${i}" class="carousel-video" style="object-fit: cover;" autoplay muted width="100%">
+                    <source src="${jsonData[i].video}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="carousel-caption">
+                    <p>${jsonData[i].description}</p>
+                </div>
+            </div>`;
               $(".carousel-inner").append(videoElement);
             }
           });
         </script>
 
-=======
         <div class="row">
           <div class="column">
             <img
               src="https://cdn.discordapp.com/attachments/991024902872104981/1001156310701707394/Screenshot_20220725-223049_Instagram.jpg?width=670&height=669"
-          <a href="https://www.instagram.com/pho0m/" target="_blank"
-            ><i class="fa-brands fa-instagram"></i> pho0m</a
-          >
+              >
+          <a 
+          href="https://www.instagram.com/pho0m/" 
+          target="_blank"
+            ><i class="fa-brands fa-instagram"></i> pho0m</a>
         </div>
       </div>
       <br />
