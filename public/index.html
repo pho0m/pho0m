@@ -1011,93 +1011,93 @@ Security: Implementing HTTPS, securing endpoints, and regularly auditing the sys
           <div id="videoCarousel" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner">
               <!-- Videos will be inserted here by JavaScript -->
-            <a
-              class="carousel-control-prev"
-              href="#videoCarousel"
-              role="button"
-              data-slide="prev"
-            >
-              <span
-                class="carousel-control-prev-icon"
-                aria-hidden="true"
-              ></span>
-              <span class="sr-only">Previous</span>
-            </a>
-            <a
-              class="carousel-control-next"
-              href="#videoCarousel"
-              role="button"
-              data-slide="next"
-            >
-              <span
-                class="carousel-control-next-icon"
-                aria-hidden="true"
-              ></span>
-              <span class="sr-only">Next</span>
-            </a>
+              <a
+                class="carousel-control-prev"
+                href="#videoCarousel"
+                role="button"
+                data-slide="prev"
+              >
+                <span
+                  class="carousel-control-prev-icon"
+                  aria-hidden="true"
+                ></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a
+                class="carousel-control-next"
+                href="#videoCarousel"
+                role="button"
+                data-slide="next"
+              >
+                <span
+                  class="carousel-control-next-icon"
+                  aria-hidden="true"
+                ></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
           </div>
-        </div>
-        <br /><br />
+          <br /><br />
 
-        <script>
-          // Sample JSON data
-          let jsonData = [
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230510_180050.mp4",
-              description: "Feeling when meeting time",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230512_202046.mp4",
-              description: "My brothers so cute",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230512_202046.mp4",
-              description: "let's Brief !",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230523_204110.mp4",
-              description: "Feeling when working",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230529_194742.mp4",
-              description: "Feeling when working 2",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230530_173443.mp4",
-              description: "The legend of selda",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230811_155135.mp4",
-              description: "Qin Shi Huang !",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230831_211117.mp4",
-              description: "Eating with twist team",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20230831_214154.mp4",
-              description: "Go Outting at samyan midtown",
-            },
-            {
-              video:
-                "https://storage.googleapis.com/isted-dev/20231026_163356.mp4",
-              description: "When you write too much code",
-            },
-          ];
+          <script>
+            // Sample JSON data
+            let jsonData = [
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230510_180050.mp4",
+                description: "Feeling when meeting time",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230512_202046.mp4",
+                description: "My brothers so cute",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230512_202046.mp4",
+                description: "let's Brief !",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230523_204110.mp4",
+                description: "Feeling when working",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230529_194742.mp4",
+                description: "Feeling when working 2",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230530_173443.mp4",
+                description: "The legend of selda",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230811_155135.mp4",
+                description: "Qin Shi Huang !",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230831_211117.mp4",
+                description: "Eating with twist team",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20230831_214154.mp4",
+                description: "Go Outting at samyan midtown",
+              },
+              {
+                video:
+                  "https://storage.googleapis.com/isted-dev/20231026_163356.mp4",
+                description: "When you write too much code",
+              },
+            ];
 
-          $(document).ready(function () {
-            for (let i = 0; i < jsonData.length; i++) {
-              let isActive = i === 0 ? "active" : "";
-              let videoElement = `
+            $(document).ready(function () {
+              for (let i = 0; i < jsonData.length; i++) {
+                let isActive = i === 0 ? "active" : "";
+                let videoElement = `
             <div class="carousel-item ${isActive}" style="height: 1200px;">
                 <video id="video${i}" class="carousel-video" style="object-fit: cover;" autoplay muted width="100%">
                     <source src="${jsonData[i].video}" type="video/mp4">
@@ -1107,20 +1107,10 @@ Security: Implementing HTTPS, securing endpoints, and regularly auditing the sys
                     <p>${jsonData[i].description}</p>
                 </div>
             </div>`;
-              $(".carousel-inner").append(videoElement);
-            }
-          });
-        </script>
-
-        <div class="row">
-          <div class="column">
-            <img
-              src="https://cdn.discordapp.com/attachments/991024902872104981/1001156310701707394/Screenshot_20220725-223049_Instagram.jpg?width=670&height=669"
-              >
-          <a 
-          href="https://www.instagram.com/pho0m/" 
-          target="_blank"
-            ><i class="fa-brands fa-instagram"></i> pho0m</a>
+                $(".carousel-inner").append(videoElement);
+              }
+            });
+          </script>
         </div>
       </div>
       <br />
@@ -1156,7 +1146,7 @@ Security: Implementing HTTPS, securing endpoints, and regularly auditing the sys
     </div>
 
     <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
-    <div id="preloader"></div> 
+    <div id="preloader"></div>
 
     <script>
       window.addEventListener("load", () => {
