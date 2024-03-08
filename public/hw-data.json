@@ -1,6 +1,6 @@
 [
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167179703828877382/image.png?ex=654d2fce&is=653abace&hm=251860273d2f8f90489717f8039e5f901afe66b55dd947df07f7ac228316e83e&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1003321824555302922/295580695_3290115467902288_3933593817882796934_n.jpg?ex=65f70ac3&is=65e495c3&hm=fb64e56af0db10aa57f5703eff661bc0a9f66df0fa4572188e6c3d5d6c6a03c3&=&format=webp&width=628&height=500",
     "title": "May",
     "description": "Let's starting internship with comeback party...",
     "date": "1 May - 1 June 2023",
@@ -8,7 +8,7 @@
     "dataTh": "ต้องกล่าวถึงในต้นเรื่อง ผมเคยทำงานที่บริษัทนี้มานานมาก เป็นเวลามากกว่า 3 ปี โดย เริ่มทำงานในปีแรก ด้วยบทบาท นักศึกษาฝึกงาน สหกิจ 1 ปี เมื่อตอนยังคงเรียนอยู่ ระดับชั้น ปวส. และเมื่อเรียนจบ และฝึกงานเสร็จสิ้น ทำให้พี่ๆ ผู้บริหารเห็นพัฒนาการในตัวผม จึงได้ติดต่อให้ผมทำงานต่อ โดยรับบทเป็น พนักงาน part time ทำให้ผมเป็นพนักงาน part time มาตั้งแต่ตอนนั้น จนได้เข้ามาเรียน มหาลัย ผมจึงจำเป็นต้องเรียน จึงไม่ค่อยได้เข้าไปที่ออฟฟิส ทำให้ไม่ค่อยได้ติดต่อกับพวกเขา และยังไม่ค่อยได้เจอกัน แต่ผมยังคงทำงานให้เขา ในบทบาท part time มาตลอดอย่างสม่ำเสมอ เมื่อมาถึงช่วงเวลาที่ผมต้องฝึกสหกิจอีก 1 ปีเต็มผมจึงเลือกกลับมาฝึกที่เดิม เพราะที่นี่ยังมีอะไรให้ทำ ให้ศึกษา ให้ต่อยอดอีกมากมาย เขาจึงให้ผมและเหล่าพนักงานได้พักผ่อน เพราะบังเอิญเข้าไปช่วง cooldown ของทาง บริษัทพอดี ในเดือนนี้จึงได้แต่ทำงานที่ค้างคาเอาไว้ ประกอบไปด้วย การเขียน integration test เพื่อทดสอบระบบจริงทั้งหมด ของโปรเจกหนึ่ง ทั้งเดือน"
   },
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167212008337322096/IMG_20231027_042312_704.jpg?ex=654d4de4&is=653ad8e4&hm=12a4c2804e1aba9a5ad8c1a2a61d1213ac6a9d843a77cd635d1bbac7491f6401&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1194554938521554964/20231103_173525.jpg?ex=65fa9afb&is=65e825fb&hm=e3d42d5bbb2c270d22ed3bff18c7b2994f29f90707023852fbf6931f5217e508&=&format=webp&width=466&height=500",
     "title": "June",
     "description": "Coding and Testing intragration test and unit test...",
     "date": "1 June - 1 July 2023",
@@ -16,7 +16,7 @@
     "dataTh": "การเขียนโค้ดและการทดสอบด้วยการทดสอบแบบ integration test และ unit test ด้วยภาษา GO [Go (ภาษาโปรแกรม)] ซึ่ง Go เป็นภาษาที่ถูกคอมไพล์และมีการกำหนดประเภทข้อมูลโดยคงที่ ซึ่งออกแบบขึ้นที่ Google มีความคล้ายคลึงกับภาษา C ในเชิงไวยากรณ์ แต่มีความปลอดภัยด้านหน่วยความจำ, การรวบรวมขยะ, การกำหนดประเภทแบบโครงสร้าง และการทำงานแบบ CSP-style concurrency. บางครั้งมักเรียกว่า Golang เนื่องจากชื่อโดเมนเดิมคือ golang.org แต่ชื่อที่ถูกต้องคือ Go. โดยใน part ของเดือนนี้จะเป็นการทำ integration test และ unit test อย่างต่อเนื่องมากมายหลายโปรเจก โดยมี ผม กับพี่เลี้ยง ร่วมด้วยช่วยกันทำคนละ 2 โปรเจก switch กันทำตาม feature ที่ได้รับมอบหมาย"
   },
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167181256698634311/20230511_115506.jpg?ex=654d3140&is=653abc40&hm=3bc3cccb002be930fc61c3bf345a06b7f14986cb498528a1acd1d756c4e56193&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/991024902872104981/991344362959151104/20220606_140205.jpg?ex=65f99c62&is=65e72762&hm=044bd55f7f17c364aa1c2b61fc652f5abfa85f9b25afbff239337943103c82c5&=&format=webp&width=628&height=500",
     "title": "July",
     "description": "Prepared and setup to go to BMAEXPO2023 with twist team...",
     "date": "1 July - 1 August 2023",
@@ -24,7 +24,7 @@
     "dataTh": "การเขียน integration test และ unit test ดำเนินการมาจนถึงขั้นสุดท้ายและครบทุก feature แล้วพี่ๆเขาจึงเริ่มโปรเจกใหม่ให้ผมได้ลองจับ โดยในโปรเจกนี้นั้นเป็นโปรเจกที่ต้องใช้ hardware และ software เพื่อควบคุมปั้มน้ำ และ รายงานผล จึงได้รวมตัวประชุมวางแผน และ แจงแจงงานรวมถึงแจงจ่ายงานให้ไปศึกษารายคน จึงประชุมกันบ่อยมาก เพื่อเตรียมนำโปรเจกนี้ไปโชว์ที่งาน BMAEXPO2023"
   },
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167180584162971701/20230802_141750.jpg?ex=654d30a0&is=653abba0&hm=2db78d7c2c940fb8269e26f93ea44b938a38e6083b7a8493e61f221f1cacb1c5&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/991024902872104981/991344475232288799/2021_1230_03220700.jpg?ex=65f99c7d&is=65e7277d&hm=199387611d10c99498fce901404c2e2237d0d5888132050ff6fd7a0225a0c939&=&format=webp&width=707&height=500",
     "title": "August",
     "description": "Coding Coding Coding Anddddd Testing !!!",
     "date": "1 August - 1 September 2023",
@@ -32,7 +32,7 @@
     "dataTh": "ในเดือนนี้และเดือนที่ผ่านมาผมได้ศึกษาเกี่ยวกับ hardware ที่มีชื่อว่า arduino uno r3 และ shield เจ้าปัญหา Difobot เป็น shield ที่ใช้สำหรับการ ส่งข้อมูลขึ้นบนระบบ internet ในรูปแบบ 4g โดยเป็น sim card NB-IOT ซึ่ง sim card ประเภทนี้ต่างจาก sim card 4g ทั่วๆไปเป็น sim card ที่มี band width ที่ต่ำมากๆ เพื่อใช้สำหรับ อุปกรณ์ iot ที่อยู่กับที่ไม่ย้ายไปที่ไหน และ ประหยัดการส่งข้อมูล ประหยัดการกินพลังงานมากที่สุด เนื่องด้วยผม ไม่ค่อยได้สัมผัสกับ hardware บ่อยๆ ในเดือนนี้ทั้งเดือนจึงวุ่นวายกับการเขียนโปรเแกรมให้ Difobot สามารถส่งข้อมูลได้นั่นเอง แต่ก็มีงานอื่นๆให้ support อยู่บ้างเป็นบางวัน"
   },
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167211801340018739/Screenshot_20231027_041657_Instagram.jpg?ex=654d4db3&is=653ad8b3&hm=a296844e98d7aa6a3a8914f37d5cf51a16498207d26db21487c5181997f3c49c&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1001148827522302033/20220715_165412.jpg?ex=65f85d80&is=65e5e880&hm=82b5162c34140351b00466fb042a11c70ee9d655b6ec858f3b303d25907f7af7&=&format=webp&width=628&height=500",
     "title": "September",
     "description": "Let's go to BMAEXPO2023..................",
     "date": "1 September - 1 October 2023",
@@ -40,7 +40,7 @@
     "dataTh": "และแล้วก็ถึงเดือนที่ต้องส่งงานจนได้ ผมที่ทำสำเร็จเรียบร้อยตั้งแต่ สิ้นเดือนที่แล้ว จึงหมดห่วงและ ได้กลับมาทำงานอื่นๆ ต่อเช่น การ support ลูกค้า, การแก้ไขปัญหาของระบบ (bugs), การ deploy production และ staging environment บน google cloud, การสร้าง template pdf ผ่าน code เพื่อใส่ข้อมูลต่างๆ ที่มาจาก api แล้ว replace ลงบน pdf ในทันที และอื่นๆอีกมายมาย และอย่างสุดท้ายของเดือนนี้คือ ออกหน้างาน กับพี่ท็อปผู้เป็นพี่เลี้ยง โดยเจ้าอุปกรณ์ที่เห็นดังภาพเป็นเพียงแค่ prototype ขนาด 1:100"
   },
   {
-    "image": "https://media.discordapp.net/attachments/956426617083793428/1167210446995083318/image.png?ex=654d4c70&is=653ad770&hm=6e94463780a5ede5d1ed07afa6a412f79f0de41bc753fd31c7f4596f03751428&=&width=500&height=500",
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1214638020544831549/received_143889147877516.png?ex=65f9d6ce&is=65e761ce&hm=1085cc1458022322c2f566ec29614f3b32a73794c1f74bd7ee8ffd57250ce154&=&format=webp&quality=lossless&width=265&height=500",
     "title": "October",
     "description": "Diamons ERP system with new project for work....",
     "date": "1 October - Now",
