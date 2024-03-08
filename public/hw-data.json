@@ -43,8 +43,44 @@
     "image": "https://media.discordapp.net/attachments/991024902872104981/1214638020544831549/received_143889147877516.png?ex=65f9d6ce&is=65e761ce&hm=1085cc1458022322c2f566ec29614f3b32a73794c1f74bd7ee8ffd57250ce154&=&format=webp&quality=lossless&width=265&height=500",
     "title": "October",
     "description": "Diamons ERP system with new project for work....",
-    "date": "1 October - Now",
+    "date": "1 October - 31 October 2023",
     "data": "After the BMAEXPO2023 event concluded, I was given new responsibilities. Two colleagues at the company had resigned, creating a shortage of support for the ongoing projects. As a result, I was tasked with stepping in to take over some of their roles. I familiarized myself with the flow and various business logic conditions of the systems and began writing integration tests in the early part of the month. The latter half of the month was a crucial period for project delivery, so I was fully focused on fulfilling my responsibilities. This brings us up to the present day",
     "dataTh": "หลังจากจบงาน BMAEXPO2023 ผมก็ได้รับงานใหม่ เนื่องจากมีพี่ที่บริษัท ลาออกเป็นจำนวน 2 คน คนที่ support project ที่บริษัทถืออยู่จึงคนไม่พอ จึงพานพบให้ผมต้องเข้าไปรับผิดชอบแทน ผมจึงเข้าไปทำความรู้จักกับ flow และ business logic condition ต่างๆ ของระบบ แล้วนำมาเขียนตาม integration test ในช่วงต้นเดือน และในช่วงปลายเดือน เป็นช่วงเวลาเห่งการส่งงาน จึงทำให้ผมทำอะไรไม่ได้นอกจากต้องรับผิดชอบในส่วนที่ตัวเองทำ จนถึงปัจจุบัน (ขออนุญาติแปะเตือนตัวเองมีเพิ่มจะต้องมาอัพเดทนะ)"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1215537479667679242/20240306_151016.jpg?ex=65fd1c7e&is=65eaa77e&hm=3492f391aa330102f4eccd8df24fc9f09f207a4f4483368cdb9dacaecf3048f6&=&format=webp&width=780&height=585",
+    "title": "November"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1214623214899298386/img_0126.png?ex=65f9c905&is=65e75405&hm=536cee97490b868b998ef58d87582d04c870aaa43981cbf2a9d57b2f24e517d1&=&format=webp&quality=lossless&width=438&height=585",
+    "title": "December",
+    "description": "-",
+    "date": "-",
+    "data": "-",
+    "dataTh": "-"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1215537482263830559/1706241933081.jpg?ex=65fd1c7f&is=65eaa77f&hm=d1672ee95b6770128108bf4bc613382ae76c6ca00ec64200d02024bb05265701&=&format=webp&width=780&height=585",
+    "title": "January",
+    "description": "-",
+    "date": "-",
+    "data": "-",
+    "dataTh": "-"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/991024902872104981/1214638020544831549/received_143889147877516.png?ex=65f9d6ce&is=65e761ce&hm=1085cc1458022322c2f566ec29614f3b32a73794c1f74bd7ee8ffd57250ce154&=&format=webp&quality=lossless&width=265&height=500",
+    "title": "February",
+    "description": "-",
+    "date": "-",
+    "data": "-",
+    "dataTh": "-"
+  },
+  {
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1215536939399254086/1709756166909.jpg?ex=65fd1bfd&is=65eaa6fd&hm=05a8aa0a10b53c6aa5d2e6a49ff7d801170c62d9a83b15c63cd5b6ee18c392c1&=&format=webp&width=780&height=585",
+    "title": "March",
+    "description": "-",
+    "date": "-",
+    "data": "-",
+    "dataTh": "-"
   }
 ]
