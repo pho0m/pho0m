@@ -32,7 +32,7 @@
     "dataTh": "ในเดือนนี้และเดือนที่ผ่านมาผมได้ศึกษาเกี่ยวกับ hardware ที่มีชื่อว่า arduino uno r3 และ shield เจ้าปัญหา Difobot เป็น shield ที่ใช้สำหรับการ ส่งข้อมูลขึ้นบนระบบ internet ในรูปแบบ 4g โดยเป็น sim card NB-IOT ซึ่ง sim card ประเภทนี้ต่างจาก sim card 4g ทั่วๆไปเป็น sim card ที่มี band width ที่ต่ำมากๆ เพื่อใช้สำหรับ อุปกรณ์ iot ที่อยู่กับที่ไม่ย้ายไปที่ไหน และ ประหยัดการส่งข้อมูล ประหยัดการกินพลังงานมากที่สุด เนื่องด้วยผม ไม่ค่อยได้สัมผัสกับ hardware บ่อยๆ ในเดือนนี้ทั้งเดือนจึงวุ่นวายกับการเขียนโปรเแกรมให้ Difobot สามารถส่งข้อมูลได้นั่นเอง แต่ก็มีงานอื่นๆให้ support อยู่บ้างเป็นบางวัน"
   },
   {
-    "image": "https://media.discordapp.net/attachments/991024902872104981/1001148827522302033/20220715_165412.jpg?ex=65f85d80&is=65e5e880&hm=82b5162c34140351b00466fb042a11c70ee9d655b6ec858f3b303d25907f7af7&=&format=webp&width=628&height=500",
+    "image": "https://media.discordapp.net/attachments/939231737488228375/1215547110645043231/IMG_20240308_132944_854.jpg?ex=65fd2576&is=65eab076&hm=29e87a8ea009e392f34bda895a8634a567ece77fb724483af160d89af492f2aa&=&format=webp&width=328&height=585",
     "title": "September",
     "description": "Let's go to BMAEXPO2023..................",
     "date": "1 September - 1 October 2023",
