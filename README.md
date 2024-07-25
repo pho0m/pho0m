@@ -1,7 +1,6 @@
 # Hi 💬
 
 - 👋 I’m pho0m, Kiattiphoom Poonketkit.
-- 🗨️ Study at KMUTNB
 
 # Current lang 💬
 
