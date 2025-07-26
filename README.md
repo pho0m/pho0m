@@ -7,9 +7,8 @@
 <!--START_SECTION:waka-->
 
 ```txt
-PHP          2 hrs 39 mins   ████████████████▓░░░░░░░░   66.31 %
-TypeScript   59 mins         ██████▒░░░░░░░░░░░░░░░░░░   24.79 %
-Markdown     21 mins         ██▒░░░░░░░░░░░░░░░░░░░░░░   08.91 %
+PHP        2 hrs 39 mins   ██████████████████████░░░   88.16 %
+Markdown   21 mins         ███░░░░░░░░░░░░░░░░░░░░░░   11.84 %
 ```
 
 <!--END_SECTION:waka-->
