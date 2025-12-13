@@ -7,8 +7,9 @@
 <!--START_SECTION:waka-->
 
 ```txt
-Dart         8 hrs 7 mins    ██████████████████████░░░   88.30 %
-TypeScript   1 hr 4 mins     ███░░░░░░░░░░░░░░░░░░░░░░   11.70 %
+Dart         7 hrs 10 mins   ███████████████▓░░░░░░░░░   62.13 %
+TypeScript   4 hrs 17 mins   █████████▒░░░░░░░░░░░░░░░   37.13 %
+JSON         5 mins          ▒░░░░░░░░░░░░░░░░░░░░░░░░   00.74 %
 ```
 
 <!--END_SECTION:waka-->
