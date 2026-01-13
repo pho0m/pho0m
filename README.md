@@ -7,11 +7,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   2 mins          ██████████▒░░░░░░░░░░░░░░   40.96 %
-Makefile     1 min           ███████░░░░░░░░░░░░░░░░░░   28.06 %
-Bash         1 min           ████▓░░░░░░░░░░░░░░░░░░░░   18.01 %
-YAML         0 secs          ███▒░░░░░░░░░░░░░░░░░░░░░   12.71 %
-CSS          0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.26 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
