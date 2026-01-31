@@ -7,10 +7,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   26 mins         █████████████░░░░░░░░░░░░   51.76 %
-Bash         12 mins         ██████░░░░░░░░░░░░░░░░░░░   24.41 %
-Other        12 mins         ██████░░░░░░░░░░░░░░░░░░░   23.79 %
-Docker       0 secs          ░░░░░░░░░░░░░░░░░░░░░░░░░   00.05 %
+No activity tracked
 ```
 
 <!--END_SECTION:waka-->
