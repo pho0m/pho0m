@@ -7,9 +7,7 @@
 <!--START_SECTION:waka-->
 
 ```txt
-TypeScript   1 min                 ██████████████████████▓░░   90.64 %
-Bash         0 secs                █▓░░░░░░░░░░░░░░░░░░░░░░░   06.98 %
-Docker       0 secs                ▓░░░░░░░░░░░░░░░░░░░░░░░░   02.38 %
+TypeScript   1 min                 █████████████████████████   100.00 %
 ```
 
 <!--END_SECTION:waka-->
