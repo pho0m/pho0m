@@ -1,0 +1,24 @@
+{
+  "name": "pho0m",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/content",
+    "web",
+    "api",
+    "tools/readme"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "dev:api": "npm run dev -w api",
+    "build": "npm run build -w web",
+    "build:api": "npm run build -w api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "readme": "npm run generate -w tools/readme",
+    "check": "npm run typecheck && npm run test && npm run build && npm run build:api"
+  }
+}

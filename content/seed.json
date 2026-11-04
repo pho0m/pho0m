@@ -1,0 +1,2649 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-04T00:00:00.000Z",
+  "site": {
+    "defaultLang": "th",
+    "url": "https://kiattiphoom-pho0m.web.app",
+    "title": {
+      "th": "pho0m · เกียรติภูมิ",
+      "en": "pho0m · Kiattiphoom Poonketkit"
+    },
+    "description": {
+      "th": "พอร์ตโฟลิโอของ pho0m CEO บริษัท ยูโทเทค จำกัด",
+      "en": "Portfolio of pho0m, CEO of Utotech Co., Ltd."
+    }
+  },
+  "profile": {
+    "name": {
+      "th": "",
+      "en": "Kiattiphoom Poonketkit"
+    },
+    "nickname": "Phoom",
+    "handle": "pho0m",
+    "role": {
+      "th": "CEO บริษัท ยูโทเทค จำกัด",
+      "en": "CEO, Utotech Co., Ltd."
+    },
+    "headline": {
+      "th": "นักพัฒนาที่เริ่มจากเด็กฝึกงาน จนวันนี้นำทีมซอฟต์แวร์เฮาส์ของตัวเอง",
+      "en": "From co-op intern to running a software house."
+    },
+    "bio": {
+      "th": "สวัสดีครับ ผม pho0m ชอบฟังเพลง เล่นเกม และทุกอย่างที่เกี่ยวกับเทคโนโลยีและนวัตกรรม งานอดิเรกที่ชอบที่สุดคือเขียนโค้ด เริ่มทำงานจริงตั้งแต่ฝึกงานที่ Studio Twist เรียนที่ KMUTNB (TCT-R31) และตอนนี้เป็น CEO ของ Utotech",
+      "en": "Hello, I'm pho0m. My hobbies are listening to music, playing games, and everything about technology and innovation. My favourite hobby is coding: it makes me happy, and everything about technology makes me excited to learn and do new things. I started working at Studio Twist as a co-op intern, studied at KMUTNB (TCT-R31), and today I am CEO of Utotech."
+    },
+    "dream": {
+      "th": "หลังฝึกงานผมเริ่มคิดว่า \"อยากเป็นผู้ประกอบการแบบพี่ ๆ\" และอยากเห็นซอฟต์แวร์ของบริษัทตัวเองเป็นยูนิคอร์นของไทย",
+      "en": "After my internship I started to think, \"I want to be an entrepreneur just like my seniors.\" I see myself as the owner of a company whose software product becomes a unicorn in Thailand."
+    },
+    "location": {
+      "th": "ประเทศไทย",
+      "en": "Thailand"
+    },
+    "avatar": {
+      "url": "/img/profile.jpg",
+      "alt": {
+        "th": "pho0m",
+        "en": "pho0m"
+      }
+    },
+    "email": {
+      "value": "kiattiphoom@utotech.org",
+      "visible": true
+    },
+    "phone": {
+      "value": "+66 80-423-7373",
+      "visible": false
+    },
+    "links": [
+      {
+        "kind": "github",
+        "label": "GitHub",
+        "url": "https://github.com/pho0m"
+      },
+      {
+        "kind": "facebook",
+        "label": "Facebook",
+        "url": "https://www.facebook.com/Pho0m/"
+      },
+      {
+        "kind": "instagram",
+        "label": "Instagram",
+        "url": "https://www.instagram.com/pho0m/"
+      },
+      {
+        "kind": "website",
+        "label": "Utotech",
+        "url": "https://utotech.co.th/"
+      }
+    ],
+    "education": [
+      {
+        "school": {
+          "th": "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)",
+          "en": "King Mongkut's University of Technology North Bangkok (KMUTNB)"
+        },
+        "program": {
+          "th": "TCT-R31",
+          "en": "TCT-R31"
+        },
+        "period": ""
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "id": "studio-twist-intern",
+      "date": "2020",
+      "dateLabel": "~2020",
+      "title": {
+        "th": "Studio Twist · งานแรก",
+        "en": "Studio Twist · first job"
+      },
+      "summary": {
+        "th": "เริ่มฝึกงานสหกิจ 1 ปีที่ Studio Twist ระหว่างเรียน ปวส. แล้วได้รับชวนให้ทำ part-time ต่อยาวกว่า 3 ปี",
+        "en": "Started a one-year co-op internship at Studio Twist while studying for a vocational diploma, then stayed on as a part-time developer for more than three years."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "laptop",
+      "tags": [
+        "Web",
+        "Support"
+      ],
+      "images": [
+        {
+          "url": "/img/studiotwist.png",
+          "alt": {
+            "th": "",
+            "en": "Studio Twist logo"
+          }
+        }
+      ],
+      "links": [
+        {
+          "kind": "website",
+          "label": "madebytwist.com",
+          "url": "https://www.madebytwist.com/"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "musiver-timmy",
+      "date": "2021-11",
+      "dateLabel": "",
+      "title": {
+        "th": "Musiver & The Timmy Story",
+        "en": "Musiver & The Timmy Story"
+      },
+      "summary": {
+        "th": "เครื่องเล่นเพลงด้วย Java และเว็บ 3D เล่าเรื่องด้วย JavaScript",
+        "en": "A Java music player and a 3D web story in JavaScript."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "note",
+      "tags": [
+        "Java",
+        "JavaScript",
+        "3D"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "Musiver",
+          "url": "https://github.com/pho0m/Musiver"
+        },
+        {
+          "kind": "demo",
+          "label": "The Timmy Story",
+          "url": "https://pho0m.github.io/the-timmy-story/"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "thap-and-friends",
+      "date": "2022-03",
+      "dateLabel": "",
+      "title": {
+        "th": "Thap และโปรเจกต์ในมหาลัย",
+        "en": "Thap & school projects"
+      },
+      "summary": {
+        "th": "Thap แอปวัฒนธรรมไทยด้วย Flutter พร้อม Bangkok History, Kiat-Tune (iTunes API), Commu App และบอทเพลง Tweed Play",
+        "en": "Thap, a Thai traditional app in Flutter, plus Bangkok History, Kiat-Tune (iTunes API), Commu App and the Tweed Play Discord bot."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "chedi",
+      "tags": [
+        "Flutter",
+        "Dart",
+        "Node.js"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "thap",
+          "url": "https://github.com/pho0m/thap"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "utotech-founded",
+      "date": "2022",
+      "dateLabel": "2022",
+      "title": {
+        "th": "ก่อตั้งบริษัท ยูโทเทค จำกัด",
+        "en": "Utotech Co., Ltd. is registered"
+      },
+      "summary": {
+        "th": "Utotech มาจากคำว่า Utopia และ Technology จดทะเบียนเป็นซอฟต์แวร์เฮาส์ในประเทศไทย",
+        "en": "Utotech, from \"Utopia\" and \"Technology\", is registered as a software house in Thailand."
+      },
+      "body": {
+        "th": "Utotech มาจากคำว่า Utopia และ Technology และโลโก้นี้เป็นการผสมผสานระหว่างตัวอักษร U, T และ O เน้นที่ความเรียบง่ายแต่ยังรวมถึงความทันสมัย​​นวัตกรรมและการผสานรวมของเทคโนโลยี",
+        "en": "Utotech comes from the words Utopia and Technology, and this logo is a combination of the letters U, T and O. Emphasis on simplicity, but also modernity. Innovation and integration of technology."
+      },
+      "icon": "brief",
+      "tags": [
+        "Utotech",
+        "Company"
+      ],
+      "images": [
+        {
+          "url": "/media/utotech/logo.webp",
+          "alt": {
+            "th": "",
+            "en": "Utotech logo"
+          }
+        }
+      ],
+      "links": [
+        {
+          "kind": "website",
+          "label": "utotech.co.th",
+          "url": "https://utotech.co.th/"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "seyes",
+      "date": "2023-04",
+      "dateLabel": "",
+      "title": {
+        "th": "SEYES · AI ตรวจห้องเรียน",
+        "en": "SEYES · smart classroom AI"
+      },
+      "summary": {
+        "th": "ระบบตรวจการใช้ห้องเรียนด้วย AI object detection: core เซิร์ฟเวอร์ (Go), detection (Python), แอป (TypeScript) และเซิร์ฟเวอร์กล้อง",
+        "en": "Classroom usage detection with object-detection AI: a Go core server, Python detection, a TypeScript app and a camera server."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "eye",
+      "tags": [
+        "Go",
+        "Python",
+        "AI"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "seyes-app",
+          "url": "https://github.com/pho0m/seyes-app"
+        },
+        {
+          "kind": "github",
+          "label": "seyes-core",
+          "url": "https://github.com/pho0m/seyes-core"
+        },
+        {
+          "kind": "github",
+          "label": "seyes-detection",
+          "url": "https://github.com/pho0m/seyes-detection"
+        },
+        {
+          "kind": "github",
+          "label": "seyes-cam",
+          "url": "https://github.com/pho0m/seyes-cam"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "coop-studio-twist",
+      "date": "2023-05",
+      "dateLabel": "2023.05 – 10",
+      "title": {
+        "th": "สหกิจศึกษาที่ Studio Twist",
+        "en": "Co-op at Studio Twist"
+      },
+      "summary": {
+        "th": "สหกิจ 6 เดือน: เขียน integration/unit test ด้วย Go หลายโปรเจกต์ ทำระบบปั๊มน้ำ IoT ไปงาน BMA EXPO 2023 แล้วรับช่วงดูแลระบบ ERP",
+        "en": "Six months of co-op: Go integration and unit tests across projects, an IoT pump system for BMA EXPO 2023, then taking over an ERP system."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "check",
+      "tags": [
+        "Go",
+        "Testing",
+        "ERP"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "document",
+          "label": "Co-op slides (Canva)",
+          "url": "https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "line-playground",
+      "date": "2023-08",
+      "dateLabel": "",
+      "title": {
+        "th": "LINE Playground",
+        "en": "LINE Playground"
+      },
+      "summary": {
+        "th": "API และแอป LIFF สำหรับ LINE playground บน Firebase",
+        "en": "APIs and LIFF apps for a LINE playground on Firebase."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "bubble",
+      "tags": [
+        "LINE API",
+        "Firebase"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "Line-Playground",
+          "url": "https://github.com/pho0m/Line-Playground"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "bma-expo-2023",
+      "date": "2023-09",
+      "dateLabel": "",
+      "title": {
+        "th": "BMA EXPO 2023",
+        "en": "BMA EXPO 2023"
+      },
+      "summary": {
+        "th": "ระบบควบคุมปั๊มน้ำ IoT บน Arduino Uno R3 กับ shield NB-IoT ไปออกงาน BMA EXPO 2023 กับทีม Studio Twist",
+        "en": "An IoT water-pump controller on Arduino Uno R3 with an NB-IoT shield, shown at BMA EXPO 2023 with the Studio Twist team."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "drop",
+      "tags": [
+        "IoT",
+        "Arduino",
+        "NB-IoT"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "teaching-kits",
+      "date": "2025-06",
+      "dateLabel": "",
+      "title": {
+        "th": "ชุดสื่อการสอน",
+        "en": "Teaching kits"
+      },
+      "summary": {
+        "th": "เทมเพลตสำหรับสอน: PHP แบบไม่ใช้ framework, Flutter clean architecture และเว็บ e-learning",
+        "en": "Templates for teaching: plain PHP without a framework, Flutter clean architecture and an e-learning site."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "board",
+      "tags": [
+        "PHP",
+        "Flutter",
+        "Teaching"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "pure-php-template",
+          "url": "https://github.com/pho0m/pure-php-template"
+        },
+        {
+          "kind": "github",
+          "label": "flutter-template",
+          "url": "https://github.com/pho0m/flutter-template"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "line-api-course",
+      "date": "2025-11",
+      "dateLabel": "",
+      "title": {
+        "th": "คอร์ส LINE API",
+        "en": "LINE API course"
+      },
+      "summary": {
+        "th": "เอกสารคอร์ส LINE API ที่ PSC วันที่ 6 พฤศจิกายน",
+        "en": "Course material for a LINE API workshop at PSC on 6 November."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "bubble",
+      "tags": [
+        "LINE API",
+        "Teaching"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "line-api-course",
+          "url": "https://github.com/pho0m/line-api-course"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "utotech-ceo-now",
+      "date": "2026-11",
+      "dateLabel": "NOW",
+      "title": {
+        "th": "CEO · บริษัท ยูโทเทค จำกัด",
+        "en": "CEO · Utotech Co., Ltd."
+      },
+      "summary": {
+        "th": "นำทีมซอฟต์แวร์เฮาส์กว่า 20 คน: เว็บและแอปมือถือ, ERP และอีคอมเมิร์ซ, IoT และ AI, ออกแบบและมีเดีย",
+        "en": "Leading a 20+ person software house: web and mobile apps, ERP and e-commerce, IoT and AI, design and media."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "rocket",
+      "tags": [
+        "CEO",
+        "Utotech"
+      ],
+      "images": [
+        {
+          "url": "/media/utotech/office/office1.webp",
+          "alt": {
+            "th": "",
+            "en": "Utotech office"
+          }
+        }
+      ],
+      "links": [
+        {
+          "kind": "website",
+          "label": "utotech.co.th",
+          "url": "https://utotech.co.th/"
+        }
+      ],
+      "published": true
+    }
+  ],
+  "company": {
+    "name": {
+      "th": "บริษัท ยูโทเทค จำกัด",
+      "en": "Utotech Co., Ltd."
+    },
+    "shortName": "Utotech",
+    "role": {
+      "th": "CEO",
+      "en": "CEO"
+    },
+    "tagline": {
+      "th": "ซอฟต์แวร์เฮาส์ในประเทศไทย",
+      "en": "A Software House in Thailand"
+    },
+    "slogan": {
+      "th": "WE ARE UTOTECH · We built different!",
+      "en": "WE ARE UTOTECH · We built different!"
+    },
+    "founded": "2022",
+    "foundedNote": {
+      "th": "อนุมานจากเลขผู้เสียภาษี 0105565119323 (หลักที่ 5–6 = พ.ศ. 2565)",
+      "en": "Inferred from tax ID 0105565119323 (digits 5–6 = B.E. 2565)"
+    },
+    "teamSize": "20+",
+    "logo": {
+      "url": "/media/utotech/logo.webp",
+      "alt": {
+        "th": "โลโก้ยูโทเทค",
+        "en": "Utotech logo"
+      }
+    },
+    "cover": {
+      "url": "/media/utotech/office/office1.webp",
+      "alt": {
+        "th": "ออฟฟิศยูโทเทค",
+        "en": "Utotech office"
+      }
+    },
+    "about": {
+      "th": "บริษัท ยูโทเทค จำกัด เป็นบริษัทซอฟต์แวร์ที่มุ่งมั่นพัฒนาและส่งมอบโซลูชันซอฟต์แวร์คุณภาพสูง ทีมงานมืออาชีพของเรามีความเชี่ยวชาญในเทคโนโลยีที่หลากหลาย ตั้งแต่การพัฒนาแอปพลิเคชันมือถือ แอปพลิเคชันเว็บ ระบบคลาวด์ และแพลตฟอร์มต่างๆ เราให้บริการที่ครอบคลุมตั้งแต่การออกแบบและพัฒนาไปจนถึงการบำรุงรักษาอย่างต่อเนื่อง เพื่อให้แน่ใจว่าลูกค้าของเราจะได้รับประสบการณ์การใช้งานที่ราบรื่น",
+      "en": "Utotech Co., Ltd. is a software house dedicated to developing and delivering high-quality software solutions. Our team of professionals specializes in a wide range of technologies, from mobile application development, web applications, cloud systems, and various platforms. We provide comprehensive services, from design and development to continuous maintenance, ensuring our clients enjoy a seamless user experience."
+    },
+    "mission": {
+      "th": "เรามุ่งมั่นที่จะเป็นผู้นำด้านนวัตกรรมซอฟต์แวร์ ตอบสนองความต้องการที่เปลี่ยนแปลงตลอดเวลาของลูกค้าด้วยเทคโนโลยีล้ำสมัยและทีมงานที่มีทักษะ เราตั้งเป้าที่จะขับเคลื่อนการเติบโตและความสำเร็จทางธุรกิจของคุณในโลกดิจิทัล",
+      "en": "We are committed to becoming a leader in software innovation, meeting the ever-changing demands of our clients with cutting-edge technology and a skilled team. We aim to drive your business growth and success in the digital world."
+    },
+    "vision": {
+      "th": "เราเชื่อว่าเทคโนโลยีสามารถเปลี่ยนแปลงโลกและวิถีชีวิตของเราได้ Utotech มุ่งมั่นที่จะเป็นผู้สร้างโซลูชันดิจิทัลที่ช่วยให้ธุรกิจทุกขนาดสามารถปรับตัวเข้ากับการเปลี่ยนแปลงทางดิจิทัลได้อย่างมีประสิทธิภาพและรวดเร็ว",
+      "en": "We believe technology can transform the world and the way we live. Utotech is committed to being a creator of digital solutions that enable businesses of all sizes to embrace digital transformation efficiently and swiftly."
+    },
+    "story": {
+      "th": "Utotech มาจากคำว่า Utopia และ Technology และโลโก้นี้เป็นการผสมผสานระหว่างตัวอักษร U, T และ O เน้นที่ความเรียบง่ายแต่ยังรวมถึงความทันสมัย​​นวัตกรรมและการผสานรวมของเทคโนโลยี",
+      "en": "Utotech comes from the words Utopia and Technology, and this logo is a combination of the letters U, T and O. Emphasis on simplicity, but also modernity. Innovation and integration of technology."
+    },
+    "highlights": [
+      {
+        "title": {
+          "th": "การให้คำปรึกษาโครงการแบบครบวงจร",
+          "en": "End-to-End Project Consultation"
+        },
+        "description": {
+          "th": "และการพัฒนา เราพัฒนาแอปพลิเคชันที่เข้ากันได้อย่างสมบูรณ์กับเดสก์ท็อป แท็บเล็ต และอุปกรณ์พกพาเพื่อให้แน่ใจว่าผู้ใช้จะได้รับประสบการณ์ที่ราบรื่นในทุกแพลตฟอร์ม",
+          "en": "and Development. We develop applications that are fully compatible with desktop, tablet, and mobile devices, ensuring a seamless user experience across all platforms."
+        },
+        "image": {
+          "url": "/media/utotech/office/office2.webp",
+          "alt": {
+            "th": "",
+            "en": "Utotech office"
+          }
+        }
+      },
+      {
+        "title": {
+          "th": "สร้างสรรค์นวัตกรรมโซลูชันซอฟต์แวร์ของคุณ",
+          "en": "Innovating Your Software Solutions"
+        },
+        "description": {
+          "th": "ซอฟต์แวร์ | พัฒนาเว็บไซต์ | ออกแบบโปรไฟล์บริษัท มาดูกันว่าเราทำได้อย่างไร",
+          "en": "software | web develop | design a company profile let’s see how we do"
+        },
+        "image": {
+          "url": "/media/utotech/office/office3.webp",
+          "alt": {
+            "th": "",
+            "en": "Utotech office"
+          }
+        }
+      },
+      {
+        "title": {
+          "th": "การทำงานของทีมผู้เชี่ยวชาญขั้นสูง",
+          "en": "Working Advanced Specialist teams"
+        },
+        "description": {
+          "th": "บ้านซอฟต์แวร์แบบไดนามิกที่สร้างขึ้นโดยทีมงานที่หลงใหลกว่า 20 คน รวมถึงทีมนักพัฒนา ทีมนักออกแบบ ผู้จัดการโครงการ และอื่นๆ",
+          "en": "A dynamic software house built by a passionate team of 20+ members including Developer team, Designer team, Project Manager and others"
+        },
+        "image": {
+          "url": "/media/utotech/office/office1.webp",
+          "alt": {
+            "th": "",
+            "en": "Utotech team"
+          }
+        }
+      }
+    ],
+    "workWithUs": [
+      {
+        "title": {
+          "th": "ออกแบบและวิเคราะห์",
+          "en": "Design and analysis"
+        },
+        "heading": {
+          "th": "การวางแผนและออกแบบระบบหลังบ้าน",
+          "en": "Planning and design a backyard system"
+        },
+        "description": {
+          "th": "เริ่มตั้งแต่การออกแบบผังงาน ระบบฐานข้อมูลและโครงร่าง และอื่นๆ อีกมากมาย ตามความต้องการของผู้ใช้งานที่อาจารย์ที่ปรึกษาได้มอบหมายไว้",
+          "en": "Starting from designing flowchart, database system and schema and much more. according to the needs of the users that the mentor has assigned."
+        },
+        "image": {
+          "url": "/media/utotech/services/systemdesign.webp",
+          "alt": {
+            "th": "",
+            "en": "System design"
+          }
+        }
+      },
+      {
+        "title": {
+          "th": "การออกแบบการพัฒนาซอฟต์แวร์",
+          "en": "Custom Software Development"
+        },
+        "heading": {
+          "th": "การพัฒนาโซลูชั่น",
+          "en": "Solutions Development"
+        },
+        "description": {
+          "th": "เราเข้าใจว่าแต่ละธุรกิจมีความพิเศษเฉพาะตัว และความต้องการด้านซอฟต์แวร์ก็แตกต่างกันด้วย บริการพัฒนาซอฟต์แวร์แบบกำหนดเองของเรามอบโซลูชันเฉพาะที่สอดคล้องกับวัตถุประสงค์ของคุณ",
+          "en": "We understand every business is unique, and so are its software needs. Our Custom Software Development service offers tailored solutions that align with your objectives."
+        },
+        "image": {
+          "url": "/media/utotech/services/software-development-company.webp",
+          "alt": {
+            "th": "",
+            "en": "Software development life cycle"
+          }
+        }
+      },
+      {
+        "title": {
+          "th": "ออกแบบ UXUI และการพัฒนา",
+          "en": "UX/UI Design and Development"
+        },
+        "heading": {
+          "th": "อะไรสามารถช่วยคุณเกี่ยวกับการออกแบบ UI/UX ได้บ้าง?",
+          "en": "What can help you about UI/UX Design?"
+        },
+        "description": {
+          "th": "ทีมงานของเราสร้างสรรค์การออกแบบที่ใช้งานง่ายและเน้นผู้ใช เป็นหลักเพื่อเพิ่มความพึงพอใจของผู้ใช้เรารับประกันการออกแบบที่ตอบสนองทุกอุปกรณ์และดำเนินการสร้างต้นแบบและการทดสอบอย่างละเอียดเพื่อรับประกันการใช้งาน งานที่กำหนดเองคือการสร้างแบรนด์ การออกแบบเว็บไซต์ การออกแบบ UI/UX",
+          "en": "Our team creates intuitive, user-centered designs that enhance user satisfaction. We ensure responsive design across all devices and conduct thorough prototyping and testing to guarantee functionality. Custom work is branding, web design, UI/UX design"
+        },
+        "image": {
+          "url": "/media/utotech/services/uiux.webp",
+          "alt": {
+            "th": "",
+            "en": "UX and UI"
+          }
+        }
+      }
+    ],
+    "services": [
+      {
+        "id": "full-stack",
+        "title": {
+          "th": "การพัฒนาแบบฟูลสแต็ก",
+          "en": "Full-Stack Development"
+        },
+        "subtitle": {
+          "th": "การออกแบบเว็บแอปพลิเคชั่นและเว็บไซต์ | แอปพลิเคชั่นมือถือ",
+          "en": "Web Application & Website Design | Mobile Application"
+        },
+        "description": {
+          "th": "เราเสนอบริการพัฒนา frontend และ backend ที่ครอบคลุมสำหรับทั้งแพลตฟอร์มเว็บและมือถือ โดยใช้เทคโนโลยีล่าสุดเพื่อสร้างแอปพลิเคชันที่ราบรื่น ตอบสนองดี และประสิทธิภาพสูง",
+          "en": "We offer comprehensive frontend and backend development for both web and mobile platforms, utilizing the latest technologies to create seamless, responsive, and high-performing applications."
+        },
+        "price": {
+          "th": "แพ็กเกจเริ่มต้น 20,000 บาท",
+          "en": "Package from 20,000 THB"
+        }
+      },
+      {
+        "id": "custom-coding",
+        "title": {
+          "th": "ความเชี่ยวชาญด้านการเขียนโค้ดและกรอบงานแบบกำหนดเอง",
+          "en": "Custom Coding & Framework Expertise"
+        },
+        "subtitle": {
+          "th": "เราเชี่ยวชาญในด้านการเขียนโค้ดและการเพิ่มประสิทธิภาพแบบกำหนดเอง",
+          "en": "We specialize in custom coding and optimizations."
+        },
+        "description": {
+          "th": "คุณจะอยู่ในมือที่ดีและมั่นใจได้ว่าโครงการของคุณถูกสร้างขึ้นด้วยกรอบงานที่ทันสมัยและมีประสิทธิภาพสูงสุด",
+          "en": "You will be in good hand and you ensuring your project is built with the latest, most efficient frameworks."
+        },
+        "price": {
+          "th": "เริ่มต้นที่ 30,000 บาท",
+          "en": "Start from 30,000 THB"
+        }
+      },
+      {
+        "id": "solution-prototype",
+        "title": {
+          "th": "การพัฒนาโซลูชันและการออกแบบกระบวนการต้นแบบ",
+          "en": "Solution Development & Prototype Flow Design"
+        },
+        "subtitle": {
+          "th": "อีคอมเมิร์ซ, ERP, CMS, การเปลี่ยนแปลงทางดิจิทัล",
+          "en": "E-Commerce, ERP, CMS, Digital transformation"
+        },
+        "description": {
+          "th": "เรามอบการพัฒนาโซลูชั่นแบบครบวงจรที่ออกแบบมาเพื่อให้เหมาะกับความต้องการทางธุรกิจของคุณ และยังออกแบบกระบวนการทำงานของผู้ใช้ที่ใช้งานง่ายโดยใช้เครื่องมือต่างๆ เพื่อให้แน่ใจว่าแต่ละขั้นตอนของโครงการได้รับการวางแผนและปรับให้เหมาะสมอย่างรอบคอบเพื่อประสบการณ์ผู้ใช้ที่ดีที่สุด",
+          "en": "We provide end-to-end solution development tailored to your business needs and also designs intuitive user flows using tools ensuring that each stage of the project is thoughtfully planned and optimized for the best user experience."
+        },
+        "price": {
+          "th": "แพ็กเกจเริ่มต้น 40,000 บาท",
+          "en": "Package from 40,000 THB"
+        }
+      },
+      {
+        "id": "iot-ai",
+        "title": {
+          "th": "IoT, AI และเทคโนโลยีขั้นสูง",
+          "en": "IoT, AI, & Advanced Technologies"
+        },
+        "subtitle": {
+          "th": "การพัฒนาซอฟต์แวร์และฮาร์ดแวร์",
+          "en": "Software and Hardware Development"
+        },
+        "description": {
+          "th": "เราพัฒนาโซลูชัน IoT บูรณาการฟังก์ชัน AI และใช้ประโยชน์จากเทคโนโลยีอันล้ำสมัยเพื่อยกระดับโครงการดิจิทัลของคุณ พร้อมมอบประสบการณ์ที่สร้างสรรค์ให้กับผู้ใช้ของคุณ",
+          "en": "We develop IoT solutions, integrate AI functionalities, and leverage cutting-edge technology to enhance your digital projects, providing innovative experiences for your users."
+        },
+        "price": {
+          "th": "เริ่มต้นที่ 45,000 บาท",
+          "en": "Start from 45,000 THB"
+        }
+      },
+      {
+        "id": "media-graphic",
+        "title": {
+          "th": "สื่อ & โมชั่น & การออกแบบกราฟิก",
+          "en": "Media & Motion & Graphic Design"
+        },
+        "subtitle": {
+          "th": "เนื้อหาที่ดี, อินโฟกราฟิก, วิดีโอและสื่ออื่นๆ",
+          "en": "Good Content, Infographic, Video and other media"
+        },
+        "description": {
+          "th": "ทีมงานของเราสร้างเนื้อหามัลติมีเดียที่สวยงามน่าทึ่ง รวมทั้งกราฟิกเคลื่อนไหวและการออกแบบกราฟิกคุณภาพสูง เพื่อให้แน่ใจว่าแบรนด์ของคุณโดดเด่นบนแพลตฟอร์มดิจิทัลทั้งหมด",
+          "en": "Our team creates stunning multimedia content, including motion graphics and high-quality graphic design, ensuring your brand stands out across all digital platforms."
+        },
+        "price": {
+          "th": "ราคาตามคำขอ",
+          "en": "Price upon request"
+        }
+      }
+    ],
+    "projects": [
+      {
+        "id": "isted",
+        "name": "ISTEd",
+        "category": "Platform / Web Application",
+        "summary": {
+          "th": "เว็บไซต์วิเคราะห์ข้อมูล",
+          "en": "Information System for Thailand education"
+        },
+        "description": {
+          "th": "",
+          "en": "ISTEd is a data analysis platform tailored for educational institutions. It helps analyze student performance and educational outcomes using real-time data processing."
+        },
+        "url": "https://isted.onec.go.th/",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Overall KPIs in Thailand"
+            },
+            "description": {
+              "th": "",
+              "en": "In education, KPIs in Thailand measure key areas such as student performance, graduation rates, teacher quality, and access to education. These indicators help evaluate the effectiveness of educational policies and drive improvements in learning outcomes and system efficiency."
+            },
+            "image": {
+              "url": "/media/utotech/projects/isted/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Overall KPIs in Thailand"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Analytics with Statistics"
+            },
+            "description": {
+              "th": "",
+              "en": "Uses statistical methods to analyze data and support data-driven decisions. It helps researchers measure performance, predict and manage KPIs"
+            },
+            "image": {
+              "url": "/media/utotech/projects/isted/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Analytics with Statistics"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Animations"
+            },
+            "description": {
+              "th": "",
+              "en": "Adding motion and visual effects to websites, enhancing user engagement, improving usability, and making the experience more dynamic and interactive"
+            },
+            "image": {
+              "url": "/media/utotech/projects/isted/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Animations"
+              }
+            }
+          }
+        ],
+        "featured": true,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/isted/logo-isted.webp",
+          "alt": {
+            "th": "",
+            "en": "ISTEd logo"
+          }
+        }
+      },
+      {
+        "id": "comedu-reunion",
+        "name": "Comedu Reunion",
+        "category": "Platform / Web Application",
+        "summary": {
+          "th": "ระบบการจองและจัดการกิจกรรม",
+          "en": "Booking system and events management"
+        },
+        "description": {
+          "th": "",
+          "en": "Comedu Reunion is a web platform designed to manage alumni events, reunions, and bookings, offering a seamless experience for event organizers and attendees. Also using Line-OA and have Dashboard managment system."
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Booking Platform"
+            },
+            "description": {
+              "th": "",
+              "en": "Comedu Reunion is a web platform designed to manage alumni events, reunions, and bookings, offering a seamless experience for event organizers and attendees. Also using Line-OA and have Dashboard managment system."
+            },
+            "image": {
+              "url": "/media/utotech/projects/comedu/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Booking Platform"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Integrated development with Line-OA."
+            },
+            "description": {
+              "th": "",
+              "en": "User booking via Line-OA allows customers to easily select services, check real-time availability, and make reservations directly through the Line-OA interface. With personalized options and instant confirmation notifications, the process is seamless and user-friendly, all within the familiar Line-OA platform."
+            },
+            "image": {
+              "url": "/media/utotech/projects/comedu/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Integrated development with Line-OA."
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Support payment and verification system."
+            },
+            "description": {
+              "th": "",
+              "en": "Automated notifications in a Line-OA booking system provide instant updates for users and admins on bookings, payments, reminders, and changes, streamlining communication and reducing manual effort and also Admin Management on Web Application."
+            },
+            "image": {
+              "url": "/media/utotech/projects/comedu/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Support payment and verification system."
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Easy usage with booking page summary."
+            },
+            "description": {
+              "th": "",
+              "en": "Allows users to quickly select services, view availability, make payments, and receive instant confirmations, ensuring a smooth and efficient booking process."
+            },
+            "image": {
+              "url": "/media/utotech/projects/comedu/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Easy usage with booking page summary."
+              }
+            }
+          }
+        ],
+        "featured": true,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/comedu/logo-comedu.webp",
+          "alt": {
+            "th": "",
+            "en": "Comedu Reunion logo"
+          }
+        }
+      },
+      {
+        "id": "asia-pacific",
+        "name": "Asia Pacific",
+        "category": "Website",
+        "summary": {
+          "th": "",
+          "en": "Conference blog web"
+        },
+        "description": {
+          "th": "",
+          "en": "Asia Pacific is a blogging and content-sharing platform for conferences, allowing participants to easily share insights, blogs, and updates related to the Asia Pacific region."
+        },
+        "url": "https://sb22asiapacific.com/",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Content Website Responsive"
+            },
+            "description": {
+              "th": "",
+              "en": "A responsive website automatically adjusts its layout and design to fit different screen sizes and devices, providing an optimal viewing experience. It ensures that content is accessible and visually appealing on desktops, tablets, and smartphones."
+            },
+            "image": {
+              "url": "/media/utotech/projects/asiapacific/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Content Website Responsive"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Informations with search and filter"
+            },
+            "description": {
+              "th": "",
+              "en": "Lets users quickly sort and find meetings by criteria like date, time, or participants, making scheduling more efficient and user-friendly."
+            },
+            "image": {
+              "url": "/media/utotech/projects/asiapacific/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Informations with search and filter"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Image optimization"
+            },
+            "description": {
+              "th": "",
+              "en": "reducing the file size of images without compromising quality, ensuring faster website load times and improved performance."
+            },
+            "image": {
+              "url": "/media/utotech/projects/asiapacific/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Image optimization"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/asiapacific/logo-asia-pacific.webp",
+          "alt": {
+            "th": "",
+            "en": "Asia Pacific logo"
+          }
+        }
+      },
+      {
+        "id": "cgas-e-commerce",
+        "name": "CGas E-Commerce",
+        "category": "Web application",
+        "summary": {
+          "th": "ระบบอีคอมเมิร์ซและการจัดการสต๊อกสินค้า",
+          "en": "Ecommerce and stock management system"
+        },
+        "description": {
+          "th": "",
+          "en": "CGas is an ecommerce platform specializing in stock management for the gas industry. It simplifies inventory tracking and online sales for gas suppliers."
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "E-Commerce with Authentication"
+            },
+            "description": {
+              "th": "",
+              "en": "User access by requiring login, protecting data while enabling personalized shopping, order tracking, and saved payment methods for a safer, more convenient experience."
+            },
+            "image": {
+              "url": "/media/utotech/projects/cgas/3.webp",
+              "alt": {
+                "th": "",
+                "en": "E-Commerce with Authentication"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Stock management system"
+            },
+            "description": {
+              "th": "",
+              "en": "Tracks and controls inventory levels, ensuring accurate stock availability, timely restocking, and efficient order processing. It helps businesses manage inventory, prevent overstock or stockouts, and streamline supply chain operations for better efficiency and cost savings."
+            },
+            "image": {
+              "url": "/media/utotech/projects/cgas/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Stock management system"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Shop analytic dashboard"
+            },
+            "description": {
+              "th": "",
+              "en": "Delivers insights on sales, customer behavior, and inventory, enabling data-driven decisions to boost efficiency and profitability."
+            },
+            "image": {
+              "url": "/media/utotech/projects/cgas/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Shop analytic dashboard"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Order confirmation"
+            },
+            "description": {
+              "th": "",
+              "en": "Notification sent to customers after a purchase, verifying that the order has been successfully placed. It typically includes order details, payment confirmation, and estimated delivery information, ensuring clarity and trust in the transaction."
+            },
+            "image": {
+              "url": "/media/utotech/projects/cgas/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Order confirmation"
+              }
+            }
+          }
+        ],
+        "featured": true,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/cgas/logo-cgas.webp",
+          "alt": {
+            "th": "",
+            "en": "CGas E-Commerce logo"
+          }
+        }
+      },
+      {
+        "id": "calcount",
+        "name": "Calcount",
+        "category": "Platform / Mobile Application / Web Application",
+        "summary": {
+          "th": "",
+          "en": "Applications for medicine"
+        },
+        "description": {
+          "th": "",
+          "en": ""
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Data analyze"
+            },
+            "description": {
+              "th": "",
+              "en": "Collects customer data to helps businesses enhance customer well-being while optimizing services and strategies based on health-focused insights."
+            },
+            "image": {
+              "url": "/media/utotech/projects/calcount/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Data analyze"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Data Visualization"
+            },
+            "description": {
+              "th": "",
+              "en": "Presents data in graphical formats, making it easier to understand and identify patterns, trends, and insights for better decision-making."
+            },
+            "image": {
+              "url": "/media/utotech/projects/calcount/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Data Visualization"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Medicine Inventory"
+            },
+            "description": {
+              "th": "",
+              "en": "Tracks and manages stock levels of medications,  It helps streamline the supply chain, monitor expiration dates, and ensure the availability of essential medicines."
+            },
+            "image": {
+              "url": "/media/utotech/projects/calcount/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Medicine Inventory"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Setting customization"
+            },
+            "description": {
+              "th": "",
+              "en": "Allows admins to customize preferences and configurations within both web and mobile apps. It provides options for adjusting notifications, themes, privacy settings, and account management, ensuring a consistent and personalized experience across platforms."
+            },
+            "image": {
+              "url": "/media/utotech/projects/calcount/5.webp",
+              "alt": {
+                "th": "",
+                "en": "Setting customization"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/calcount/logo-calcount.webp",
+          "alt": {
+            "th": "",
+            "en": "Calcount logo"
+          }
+        }
+      },
+      {
+        "id": "wedding-landing-page",
+        "name": "Wedding Landing Page",
+        "category": "Website / Landing Page / Integrations",
+        "summary": {
+          "th": "",
+          "en": "A Landing page for replace wedding card"
+        },
+        "description": {
+          "th": "",
+          "en": ""
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Invitation card customize and design"
+            },
+            "description": {
+              "th": "",
+              "en": "Personalize designs, colors, fonts, and messages to create unique invitations that reflect their style and theme. This feature provides flexibility to tailor every detail, making the invitations special and memorable."
+            },
+            "image": {
+              "url": "/media/utotech/projects/mcw/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Invitation card customize and design"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Wedding Gallery feature"
+            },
+            "description": {
+              "th": "",
+              "en": "Showcase photos and videos from their wedding, providing a dedicated space for guests to view and share memories. It can include sections for pre-wedding shoots, ceremony highlights, and guest contributions, creating a digital keepsake for the special day."
+            },
+            "image": {
+              "url": "/media/utotech/projects/mcw/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Wedding Gallery feature"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Love Story landing page"
+            },
+            "description": {
+              "th": "",
+              "en": "Shares the couple's journey in a brief, engaging format, offering guests a glimpse into their relationship and special moments leading up to the wedding."
+            },
+            "image": {
+              "url": "/media/utotech/projects/mcw/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Love Story landing page"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Questionnaire Form"
+            },
+            "description": {
+              "th": "",
+              "en": "Create and distribute custom forms for collecting data, feedback, or opinions. It includes options for multiple question types such as multiple-choice, open-ended, and rating scales, making it easy to gather and analyze responses efficiently. This feature is ideal for surveys, research, and evaluations."
+            },
+            "image": {
+              "url": "/media/utotech/projects/mcw/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Questionnaire Form"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Mini game in LINE LIFF"
+            },
+            "description": {
+              "th": "",
+              "en": "Interactive games within the LINE frontend, offering fun experiences with features like spin game, leaderboards and rewards, all without leaving the platform."
+            },
+            "image": {
+              "url": "/media/utotech/projects/mcw/5.webp",
+              "alt": {
+                "th": "",
+                "en": "Mini game in LINE LIFF"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/mcw/logo.webp",
+          "alt": {
+            "th": "",
+            "en": "Wedding Landing Page logo"
+          }
+        }
+      },
+      {
+        "id": "titan-automative-drive",
+        "name": "Titan Automative Drive",
+        "category": "Mobile Application / Custom",
+        "summary": {
+          "th": "",
+          "en": "Applications for control car with moblie"
+        },
+        "description": {
+          "th": "",
+          "en": "Titan Automative Drive is a mobile app to remote and control Titan car in real-time"
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Remote and Control Panel"
+            },
+            "description": {
+              "th": "",
+              "en": "Interface to manage various vehicle functions. Through the app, users can control features such as climate settings, navigation, lighting ON-OFF, Manual/Auto mode and status."
+            },
+            "image": {
+              "url": "/media/utotech/projects/car-track-frontend/titan.webp",
+              "alt": {
+                "th": "",
+                "en": "Remote and Control Panel"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": " Real-Time View"
+            },
+            "description": {
+              "th": "",
+              "en": "Camera and LiDAR sensor integration provides accurate, 3D visual data by combining video footage and depth information, measures distances and creates a detailed 3D map of the surroundings. This combination enhances object detection, navigation, and situational awareness"
+            },
+            "image": {
+              "url": "/media/utotech/projects/car-track-frontend/2.webp",
+              "alt": {
+                "th": "",
+                "en": " Real-Time View"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Map view tracking"
+            },
+            "description": {
+              "th": "",
+              "en": "Shows the vehicle's real-time location, route, and status on a digital map, enhancing tracking, navigation, and user convenience."
+            },
+            "image": {
+              "url": "/media/utotech/projects/car-track-frontend/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Map view tracking"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/car-track-frontend/logo.webp",
+          "alt": {
+            "th": "",
+            "en": "Titan Automative Drive logo"
+          }
+        }
+      },
+      {
+        "id": "covid-alert",
+        "name": "Covid Alert",
+        "category": "Web application",
+        "summary": {
+          "th": "",
+          "en": "Tracking covid status at location and statistics"
+        },
+        "description": {
+          "th": "",
+          "en": ""
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Dashboard notification"
+            },
+            "description": {
+              "th": "",
+              "en": "Alerts users when a new potential COVID-19 infection case is reported. It also includes a dashboard view that displays key metrics such as new patient cases, cases in progress, total patients over time, and patient locations. Additionally, it highlights a list of emergency cases, providing real-time updates to manage and monitor COVID-19 cases efficiently and ensure quick responses."
+            },
+            "image": {
+              "url": "/media/utotech/projects/covid-alert/covid.webp",
+              "alt": {
+                "th": "",
+                "en": "Dashboard notification"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Patient Management"
+            },
+            "description": {
+              "th": "",
+              "en": "Handles all aspects of patient care, including registration, treatment tracking and medical records management It helps healthcare providers streamline operations by organizing patient data and tracking treatment progress."
+            },
+            "image": {
+              "url": "/media/utotech/projects/covid-alert/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Patient Management"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/covid-alert/covid.webp",
+          "alt": {
+            "th": "",
+            "en": "Covid Alert logo"
+          }
+        }
+      },
+      {
+        "id": "keeta-thai-traditional-karaoke",
+        "name": "Keeta Thai Traditional Karaoke",
+        "category": "Mobile Application",
+        "summary": {
+          "th": "",
+          "en": "An application for learning the principles of Thai singing, including the history, lyrics, and more"
+        },
+        "description": {
+          "th": "",
+          "en": "An application for learning the principles of Thai singing, including the history, lyrics, and more about Thai musical arts, integrating technology with education to enhance effective learning both inside and outside the classroom."
+        },
+        "url": "https://vtca-app.web.app/",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Application Story"
+            },
+            "description": {
+              "th": "",
+              "en": "Allows users to easily curate and update information on a mobile page, ensuring content is displayed with full control over layout and timing for an optimized user experience."
+            },
+            "image": {
+              "url": "/media/utotech/projects/keeta/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Application Story"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Cool menu design navigation"
+            },
+            "description": {
+              "th": "",
+              "en": "Enhances user experience with visually appealing and intuitive layouts. It offers smooth transitions, clear icons, and well-organized categories, making it easy for users to navigate through an app or website. This design adds creativity while ensuring functionality, resulting in an engaging and user-friendly interface."
+            },
+            "image": {
+              "url": "/media/utotech/projects/keeta/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Cool menu design navigation"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Karaoke with full control"
+            },
+            "description": {
+              "th": "",
+              "en": "Lets users manage key features like play, stop, rewind, and skip to the next or previous song. It also allows users to turn instruments and vocals on or off, while displaying synchronized lyrics on the screen. This provides a highly interactive and customizable karaoke experience, allowing users to fully tailor the performance to their preferences."
+            },
+            "image": {
+              "url": "/media/utotech/projects/keeta/4.webp",
+              "alt": {
+                "th": "",
+                "en": "Karaoke with full control"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/keeta/keeta.webp",
+          "alt": {
+            "th": "",
+            "en": "Keeta Thai Traditional Karaoke logo"
+          }
+        }
+      },
+      {
+        "id": "line-official-account-integration-line-oa",
+        "name": "Line Official Account Integration (Line OA)",
+        "category": "Platform / Integrations",
+        "summary": {
+          "th": "",
+          "en": "Custom line oa for your requirement"
+        },
+        "description": {
+          "th": "",
+          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Rich Menu customize"
+            },
+            "description": {
+              "th": "",
+              "en": "Create personalized, interactive menus with buttons for actions like navigating content, booking, or viewing products. It enhances user engagement and provides a seamless experience tailored to the brand."
+            },
+            "image": {
+              "url": "/media/utotech/projects/line-oa/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Rich Menu customize"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Flex Message"
+            },
+            "description": {
+              "th": "",
+              "en": "Customizable messages with rich content, including images, buttons, and text in a flexible layout. It enhances user interaction by offering dynamic and visually appealing messages that adapt to various screen sizes, perfect for promoting products, services, or important updates"
+            },
+            "image": {
+              "url": "/media/utotech/projects/line-oa/2.webp",
+              "alt": {
+                "th": "",
+                "en": "Flex Message"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Deliver best UX/UI"
+            },
+            "description": {
+              "th": "",
+              "en": "Focuses on intuitive design, customized Rich Menus, and dynamic Flex Messages to enhance engagement and streamline user interactions."
+            },
+            "image": {
+              "url": "/media/utotech/projects/line-oa/3.webp",
+              "alt": {
+                "th": "",
+                "en": "Deliver best UX/UI"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/line-oa/line.webp",
+          "alt": {
+            "th": "",
+            "en": "Line Official Account Integration (Line OA) logo"
+          }
+        }
+      },
+      {
+        "id": "low-code-platform",
+        "name": "Low Code Platform",
+        "category": "Platform / Integrations",
+        "summary": {
+          "th": "",
+          "en": "Custom and make quickly low cost with low code platform"
+        },
+        "description": {
+          "th": "",
+          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+        },
+        "url": "",
+        "features": [
+          {
+            "title": {
+              "th": "",
+              "en": "Application customize"
+            },
+            "description": {
+              "th": "",
+              "en": "Modify and build apps with low-code platform, making development faster and more accessible while maintaining flexibility and functionality."
+            },
+            "image": {
+              "url": "/media/utotech/projects/low-code/low-code.webp",
+              "alt": {
+                "th": "",
+                "en": "Application customize"
+              }
+            }
+          },
+          {
+            "title": {
+              "th": "",
+              "en": "Admin dashboard & Reported with low code"
+            },
+            "description": {
+              "th": "",
+              "en": "Quick creation of dashboards and reports using pre-built tools, allowing efficient data management and visualization with minimal coding effort."
+            },
+            "image": {
+              "url": "/media/utotech/projects/low-code/1.webp",
+              "alt": {
+                "th": "",
+                "en": "Admin dashboard & Reported with low code"
+              }
+            }
+          }
+        ],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/low-code/low-code.webp",
+          "alt": {
+            "th": "",
+            "en": "Low Code Platform logo"
+          }
+        }
+      },
+      {
+        "id": "3d-integrations",
+        "name": "3d Integrations",
+        "category": "Web Application / Integrations",
+        "summary": {
+          "th": "",
+          "en": "Integraion with 3d element"
+        },
+        "description": {
+          "th": "",
+          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+        },
+        "url": "https://pho0m.github.io/the-timmy-story/",
+        "features": [],
+        "featured": false,
+        "published": true,
+        "cover": {
+          "url": "/media/utotech/projects/3d/3d.webp",
+          "alt": {
+            "th": "",
+            "en": "3d Integrations logo"
+          }
+        }
+      }
+    ],
+    "customers": [
+      {
+        "name": "Office of the Education Council",
+        "logo": {
+          "url": "/media/utotech/customers/1.webp",
+          "alt": {
+            "th": "",
+            "en": "Office of the Education Council logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Smile Siam",
+        "logo": {
+          "url": "/media/utotech/customers/2.webp",
+          "alt": {
+            "th": "",
+            "en": "Smile Siam logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Rotson 3D",
+        "logo": {
+          "url": "/media/utotech/customers/3.webp",
+          "alt": {
+            "th": "",
+            "en": "Rotson 3D logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Thai Otsuka",
+        "logo": {
+          "url": "/media/utotech/customers/4.webp",
+          "alt": {
+            "th": "",
+            "en": "Thai Otsuka logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "OCE",
+        "logo": {
+          "url": "/media/utotech/customers/6.webp",
+          "alt": {
+            "th": "",
+            "en": "OCE logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Pee Chong",
+        "logo": {
+          "url": "/media/utotech/customers/7.webp",
+          "alt": {
+            "th": "",
+            "en": "Pee Chong logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Rise Tea House",
+        "logo": {
+          "url": "/media/utotech/customers/8.webp",
+          "alt": {
+            "th": "",
+            "en": "Rise Tea House logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Kolawat",
+        "logo": {
+          "url": "/media/utotech/customers/9.webp",
+          "alt": {
+            "th": "",
+            "en": "Kolawat logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Get Sound & Light",
+        "logo": {
+          "url": "/media/utotech/customers/10.webp",
+          "alt": {
+            "th": "",
+            "en": "Get Sound & Light logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Keeta",
+        "logo": {
+          "url": "/media/utotech/customers/11.webp",
+          "alt": {
+            "th": "",
+            "en": "Keeta logo"
+          }
+        },
+        "url": ""
+      },
+      {
+        "name": "Mild Chet",
+        "logo": {
+          "url": "/media/utotech/customers/12.webp",
+          "alt": {
+            "th": "",
+            "en": "Mild Chet logo"
+          }
+        },
+        "url": ""
+      }
+    ],
+    "gallery": [
+      {
+        "url": "/media/utotech/office/office1.webp",
+        "alt": {
+          "th": "",
+          "en": "Utotech office"
+        }
+      },
+      {
+        "url": "/media/utotech/office/office2.webp",
+        "alt": {
+          "th": "",
+          "en": "Utotech office"
+        }
+      },
+      {
+        "url": "/media/utotech/office/office3.webp",
+        "alt": {
+          "th": "",
+          "en": "Utotech office"
+        }
+      },
+      {
+        "url": "/media/utotech/services/utotech-company-profile.webp",
+        "alt": {
+          "th": "",
+          "en": "Utotech company profile"
+        }
+      }
+    ],
+    "contact": {
+      "email": "organizations@utotech.org",
+      "ceoEmail": "kiattiphoom@utotech.org",
+      "phone": "+66 80-423-7373",
+      "officeAddress": {
+        "th": "161/308 เจริญสนิทวงศ์ 27 แขวงบางขุนศรี เขตบางกอกน้อย กรุงเทพมหานคร 10700",
+        "en": "161/308 Charan Sanitwong 27, Bang Khun Si Subdistrict, Bangkok Noi District, Bangkok 10700"
+      },
+      "registeredAddress": {
+        "th": "61/723 หมู่ที่ 5 ตำบลลานตากฟ้า อำเภอนครชัยศรี จังหวัดนครปฐม 73120",
+        "en": "61/723 Village No. 5, Lan Tak Fa Subdistrict Nakhon Chai Si District, Nakhon Pathom Province 73120"
+      },
+      "taxId": "0105565119323"
+    },
+    "links": [
+      {
+        "kind": "website",
+        "label": "utotech.co.th",
+        "url": "https://utotech.co.th/"
+      },
+      {
+        "kind": "email",
+        "label": "organizations@utotech.org",
+        "url": "mailto:organizations@utotech.org"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "id": "utotech-hiring-test",
+      "name": "Utotech developer test",
+      "description": {
+        "th": "แบบทดสอบสำหรับรับนักพัฒนาใหม่ของ Utotech: นำเข้า ตรวจสอบ และส่งออกข้อมูลตาราง ด้วย Next.js, TypeScript, Tailwind CSS และ shadcn/ui",
+        "en": "Hiring test for new developers: import, clean and export spreadsheet data with Next.js, TypeScript, Tailwind CSS and shadcn/ui."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/Utotech-test-solution-developer",
+      "tags": [
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS"
+      ],
+      "group": "utotech",
+      "year": "2025",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "seyes",
+      "name": "SEYES",
+      "description": {
+        "th": "ระบบตรวจจับการใช้งานห้องเรียนด้วย AI object detection แยกเป็น core เว็บเซิร์ฟเวอร์ (Go), บริการตรวจจับ (Python), แอป (TypeScript) และเซิร์ฟเวอร์กล้อง",
+        "en": "Classroom usage detection with object-detection AI, split into a Go core web server, a Python detection service, a TypeScript app and a camera server."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/seyes-app",
+      "tags": [
+        "Go",
+        "Python",
+        "TypeScript",
+        "AI"
+      ],
+      "group": "school",
+      "year": "2023",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "line-playground",
+      "name": "LINE Playground",
+      "description": {
+        "th": "API และแอป LIFF สำหรับ LINE playground ที่รันบน Firebase",
+        "en": "APIs and LIFF apps for a LINE playground running on Firebase."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/Line-Playground",
+      "tags": [
+        "LINE API",
+        "Firebase",
+        "JavaScript"
+      ],
+      "group": "personal",
+      "year": "2023",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "line-api-course",
+      "name": "LINE API course",
+      "description": {
+        "th": "เอกสารประกอบคอร์ส LINE API ที่ PSC วันที่ 6 พฤศจิกายน",
+        "en": "Course material for a LINE API workshop at PSC on 6 November."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/line-api-course",
+      "tags": [
+        "LINE API",
+        "HTML"
+      ],
+      "group": "teaching",
+      "year": "2025",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "pure-php-template",
+      "name": "Pure PHP template",
+      "description": {
+        "th": "เทมเพลต PHP แบบไม่ใช้ framework สำหรับสอนนักพัฒนามือใหม่",
+        "en": "PHP template without a framework, made for teaching junior developers."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/pure-php-template",
+      "tags": [
+        "PHP"
+      ],
+      "group": "teaching",
+      "year": "2025",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "flutter-template",
+      "name": "Flutter clean architecture template",
+      "description": {
+        "th": "เทมเพลตเริ่มต้นแอป Flutter แบบ clean architecture",
+        "en": "Starter template for Flutter apps using clean architecture."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/flutter-template",
+      "tags": [
+        "Flutter",
+        "Dart"
+      ],
+      "group": "teaching",
+      "year": "2025",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "kru-taew",
+      "name": "Kru Taew e-learning",
+      "description": {
+        "th": "เทมเพลตเว็บไซต์ e-learning ด้วย HTML",
+        "en": "E-learning website template written in HTML."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/kru-taew-project",
+      "tags": [
+        "HTML"
+      ],
+      "group": "teaching",
+      "year": "2025",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "thap",
+      "name": "Thap",
+      "description": {
+        "th": "แอปพลิเคชันวัฒนธรรมไทย สร้างด้วย Flutter 2.5",
+        "en": "Thai traditional application built with Flutter 2.5."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/thap",
+      "tags": [
+        "Flutter",
+        "Dart"
+      ],
+      "group": "school",
+      "year": "2022",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "the-timmy-story",
+      "name": "The Timmy Story",
+      "description": {
+        "th": "เว็บ 3D เล่าเรื่องด้วย JavaScript",
+        "en": "A 3D web story built with JavaScript."
+      },
+      "url": "https://pho0m.github.io/the-timmy-story/",
+      "repo": "https://github.com/pho0m/the-timmy-story",
+      "tags": [
+        "JavaScript",
+        "Three.js"
+      ],
+      "group": "school",
+      "year": "2021",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "musiver",
+      "name": "Musiver",
+      "description": {
+        "th": "เครื่องเล่นเพลงที่เขียนด้วย Java",
+        "en": "Music player written in Java."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/Musiver",
+      "tags": [
+        "Java"
+      ],
+      "group": "school",
+      "year": "2021",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "bangkok-history",
+      "name": "Bangkok History",
+      "description": {
+        "th": "โปรเจกต์กลางภาควิชาเทคโนโลยีเว็บ",
+        "en": "Midterm project for a web technology class."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/bangkok-history",
+      "tags": [
+        "HTML",
+        "CSS"
+      ],
+      "group": "school",
+      "year": "2022",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "kiat-tune",
+      "name": "Kiat-Tune",
+      "description": {
+        "th": "แอปแนว iTunes สำหรับการบ้านวิชา TCT ใช้ iTunes Store API",
+        "en": "iTunes-style app for a TCT class homework, using the iTunes Store API."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/kiat-tune-app",
+      "tags": [
+        "JavaScript",
+        "API"
+      ],
+      "group": "school",
+      "year": "2022",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "commu-app",
+      "name": "Commu App",
+      "description": {
+        "th": "เว็บแอปพลิเคชันสำหรับชุมชน",
+        "en": "Web application for a community."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/commu-app",
+      "tags": [
+        "JavaScript"
+      ],
+      "group": "school",
+      "year": "2022",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "tweed-play",
+      "name": "Tweed Play",
+      "description": {
+        "th": "เทมเพลตบอทเพลงสำหรับ Discord",
+        "en": "Discord music bot template."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/tweed-play",
+      "tags": [
+        "Node.js",
+        "Discord"
+      ],
+      "group": "personal",
+      "year": "2022",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "pho0m-profile",
+      "name": "pho0m profile",
+      "description": {
+        "th": "เว็บพอร์ตนี้ หลังบ้าน และ README โปรไฟล์ GitHub",
+        "en": "This portfolio, its admin and the GitHub profile README."
+      },
+      "url": "",
+      "repo": "https://github.com/pho0m/pho0m",
+      "tags": [
+        "React",
+        "TypeScript",
+        "GCP"
+      ],
+      "group": "personal",
+      "year": "2026",
+      "featured": false,
+      "published": true
+    }
+  ],
+  "skills": [
+    {
+      "id": "work-ready",
+      "level": 3,
+      "title": {
+        "th": "ใช้งานจริง",
+        "en": "Work-ready"
+      },
+      "description": {
+        "th": "ใช้ในงานจริงทั้งที่ Utotech และงานลูกค้า",
+        "en": "Used in real work at Utotech and on client projects."
+      },
+      "items": [
+        {
+          "name": "Go",
+          "slug": "go"
+        },
+        {
+          "name": "TypeScript",
+          "slug": "typescript"
+        },
+        {
+          "name": "JavaScript",
+          "slug": "javascript"
+        },
+        {
+          "name": "Node.js",
+          "slug": "nodedotjs"
+        },
+        {
+          "name": "React",
+          "slug": "react"
+        },
+        {
+          "name": "Next.js",
+          "slug": "nextdotjs"
+        },
+        {
+          "name": "Flutter",
+          "slug": "flutter"
+        },
+        {
+          "name": "Dart",
+          "slug": "dart"
+        },
+        {
+          "name": "PHP",
+          "slug": "php"
+        },
+        {
+          "name": "Python",
+          "slug": "python"
+        },
+        {
+          "name": "PostgreSQL",
+          "slug": "postgresql"
+        },
+        {
+          "name": "MySQL",
+          "slug": "mysql"
+        },
+        {
+          "name": "Docker",
+          "slug": "docker"
+        },
+        {
+          "name": "Google Cloud",
+          "slug": "googlecloud"
+        },
+        {
+          "name": "Firebase",
+          "slug": "firebase"
+        },
+        {
+          "name": "LINE API",
+          "slug": "line"
+        },
+        {
+          "name": "Tailwind CSS",
+          "slug": "tailwindcss"
+        },
+        {
+          "name": "shadcn/ui",
+          "slug": "shadcnui"
+        }
+      ]
+    },
+    {
+      "id": "side-project",
+      "level": 2,
+      "title": {
+        "th": "ทำโปรเจกต์ได้",
+        "en": "Side-project ready"
+      },
+      "description": {
+        "th": "ทำของที่ใช้งานได้จริงในโปรเจกต์ส่วนตัวและงานแข่ง",
+        "en": "Can ship working things in side projects."
+      },
+      "items": [
+        {
+          "name": "NestJS",
+          "slug": "nestjs"
+        },
+        {
+          "name": "Express",
+          "slug": "express"
+        },
+        {
+          "name": "MongoDB",
+          "slug": "mongodb"
+        },
+        {
+          "name": "Redis",
+          "slug": "redis"
+        },
+        {
+          "name": "SQLite",
+          "slug": "sqlite"
+        },
+        {
+          "name": "Socket.io",
+          "slug": "socketdotio"
+        },
+        {
+          "name": "Three.js",
+          "slug": "threedotjs"
+        },
+        {
+          "name": "Arduino",
+          "slug": "arduino"
+        },
+        {
+          "name": "PyTorch",
+          "slug": "pytorch"
+        },
+        {
+          "name": "TensorFlow",
+          "slug": "tensorflow"
+        },
+        {
+          "name": "Strapi",
+          "slug": "strapi"
+        },
+        {
+          "name": "Remix",
+          "slug": "remix"
+        },
+        {
+          "name": "Java",
+          "slug": "openjdk"
+        },
+        {
+          "name": "Cloudflare",
+          "slug": "cloudflare"
+        },
+        {
+          "name": "AWS",
+          "slug": ""
+        },
+        {
+          "name": "DigitalOcean",
+          "slug": "digitalocean"
+        },
+        {
+          "name": "Vercel",
+          "slug": "vercel"
+        },
+        {
+          "name": "Nginx",
+          "slug": "nginx"
+        },
+        {
+          "name": "Jest",
+          "slug": "jest"
+        },
+        {
+          "name": "Puppeteer",
+          "slug": "puppeteer"
+        },
+        {
+          "name": "Pandas",
+          "slug": "pandas"
+        },
+        {
+          "name": "Linux",
+          "slug": "linux"
+        }
+      ]
+    },
+    {
+      "id": "have-tried",
+      "level": 1,
+      "title": {
+        "th": "เคยลอง",
+        "en": "Have tried"
+      },
+      "description": {
+        "th": "เคยใช้ในบทเรียน งานทดลองเล็ก ๆ",
+        "en": "Touched in tutorials and small experiments."
+      },
+      "items": [
+        {
+          "name": "Amazon DynamoDB",
+          "slug": "amazondynamodb"
+        },
+        {
+          "name": "Heroku",
+          "slug": "heroku"
+        },
+        {
+          "name": "WordPress",
+          "slug": "wordpress"
+        },
+        {
+          "name": "CMake",
+          "slug": "cmake"
+        },
+        {
+          "name": "Handlebars",
+          "slug": "handlebarsdotjs"
+        },
+        {
+          "name": "Android Studio",
+          "slug": "androidstudio"
+        },
+        {
+          "name": "Eclipse",
+          "slug": "eclipseide"
+        },
+        {
+          "name": "VMware",
+          "slug": "vmware"
+        }
+      ]
+    },
+    {
+      "id": "tools",
+      "level": 2,
+      "title": {
+        "th": "เครื่องมือธุรกิจและการทำงาน",
+        "en": "Business & team tools"
+      },
+      "description": {
+        "th": "ออกแบบ วิเคราะห์ระบบ และทำงานเป็นทีม",
+        "en": "Design, system analysis and teamwork."
+      },
+      "items": [
+        {
+          "name": "Figma",
+          "slug": "figma"
+        },
+        {
+          "name": "Canva",
+          "slug": ""
+        },
+        {
+          "name": "Premiere Pro",
+          "slug": ""
+        },
+        {
+          "name": "Power BI",
+          "slug": ""
+        },
+        {
+          "name": "Google Analytics",
+          "slug": "googleanalytics"
+        },
+        {
+          "name": "Airtable",
+          "slug": "airtable"
+        },
+        {
+          "name": "Sentry",
+          "slug": "sentry"
+        },
+        {
+          "name": "Discord",
+          "slug": "discord"
+        },
+        {
+          "name": "Slack",
+          "slug": ""
+        },
+        {
+          "name": "Microsoft Teams",
+          "slug": ""
+        },
+        {
+          "name": "Coursera",
+          "slug": "coursera"
+        },
+        {
+          "name": "Udemy",
+          "slug": "udemy"
+        },
+        {
+          "name": "Duolingo",
+          "slug": "duolingo"
+        }
+      ]
+    }
+  ],
+  "diary": {
+    "title": {
+      "th": "บันทึกสหกิจที่ Studio Twist",
+      "en": "Co-op diary at Studio Twist"
+    },
+    "intro": {
+      "th": "บันทึกรายเดือนระหว่างสหกิจศึกษา พฤษภาคม – ตุลาคม 2023",
+      "en": "Monthly notes from my co-op, May – October 2023."
+    },
+    "company": {
+      "name": {
+        "th": "บริษัท สตูดิโอ ทวิสต์ จำกัด",
+        "en": "Studio Twist"
+      },
+      "legalName": "STUDIO TWIST COMPANY LIMITED",
+      "type": {
+        "th": "บริษัทจำกัด",
+        "en": "Company limited"
+      },
+      "address": {
+        "th": "22 ซอยสำราญราษฎร์ แขวงสำราญราษฎร์ เขตพระนคร กรุงเทพฯ 10200",
+        "en": "22, Soi Samranrat, Samran Rat, Phra Nakhon, Bangkok 10200"
+      },
+      "about": {
+        "th": "Studio Twist คือสตูดิโอออกแบบและเขียนเว็บในกรุงเทพฯ ช่วยสร้างและยกระดับแบรนด์ผ่านประสบการณ์ดิจิทัลที่ชาญฉลาด โดดเด่น และมีความหมาย",
+        "en": "Studio Twist is a web design & coding studio based in Bangkok. We help you create and enhance your brand through smart, distinct and meaningful digital experience design."
+      },
+      "website": "https://www.madebytwist.com/",
+      "facebook": "https://www.facebook.com/studiotwist.co/",
+      "logo": {
+        "url": "/img/studiotwist.png",
+        "alt": {
+          "th": "",
+          "en": "Studio Twist logo"
+        }
+      }
+    },
+    "duties": [
+      {
+        "title": {
+          "th": "ออกแบบและวิเคราะห์",
+          "en": "Design and analysis"
+        },
+        "description": {
+          "th": "วางแผนและออกแบบระบบหลังบ้าน ตั้งแต่ flowchart ฐานข้อมูล schema และอื่น ๆ ตามความต้องการของผู้ใช้ที่พี่เลี้ยงมอบหมาย",
+          "en": "Planning and designing a back-office system, starting from flowcharts, database systems and schemas, according to the needs of the users that the mentor assigned."
+        }
+      },
+      {
+        "title": {
+          "th": "พัฒนา",
+          "en": "Development"
+        },
+        "description": {
+          "th": "พัฒนาเว็บไซต์สำหรับอินเทอร์เน็ตหรืออินทราเน็ต ตั้งแต่หน้าเว็บธรรมดาไปจนถึงเว็บแอปพลิเคชันที่ซับซ้อน",
+          "en": "Developing websites for the internet or an intranet, from a simple static page to complex web applications and services."
+        }
+      },
+      {
+        "title": {
+          "th": "ซัพพอร์ต",
+          "en": "Support"
+        },
+        "description": {
+          "th": "ดูแลระบบที่สร้าง ช่วยลูกค้าแก้บั๊ก เพิ่มฟีเจอร์ และแนะนำวิธีใช้งาน",
+          "en": "Taking care of what we built and helping customers: fixing bugs, adding features and advising on how to use the system."
+        }
+      }
+    ],
+    "entries": [
+      {
+        "id": "2023-may",
+        "month": {
+          "th": "พฤษภาคม",
+          "en": "May"
+        },
+        "period": "1 May - 1 June 2023",
+        "title": {
+          "th": "",
+          "en": "Let's starting internship with comeback party..."
+        },
+        "body": {
+          "th": "ต้องกล่าวถึงในต้นเรื่อง ผมเคยทำงานที่บริษัทนี้มานานมาก เป็นเวลามากกว่า 3 ปี โดย เริ่มทำงานในปีแรก ด้วยบทบาท นักศึกษาฝึกงาน สหกิจ 1 ปี เมื่อตอนยังคงเรียนอยู่ ระดับชั้น ปวส. และเมื่อเรียนจบ และฝึกงานเสร็จสิ้น ทำให้พี่ๆ ผู้บริหารเห็นพัฒนาการในตัวผม จึงได้ติดต่อให้ผมทำงานต่อ โดยรับบทเป็น พนักงาน part time ทำให้ผมเป็นพนักงาน part time มาตั้งแต่ตอนนั้น จนได้เข้ามาเรียน มหาลัย ผมจึงจำเป็นต้องเรียน จึงไม่ค่อยได้เข้าไปที่ออฟฟิส ทำให้ไม่ค่อยได้ติดต่อกับพวกเขา และยังไม่ค่อยได้เจอกัน แต่ผมยังคงทำงานให้เขา ในบทบาท part time มาตลอดอย่างสม่ำเสมอ เมื่อมาถึงช่วงเวลาที่ผมต้องฝึกสหกิจอีก 1 ปีเต็มผมจึงเลือกกลับมาฝึกที่เดิม เพราะที่นี่ยังมีอะไรให้ทำ ให้ศึกษา ให้ต่อยอดอีกมากมาย เขาจึงให้ผมและเหล่าพนักงานได้พักผ่อน เพราะบังเอิญเข้าไปช่วง cooldown ของทาง บริษัทพอดี ในเดือนนี้จึงได้แต่ทำงานที่ค้างคาเอาไว้ ประกอบไปด้วย การเขียน integration test เพื่อทดสอบระบบจริงทั้งหมด ของโปรเจกหนึ่ง ทั้งเดือน",
+          "en": "At the beginning, I must mention that I had worked at this company for a very long time, over 3 years. I started working in my first year as an intern in a cooperative education program for 1 year while I was still studying at the vocational certificate level. After graduating and finishing the internship, the senior executives saw my development and invited me to continue working as a part-time employee. Since then, I have been a part-time employee, but when I started attending university, I had to focus on my studies and didn't often visit the office. This meant I had less contact with them and didn’t see them much, but I continued working for them consistently in a part-time role. When it was time for another full year of co-operative education, I chose to return to the same place because there was still a lot to do, learn, and advance. Coincidentally, the company was in a cooldown phase, so this month we were mainly working on pending tasks, which included writing integration tests to test the entire system of a particular project for the whole month."
+        },
+        "images": []
+      },
+      {
+        "id": "2023-june",
+        "month": {
+          "th": "มิถุนายน",
+          "en": "June"
+        },
+        "period": "1 June - 1 July 2023",
+        "title": {
+          "th": "",
+          "en": "Coding and Testing intragration test and unit test..."
+        },
+        "body": {
+          "th": "การเขียนโค้ดและการทดสอบด้วยการทดสอบแบบ integration test และ unit test ด้วยภาษา GO [Go (ภาษาโปรแกรม)] ซึ่ง Go เป็นภาษาที่ถูกคอมไพล์และมีการกำหนดประเภทข้อมูลโดยคงที่ ซึ่งออกแบบขึ้นที่ Google มีความคล้ายคลึงกับภาษา C ในเชิงไวยากรณ์ แต่มีความปลอดภัยด้านหน่วยความจำ, การรวบรวมขยะ, การกำหนดประเภทแบบโครงสร้าง และการทำงานแบบ CSP-style concurrency. บางครั้งมักเรียกว่า Golang เนื่องจากชื่อโดเมนเดิมคือ golang.org แต่ชื่อที่ถูกต้องคือ Go. โดยใน part ของเดือนนี้จะเป็นการทำ integration test และ unit test อย่างต่อเนื่องมากมายหลายโปรเจก โดยมี ผม กับพี่เลี้ยง ร่วมด้วยช่วยกันทำคนละ 2 โปรเจก switch กันทำตาม feature ที่ได้รับมอบหมาย",
+          "en": "Coding and testing using integration tests and unit tests with the GO language [Go (programming language)]. Go is a statically typed, compiled programming language designed at Google. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is sometimes referred to as Golang due to its former domain name, golang.org, but the correct name is Go. For this part of the month, we will continuously conduct integration tests and unit tests for multiple projects. Both my colleague and I will collaborate, handling two projects each, switching roles based on the assigned features."
+        },
+        "images": []
+      },
+      {
+        "id": "2023-july",
+        "month": {
+          "th": "กรกฎาคม",
+          "en": "July"
+        },
+        "period": "1 July - 1 August 2023",
+        "title": {
+          "th": "",
+          "en": "Prepared and setup to go to BMAEXPO2023 with twist team..."
+        },
+        "body": {
+          "th": "การเขียน integration test และ unit test ดำเนินการมาจนถึงขั้นสุดท้ายและครบทุก feature แล้วพี่ๆเขาจึงเริ่มโปรเจกใหม่ให้ผมได้ลองจับ โดยในโปรเจกนี้นั้นเป็นโปรเจกที่ต้องใช้ hardware และ software เพื่อควบคุมปั้มน้ำ และ รายงานผล จึงได้รวมตัวประชุมวางแผน และ แจงแจงงานรวมถึงแจงจ่ายงานให้ไปศึกษารายคน จึงประชุมกันบ่อยมาก เพื่อเตรียมนำโปรเจกนี้ไปโชว์ที่งาน BMAEXPO2023",
+          "en": "Coding the integration tests and unit tests has reached its final stage, covering every feature. Then, the seniors started a new project for me to handle. This project involves both hardware and software to control water pumps and report results. So, we gathered for planning meetings, task explanations, and assigned individual research duties. We had frequent meetings to prepare for showcasing this project at BMAEXPO2023."
+        },
+        "images": []
+      },
+      {
+        "id": "2023-august",
+        "month": {
+          "th": "สิงหาคม",
+          "en": "August"
+        },
+        "period": "1 August - 1 September 2023",
+        "title": {
+          "th": "",
+          "en": "Coding Coding Coding Anddddd Testing !!!"
+        },
+        "body": {
+          "th": "ในเดือนนี้และเดือนที่ผ่านมาผมได้ศึกษาเกี่ยวกับ hardware ที่มีชื่อว่า arduino uno r3 และ shield เจ้าปัญหา Difobot เป็น shield ที่ใช้สำหรับการ ส่งข้อมูลขึ้นบนระบบ internet ในรูปแบบ 4g โดยเป็น sim card NB-IOT ซึ่ง sim card ประเภทนี้ต่างจาก sim card 4g ทั่วๆไปเป็น sim card ที่มี band width ที่ต่ำมากๆ เพื่อใช้สำหรับ อุปกรณ์ iot ที่อยู่กับที่ไม่ย้ายไปที่ไหน และ ประหยัดการส่งข้อมูล ประหยัดการกินพลังงานมากที่สุด เนื่องด้วยผม ไม่ค่อยได้สัมผัสกับ hardware บ่อยๆ ในเดือนนี้ทั้งเดือนจึงวุ่นวายกับการเขียนโปรเแกรมให้ Difobot สามารถส่งข้อมูลได้นั่นเอง แต่ก็มีงานอื่นๆให้ support อยู่บ้างเป็นบางวัน",
+          "en": "This month and the previous one, I studied a hardware called Arduino Uno R3 and a problematic shield named Difobot. This shield is used to transmit data to the internet using 4G in the form of an NB-IOT sim card. This type of sim card is different from regular 4G sim cards; it has an extremely low bandwidth designed specifically for stationary IoT devices, optimizing data transmission and energy consumption. Since I rarely work with hardware, I spent most of the month programming the Difobot to transmit data. However, there were other tasks that I needed to support occasionally."
+        },
+        "images": []
+      },
+      {
+        "id": "2023-september",
+        "month": {
+          "th": "กันยายน",
+          "en": "September"
+        },
+        "period": "1 September - 1 October 2023",
+        "title": {
+          "th": "",
+          "en": "Let's go to BMAEXPO2023.................."
+        },
+        "body": {
+          "th": "และแล้วก็ถึงเดือนที่ต้องส่งงานจนได้ ผมที่ทำสำเร็จเรียบร้อยตั้งแต่ สิ้นเดือนที่แล้ว จึงหมดห่วงและ ได้กลับมาทำงานอื่นๆ ต่อเช่น การ support ลูกค้า, การแก้ไขปัญหาของระบบ (bugs), การ deploy production และ staging environment บน google cloud, การสร้าง template pdf ผ่าน code เพื่อใส่ข้อมูลต่างๆ ที่มาจาก api แล้ว replace ลงบน pdf ในทันที และอื่นๆอีกมายมาย และอย่างสุดท้ายของเดือนนี้คือ ออกหน้างาน กับพี่ท็อปผู้เป็นพี่เลี้ยง โดยเจ้าอุปกรณ์ที่เห็นดังภาพเป็นเพียงแค่ prototype ขนาด 1:100",
+          "en": "And then came the month of project delivery. I had successfully completed my tasks by the end of the previous month, so I was relieved and able to return to other duties. These tasks included supporting customers, addressing system bugs, deploying to production and staging environments on Google Cloud, creating PDF templates through code to insert data from APIs and instantly replace content on the PDF, and many other tasks. At the end of this month, I also participated in an event with my senior colleague, Top."
+        },
+        "images": []
+      },
+      {
+        "id": "2023-october",
+        "month": {
+          "th": "ตุลาคม",
+          "en": "October"
+        },
+        "period": "1 October - 31 October 2023",
+        "title": {
+          "th": "",
+          "en": "Diamons ERP system with new project for work...."
+        },
+        "body": {
+          "th": "หลังจากจบงาน BMAEXPO2023 ผมก็ได้รับงานใหม่ เนื่องจากมีพี่ที่บริษัท ลาออกเป็นจำนวน 2 คน คนที่ support project ที่บริษัทถืออยู่จึงคนไม่พอ จึงพานพบให้ผมต้องเข้าไปรับผิดชอบแทน ผมจึงเข้าไปทำความรู้จักกับ flow และ business logic condition ต่างๆ ของระบบ แล้วนำมาเขียนตาม integration test ในช่วงต้นเดือน และในช่วงปลายเดือน เป็นช่วงเวลาเห่งการส่งงาน จึงทำให้ผมทำอะไรไม่ได้นอกจากต้องรับผิดชอบในส่วนที่ตัวเองทำ จนถึงปัจจุบัน (ขออนุญาติแปะเตือนตัวเองมีเพิ่มจะต้องมาอัพเดทนะ)",
+          "en": "After the BMAEXPO2023 event concluded, I was given new responsibilities. Two colleagues at the company had resigned, creating a shortage of support for the ongoing projects. As a result, I was tasked with stepping in to take over some of their roles. I familiarized myself with the flow and various business logic conditions of the systems and began writing integration tests in the early part of the month. The latter half of the month was a crucial period for project delivery, so I was fully focused on fulfilling my responsibilities. This brings us up to the present day"
+        },
+        "images": []
+      }
+    ],
+    "sheetUrl": "https://docs.google.com/spreadsheets/d/1bLZpa_6NH91BugZYbfhSDwGaopM2-HV5Kj5fzTSkUj4/edit?usp=sharing",
+    "slidesUrl": "https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view"
+  },
+  "documents": [
+    {
+      "id": "cv",
+      "title": {
+        "th": "CV / Resume",
+        "en": "CV / Resume"
+      },
+      "description": {
+        "th": "ดาวน์โหลด CV",
+        "en": "Download my CV"
+      },
+      "url": ""
+    },
+    {
+      "id": "portfolio",
+      "title": {
+        "th": "Portfolio (PDF)",
+        "en": "Portfolio (PDF)"
+      },
+      "description": {
+        "th": "พอร์ตโฟลิโอฉบับ PDF",
+        "en": "Portfolio as a PDF"
+      },
+      "url": ""
+    },
+    {
+      "id": "coop-slides",
+      "title": {
+        "th": "สไลด์โปรเจกต์สหกิจ",
+        "en": "Co-op project slides"
+      },
+      "description": {
+        "th": "สไลด์บน Canva",
+        "en": "Slides on Canva"
+      },
+      "url": "https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view"
+    },
+    {
+      "id": "coop-diary-sheet",
+      "title": {
+        "th": "ตารางบันทึกสหกิจ",
+        "en": "Co-op diary sheet"
+      },
+      "description": {
+        "th": "Google Sheets รายวัน",
+        "en": "Daily log on Google Sheets"
+      },
+      "url": "https://docs.google.com/spreadsheets/d/1bLZpa_6NH91BugZYbfhSDwGaopM2-HV5Kj5fzTSkUj4/edit?usp=sharing"
+    }
+  ]
+}

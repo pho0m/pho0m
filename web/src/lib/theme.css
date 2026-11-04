@@ -1,0 +1,112 @@
+/*
+ * Darkroom theme (concept B colours + fonts) shared by the site and the admin.
+ * Single deliberate dark look: safelight red on near-black, photo paper for text.
+ */
+@import "@fontsource/pixelify-sans/500.css";
+@import "@fontsource/pixelify-sans/700.css";
+@import "@fontsource/vt323/400.css";
+@import "@fontsource/chakra-petch/400.css";
+@import "@fontsource/chakra-petch/500.css";
+@import "@fontsource/chakra-petch/600.css";
+@import "@fontsource/chakra-petch/700.css";
+
+:root {
+  color-scheme: dark;
+  --bg: #120303;
+  --bg-2: #1c0706;
+  --bg-3: #2a0d0a;
+  --line: #4a1812;
+  --line-2: #7a2c22;
+  --red: #ff4a32;
+  --red-deep: #b8261a;
+  --led: #ff8a76;
+  --paper: #efe7d8;
+  --ink: #2b1d17;
+  --text: #efe2d6;
+  --muted: #c9a49b;
+  --film-base: #2a0b08;
+  --hole: #070101;
+  --ok: #8fd18a;
+  --warn: #ffc15a;
+
+  --font-pixel: "Pixelify Sans", "Chakra Petch", ui-monospace, monospace;
+  --font-body: "Chakra Petch", system-ui, sans-serif;
+  --font-lcd: "VT323", "Chakra Petch", ui-monospace, monospace;
+
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --maxw: 1180px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+a {
+  color: var(--led);
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+[hidden] {
+  display: none !important;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* stepped pixel corners */
+.px {
+  clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+}
+.lcd {
+  font-family: var(--font-lcd);
+  letter-spacing: 0.06em;
+  color: var(--led);
+}
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
