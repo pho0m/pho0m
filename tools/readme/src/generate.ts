@@ -22,7 +22,7 @@ import { bandCard } from "./svg/band.ts";
 import { badgeCard, badgeLabel, BADGE_H } from "./svg/badge.ts";
 import { buttonCard, BUTTON_H } from "./svg/button.ts";
 import { filmCard } from "./svg/film.ts";
-import { heroCard, type AvatarImage } from "./svg/hero.ts";
+import { bioWithoutEcho, heroCard, type AvatarImage } from "./svg/hero.ts";
 import { panelCards } from "./svg/panels.ts";
 import { rollEndCard } from "./svg/rollend.ts";
 import { skillsCard } from "./svg/skills.ts";
@@ -137,11 +137,12 @@ export async function generate(input: GenerateInput): Promise<Output> {
     avatar,
     avatarInitial: (p.nickname || name).slice(0, 1).toUpperCase(),
   };
+  const sentence = (s: string) => (s && !/[.!?]$/.test(s) ? `${s}.` : s);
   const heroAlt = [
-    `${name}${p.handle ? ` (${p.handle})` : ""} — ${heroData.role}.`,
-    heroData.headline,
-    heroData.bio,
-    stats.length ? `${stats.map((s) => `${s.value} ${s.label.toLowerCase()}`).join(", ")}.` : "",
+    sentence(`${name}${p.handle ? ` (${p.handle})` : ""} — ${heroData.role}`),
+    sentence(heroData.headline),
+    sentence(bioWithoutEcho(heroData.bio, heroData.headline)),
+    stats.length ? sentence(stats.map((s) => s.alt).join(", ")) : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -189,7 +190,7 @@ export async function generate(input: GenerateInput): Promise<Output> {
     services: c.services.map((s) => ({ title: en(s.title), subtitle: en(s.subtitle), price: en(s.price) })),
   };
   const utoAlt = [
-    `${companyName} — ${utoData.tagline}.`,
+    sentence(`${companyName} — ${utoData.tagline}`),
     utoData.stats.map((s) => `${s.label}: ${s.value}`).join(", ") + ".",
     utoData.services.length ? `Services: ${utoData.services.map((s) => `${s.title} (${s.price})`).join("; ")}.` : "",
     utoData.customers.length ? `Customers include ${utoData.customers.join(", ")}.` : "",

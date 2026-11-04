@@ -27,7 +27,8 @@ export type GithubStats = {
   repoStars: Record<string, number>;
 };
 
-export type Stat = { value: string; label: string };
+/** A hero chip: big LED value + short label; `alt` is the same fact as a phrase for alt text. */
+export type Stat = { value: string; label: string; alt: string };
 export type LinkItem = { id: string; label: string; url: string; kind: Link["kind"]; company?: boolean };
 export type FilmFrame = { frame: Frame; number: number; title: string; date: string };
 export type TableRow = {
@@ -79,17 +80,20 @@ export function latestFrames(content: Content, count = 5): FilmFrame[] {
 export function heroStats(content: Content, gh: GithubStats | null): Stat[] {
   const stats: Stat[] = [];
   if (gh) {
-    stats.push({ value: String(gh.stars), label: "Stars" });
-    stats.push({ value: String(gh.publicRepos), label: "Repos" });
-    stats.push({ value: String(gh.followers), label: "Followers" });
+    stats.push({ value: String(gh.stars), label: "Stars", alt: `${gh.stars} GitHub stars` });
+    stats.push({ value: String(gh.publicRepos), label: "Repos", alt: `${gh.publicRepos} public repos` });
+    stats.push({ value: String(gh.followers), label: "Followers", alt: `${gh.followers} followers` });
   }
   const own = content.projects.filter((p) => p.published).length;
   const client = content.company.projects.filter((p) => p.published).length;
-  if (own) stats.push({ value: String(own), label: "Projects" });
-  if (client) stats.push({ value: String(client), label: "Client works" });
-  if (content.company.customers.length) stats.push({ value: String(content.company.customers.length), label: "Customers" });
-  if (content.company.teamSize) stats.push({ value: content.company.teamSize, label: "Team" });
-  if (content.profile.codingSince) stats.push({ value: String(content.profile.codingSince), label: "Coding since" });
+  const customers = content.company.customers.length;
+  const { teamSize } = content.company;
+  const since = content.profile.codingSince;
+  if (own) stats.push({ value: String(own), label: "Projects", alt: `${own} projects` });
+  if (client) stats.push({ value: String(client), label: "Client works", alt: `${client} client projects` });
+  if (customers) stats.push({ value: String(customers), label: "Customers", alt: `${customers} customers` });
+  if (teamSize) stats.push({ value: teamSize, label: "Team", alt: `a team of ${teamSize}` });
+  if (since) stats.push({ value: String(since), label: "Coding since", alt: `coding since ${since}` });
   return stats;
 }
 

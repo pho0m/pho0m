@@ -130,7 +130,7 @@ jobs:
           # Safe to repeat. Needs serviceusage permission, which the deploy key may not have;
           # docs/SETUP.md enables these APIs once by hand, so a failure here is only a warning.
           if ! gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project "$PROJECT_ID" --quiet; then
-            echo "::warning title=Could not enable APIs::Continuing on the assumption that run.googleapis.com and artifactregistry.googleapis.com are already enabled (docs/SETUP.md, step 2)."
+            echo "::warning title=Could not enable APIs::Continuing on the assumption that run.googleapis.com and artifactregistry.googleapis.com are already enabled (docs/SETUP.md, section 3.3)."
           fi
 
       - name: Create the Artifact Registry repository if missing
