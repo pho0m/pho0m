@@ -243,7 +243,7 @@
       ],
       "images": [
         {
-          "url": "/media/utotech/logo.webp",
+          "url": "/media/utotech/logo.png",
           "alt": {
             "th": "โลโก้ยูโทเทค",
             "en": "Utotech logo"
@@ -648,7 +648,7 @@
       ],
       "images": [
         {
-          "url": "/media/utotech/office/office1.webp",
+          "url": "/media/utotech/office/office1.jpg",
           "alt": {
             "th": "ออฟฟิศยูโทเทค",
             "en": "Utotech office"

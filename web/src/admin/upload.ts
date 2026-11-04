@@ -1,7 +1,7 @@
 import { MAX_UPLOAD_BYTES } from "@pho0m/content";
 import {
   MAX_IMAGE_EDGE,
-  WEBP_QUALITY,
+  JPEG_QUALITY,
   canReencode,
   checkUpload,
   fitWithin,
@@ -18,7 +18,7 @@ export type PreparedUpload = {
   file: File;
   width?: number;
   height?: number;
-  /** Short note for the UI, e.g. "ย่อจาก 4032×3024 → 2000×1500 · WebP". */
+  /** Short note for the UI, e.g. "ย่อจาก 4032×3024 → 2000×1500 · JPEG". */
   note?: string;
 };
 
@@ -48,13 +48,23 @@ async function decode(file: Blob): Promise<Decoded> {
   }
 }
 
+/** True when any pixel is not fully opaque (sampled on a grid for big images). */
+function hasAlpha(ctx: CanvasRenderingContext2D, w: number, h: number): boolean {
+  const step = Math.max(1, Math.floor(Math.sqrt((w * h) / 250_000)));
+  const d = ctx.getImageData(0, 0, w, h).data;
+  for (let y = 0; y < h; y += step)
+    for (let x = 0; x < w; x += step) if (d[(y * w + x) * 4 + 3]! < 255) return true;
+  return false;
+}
+
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), type, quality));
 }
 
 /**
- * Validate a file and, for still images, downscale to ≤ 2000px and re-encode to WebP.
- * GIF and PDF are passed through unchanged. Throws UploadRejected with a Thai message.
+ * Validate a file and, for still images, downscale to ≤ 2000px and re-encode:
+ * photos → JPEG, images with transparency → PNG (both decodable everywhere, incl. the
+ * README generator). GIF and PDF are passed through unchanged. Throws UploadRejected (Thai message).
  */
 export async function prepareUpload(file: File): Promise<PreparedUpload> {
   const check = checkUpload(file);
@@ -83,7 +93,8 @@ export async function prepareUpload(file: File): Promise<PreparedUpload> {
 
   const { width, height, resized } = fitWithin(decoded.width, decoded.height, MAX_IMAGE_EDGE);
   try {
-    if (!resized && type === "image/webp" && file.size <= MAX_UPLOAD_BYTES) {
+    // Already small JPEG/PNG: keep the original bytes.
+    if (!resized && (type === "image/jpeg" || type === "image/png") && file.size <= MAX_UPLOAD_BYTES) {
       return { file, width, height };
     }
     const canvas = document.createElement("canvas");
@@ -94,21 +105,21 @@ export async function prepareUpload(file: File): Promise<PreparedUpload> {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(decoded.source, 0, 0, width, height);
-    const blob = await toBlob(canvas, "image/webp", WEBP_QUALITY);
-    const isWebp = blob?.type === "image/webp";
+    const transparent = type !== "image/jpeg" && hasAlpha(ctx, width, height);
+    const target = transparent ? "image/png" : "image/jpeg";
+    const blob = await toBlob(canvas, target, JPEG_QUALITY);
 
     let out: File = file;
     let note: string | undefined;
-    if (blob && isWebp && (resized || blob.size < file.size)) {
-      out = new File([blob], renameExt(file.name, "webp"), { type: "image/webp" });
+    const label = target === "image/png" ? "PNG" : "JPEG";
+    // Always convert WebP/AVIF so every consumer can read the file; otherwise only when it helps.
+    const mustConvert = type === "image/webp" || type === "image/avif";
+    if (blob && (resized || mustConvert || blob.size < file.size)) {
+      const ext = blob.type === "image/png" ? "png" : "jpg";
+      out = new File([blob], renameExt(file.name, ext), { type: blob.type || target });
       note = resized
-        ? `ย่อจาก ${decoded.width}×${decoded.height} → ${width}×${height} · WebP`
-        : `แปลงเป็น WebP · ${formatBytes(file.size)} → ${formatBytes(blob.size)}`;
-    } else if (blob && resized) {
-      // Browser cannot encode WebP: keep the resized image in whatever format it produced.
-      const ext = blob.type === "image/jpeg" ? "jpg" : "png";
-      out = new File([blob], renameExt(file.name, ext), { type: blob.type || "image/png" });
-      note = `ย่อจาก ${decoded.width}×${decoded.height} → ${width}×${height}`;
+        ? `ย่อจาก ${decoded.width}×${decoded.height} → ${width}×${height} · ${label}`
+        : `แปลงเป็น ${label} · ${formatBytes(file.size)} → ${formatBytes(blob.size)}`;
     }
 
     if (out.size > MAX_UPLOAD_BYTES) {

@@ -3,7 +3,9 @@ import { ALLOWED_UPLOAD_TYPES, MAX_UPLOAD_BYTES } from "@pho0m/content";
 /** Pure helpers for client-side upload checks and image resizing maths. */
 
 export const MAX_IMAGE_EDGE = 2000;
-export const WEBP_QUALITY = 0.86;
+/** JPEG quality for re-encoded photos. JPEG (not WebP) so every consumer can decode uploads:
+ * the README generator, link previews and older browsers. Images with transparency become PNG. */
+export const JPEG_QUALITY = 0.86;
 /** Raw images above this are refused before decoding (they would freeze the tab). */
 export const MAX_RAW_IMAGE_BYTES = 60 * 1024 * 1024;
 
@@ -46,7 +48,7 @@ export function isAllowedType(type: string): type is AllowedType {
   return (ALLOWED_UPLOAD_TYPES as readonly string[]).includes(type);
 }
 
-/** JPEG/PNG/WebP/AVIF go through the canvas (resize + WebP). GIF (animation) and PDF are sent as-is. */
+/** JPEG/PNG/WebP/AVIF go through the canvas (resize, then JPEG — or PNG when transparent). GIF (animation) and PDF are sent as-is. */
 export function canReencode(type: string): boolean {
   return type === "image/jpeg" || type === "image/png" || type === "image/webp" || type === "image/avif";
 }

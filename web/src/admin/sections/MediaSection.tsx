@@ -110,7 +110,7 @@ export function MediaSection({ draftJson, savedJson }: { draftJson: string; save
   return (
     <>
       <SectionHead title="คลังไฟล์" en="Media library">
-        รูปและ PDF ที่อัปโหลดไว้ · รูปที่ใหญ่กว่า 2000px จะถูกย่อและแปลงเป็น WebP ก่อนอัปโหลด
+        รูปและ PDF ที่อัปโหลดไว้ · รูปที่ใหญ่กว่า 2000px จะถูกย่อ และรูป WebP/AVIF จะถูกแปลงเป็น JPEG (หรือ PNG ถ้ามีพื้นโปร่งใส) ก่อนอัปโหลด
       </SectionHead>
       <div className="media-toolbar">
         <UploadButton label="อัปโหลดไฟล์ (เลือกได้หลายไฟล์)" multiple className="btn btn-primary btn-sm" folder="library" />
