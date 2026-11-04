@@ -209,7 +209,8 @@ export const Company = z.object({
 });
 export type Company = z.infer<typeof Company>;
 
-export const PROJECT_GROUPS = ["utotech", "personal", "teaching", "school", "coop"] as const;
+/** utotech = Utotech products/repos, client = portfolio work for clients (often under NDA), personal, teaching, school, coop. */
+export const PROJECT_GROUPS = ["utotech", "client", "personal", "teaching", "school", "coop"] as const;
 export const Project = z.object({
   id,
   name: z.string().min(1),

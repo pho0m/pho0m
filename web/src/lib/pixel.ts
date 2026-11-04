@@ -21,18 +21,17 @@ const mix = (a: RGB, b: RGB, t: number): RGB =>
 export const PAPER = hex(DARKROOM.paper);
 export const INK = hex(DARKROOM.ink);
 
-/** 8x8 Bayer matrix, values 0..63. */
-export const BAYER8: number[] = (() => {
-  const m: number[] = [];
-  for (let y = 0; y < 8; y++)
-    for (let x = 0; x < 8; x++) {
-      let v = 0;
-      const xc = x ^ y;
-      for (let bit = 2; bit >= 0; bit--) v = (v << 2) | (((xc >> bit) & 1) << 1) | ((y >> bit) & 1);
-      m.push(v);
-    }
-  return m;
-})();
+/** Standard 8x8 Bayer (dispersed-dot) matrix, values 0..63. */
+export const BAYER8: number[] = [
+  0, 32, 8, 40, 2, 34, 10, 42,
+  48, 16, 56, 24, 50, 18, 58, 26,
+  12, 44, 4, 36, 14, 46, 6, 38,
+  60, 28, 52, 20, 62, 30, 54, 22,
+  3, 35, 11, 43, 1, 33, 9, 41,
+  51, 19, 59, 27, 49, 17, 57, 25,
+  15, 47, 7, 39, 13, 45, 5, 37,
+  63, 31, 55, 23, 61, 29, 53, 21,
+];
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 export function hash(n: number): number {
@@ -174,6 +173,8 @@ export function sourceToImageData(src: CanvasImageSource & { width: number; heig
   const scale = Math.max(w / sw, h / sh);
   const dw = sw * scale;
   const dh = sh * scale;
+  ctx.fillStyle = "#ffffff"; // transparent pixels print as paper, not ink
+  ctx.fillRect(0, 0, w, h);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(src, (w - dw) / 2, (h - dh) / 2, dw, dh);
@@ -262,6 +263,9 @@ export type ToneOptions = {
   contrast?: number;
   /** Subtle deterministic film grain, 0..0.1. */
   grain?: number;
+  /** Levels: luminance at/below `black` → full ink, at/above `white` → paper (auto-levels). */
+  black?: number;
+  white?: number;
   paper?: RGB;
   ink?: RGB;
 };
@@ -272,7 +276,8 @@ export type ToneOptions = {
  * partially developed print where the darkest tones appear first, like in the tray.
  */
 export function tonePrint(src: ImageData, opts: ToneOptions = {}, out?: ImageData): ImageData {
-  const { level = 1, contrast = 0.35, grain = 0.03, paper = PAPER, ink = INK } = opts;
+  const { level = 1, contrast = 0.35, grain = 0.03, black = 0, white = 1, paper = PAPER, ink = INK } = opts;
+  const span = Math.max(0.01, white - black);
   const W = src.width;
   const H = src.height;
   const o = out ?? createImageData(W, H);
@@ -283,6 +288,7 @@ export function tonePrint(src: ImageData, opts: ToneOptions = {}, out?: ImageDat
     for (let x = 0; x < W; x++) {
       const k = (y * W + x) * 4;
       let lum = (s[k]! * 0.3 + s[k + 1]! * 0.59 + s[k + 2]! * 0.11) / 255;
+      lum = Math.max(0, Math.min(1, (lum - black) / span));
       // S-curve around mid grey for a crisp print
       lum = lum + contrast * (lum - 0.5) * (1 - Math.abs(2 * lum - 1));
       if (grain > 0) lum += (hash(x * 12.9898 + y * 78.233) - 0.5) * grain;
