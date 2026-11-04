@@ -2,11 +2,13 @@ import {
   absoluteUrl,
   frameDateLabel,
   frameDateLong,
+  PROJECT_GROUPS,
   t,
   timelineFrames,
   type Content,
   type Lang,
   type Localized,
+  type Project,
 } from "@pho0m/content";
 
 /**
@@ -76,6 +78,93 @@ export function pageDescription(c: Content, lang: Lang = c.site.defaultLang): st
   const base = t(c.site.description, lang);
   const headline = t(c.profile.headline, lang);
   return clip(base && base !== headline ? sentences(base, headline) : sentences(headline), 300);
+}
+
+/* ------------------------------------------------------------------ facts derived from the content */
+
+/** Same labels as the site's project filter, so crawlers see the same words as visitors. */
+const GROUP_LABEL: Record<string, { th: string; en: string }> = {
+  utotech: { th: "Utotech", en: "Utotech" },
+  client: { th: "งานลูกค้า", en: "Client work" },
+  personal: { th: "ส่วนตัว", en: "Personal" },
+  teaching: { th: "งานสอน", en: "Teaching" },
+  school: { th: "สมัยเรียน", en: "School" },
+  coop: { th: "สหกิจ", en: "Co-op" },
+};
+
+export function groupLabel(group: string): { th: string; en: string } {
+  const known = Object.hasOwn(GROUP_LABEL, group) ? GROUP_LABEL[group] : undefined;
+  if (known) return known;
+  const words = group.replace(/[-_]+/g, " ").trim();
+  const en = words ? words[0]!.toUpperCase() + words.slice(1) : "Other";
+  return { th: en, en };
+}
+
+export type ProjectGroup = { group: string; label: { th: string; en: string }; items: Project[] };
+
+/** Published projects by group, in contract order (utotech, client, personal, teaching, school, coop). */
+export function projectGroups(c: Content): ProjectGroup[] {
+  const published = c.projects.filter((x) => x.published);
+  const order: string[] = [...PROJECT_GROUPS];
+  for (const x of published) if (!order.includes(x.group)) order.push(x.group);
+  return order
+    .map((group) => ({ group, label: groupLabel(group), items: published.filter((x) => x.group === group) }))
+    .filter((g) => g.items.length > 0);
+}
+
+/** Client work is shown as text only (often under NDA): no screenshots, no links unless the owner adds one. */
+const isClient = (x: Project) => x.group === "client";
+
+/** The honours part of an education program: "…, Computer Technology · First Class Honors · GPA 3.63" → "First Class Honors". */
+export function honorsIn(program: string): string | null {
+  for (const part of program.split(/\s*[·•|;,]\s*/)) {
+    if (/\bhonou?rs\b/i.test(part)) return part.trim();
+  }
+  return null;
+}
+
+/** Timeline tags (any case) that mark a frame as an award or a competition result. */
+export const AWARD_TAGS = ["award", "awards", "prize", "competition", "contest", "hackathon", "ctf", "scholarship"] as const;
+
+/**
+ * Awards the content states, in English: honours named in an education program and published
+ * timeline frames tagged with one of AWARD_TAGS (title, plus its summary as written).
+ * Nothing is inferred beyond that.
+ */
+export function awardsOf(c: Content): string[] {
+  const out: string[] = [];
+  for (const e of c.profile.education) {
+    const honors = honorsIn(t(e.program, "en"));
+    const school = t(e.school, "en");
+    if (honors) out.push(school ? `${honors}, ${school}` : honors);
+  }
+  const tags = new Set<string>(AWARD_TAGS);
+  for (const f of timelineFrames(c)) {
+    if (!f.tags.some((x) => tags.has(x.trim().toLowerCase()))) continue;
+    const title = oneLine(t(f.title, "en"));
+    if (!title) continue;
+    const year = f.date.slice(0, 4);
+    const when = title.includes(year) ? "" : ` (${frameDateLong(f)})`;
+    const summary = oneLine(t(f.summary, "en"));
+    out.push(`${title}${when}${summary ? ` — ${summary}` : ""}`);
+  }
+  return [...new Set(out)];
+}
+
+/** "May to October 2023" from the diary entries' month names and periods ("" when it cannot tell). */
+export function diaryRange(c: Content): string {
+  const entries = c.diary.entries;
+  const first = entries[0];
+  const last = entries[entries.length - 1];
+  if (!first || !last) return "";
+  const yearOf = (period: string) => period.match(/\b(?:19|20)\d{2}\b(?!.*\b(?:19|20)\d{2}\b)/)?.[0] ?? "";
+  const m1 = t(first.month, "en");
+  const m2 = t(last.month, "en");
+  const y1 = yearOf(first.period);
+  const y2 = yearOf(last.period);
+  if (!m1 || !m2) return "";
+  if (first === last) return `${m1}${y1 ? ` ${y1}` : ""}`;
+  return `${m1}${y1 && y1 !== y2 ? ` ${y1}` : ""} to ${m2}${y2 ? ` ${y2}` : ""}`;
 }
 
 /** Parse "Package from 20,000 THB" → 20000 (null when no number). */
@@ -161,8 +250,45 @@ export function buildJsonLd(c: Content): Record<string, unknown> {
   if (p.avatar) person.image = abs(c, p.avatar.url);
   if (p.email.visible && p.email.value) person.email = `mailto:${p.email.value}`;
   if (p.phone.visible && p.phone.value) person.telephone = p.phone.value;
-  const edu = p.education.map((e) => ({ "@type": "CollegeOrUniversity", name: t(e.school, "en") }));
-  if (edu.length) person.alumniOf = edu;
+
+  const school = (l: Localized) => {
+    const en = t(l, "en");
+    const th = t(l, "th");
+    return { "@type": "CollegeOrUniversity", name: en, ...(th && th !== en ? { alternateName: th } : {}) };
+  };
+  const schools = p.education.filter((e) => t(e.school, "en"));
+  if (schools.length) person.alumniOf = schools.map((e) => school(e.school));
+  const credentials = schools
+    .filter((e) => t(e.program, "en"))
+    .map((e) => {
+      const program = oneLine(t(e.program, "en"));
+      const name = program.split(/\s*·\s*/)[0] || program;
+      return {
+        "@type": "EducationalOccupationalCredential",
+        name,
+        ...(name !== program ? { description: program } : {}),
+        ...(/\b(bachelor|master|doctor|ph\.?\s?d|degree)\b/i.test(program) ? { credentialCategory: "degree" } : {}),
+        recognizedBy: school(e.school),
+      };
+    });
+  if (credentials.length) person.hasCredential = credentials;
+  const awards = awardsOf(c);
+  if (awards.length) person.award = awards;
+
+  const location = t(p.location, "en");
+  const occupationName = t(co.role, "en") || t(p.role, "en");
+  if (occupationName) {
+    const roleText = t(p.role, "en");
+    const workReady = c.skills.filter((g) => g.level === 3).flatMap((g) => g.items.map((i) => i.name));
+    person.hasOccupation = {
+      "@type": "Occupation",
+      name: occupationName,
+      ...(roleText && roleText !== occupationName ? { description: roleText } : {}),
+      ...(location ? { occupationLocation: { "@type": "Country", name: location } } : {}),
+      ...(workReady.length ? { skills: workReady } : {}),
+    };
+  }
+  if (location) person.homeLocation = { "@type": "Country", name: location };
 
   const offers = co.services.map((s) => {
     const priceText = t(s.price, "en");
@@ -203,47 +329,52 @@ export function buildJsonLd(c: Content): Record<string, unknown> {
   };
   if (co.logo) org.logo = abs(c, co.logo.url);
 
+  const coProjects = co.projects.filter((x) => x.published);
   const portfolio = {
     "@type": "ItemList",
     "@id": `${base}/#utotech-projects`,
     name: `${t(co.name, "en")} projects`,
-    itemListElement: co.projects
-      .filter((x) => x.published)
-      .map((x, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "CreativeWork",
-          name: x.name,
-          genre: x.category,
-          description: oneLine(t(x.description, "en") || t(x.summary, "en")),
-          creator: { "@id": orgId },
-          ...(x.url ? { url: x.url } : {}),
-          ...(x.cover ? { image: abs(c, x.cover.url) } : {}),
-        },
-      })),
+    numberOfItems: coProjects.length,
+    itemListElement: coProjects.map((x, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "CreativeWork",
+        name: x.name,
+        genre: x.category,
+        description: oneLine(t(x.description, "en") || t(x.summary, "en")),
+        creator: { "@id": orgId },
+        ...(x.url ? { url: x.url } : {}),
+        ...(x.cover ? { image: abs(c, x.cover.url) } : {}),
+      },
+    })),
   };
 
+  // Every published project, grouped like the site. Code with a public repository is
+  // SoftwareSourceCode; everything else (client work, products) is a plain CreativeWork.
+  const own = projectGroups(c).flatMap((g) => g.items.map((x) => ({ x, label: g.label.en })));
   const projects = {
     "@type": "ItemList",
     "@id": `${base}/#projects`,
     name: `${t(p.name, "en")} projects`,
-    itemListElement: c.projects
-      .filter((x) => x.published)
-      .map((x, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "SoftwareSourceCode",
-          name: x.name,
-          description: oneLine(t(x.description, "en")),
-          author: { "@id": personId },
-          keywords: x.tags.join(", "),
-          ...(x.repo ? { codeRepository: x.repo } : {}),
-          ...(x.url ? { url: x.url } : {}),
-          ...(x.year ? { dateCreated: x.year } : {}),
-        },
-      })),
+    numberOfItems: own.length,
+    itemListElement: own.map(({ x, label }, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": x.repo ? "SoftwareSourceCode" : "CreativeWork",
+        name: x.name,
+        description: oneLine(t(x.description, "en")),
+        genre: label,
+        // Utotech products are the company's; the rest is the owner's own work or work for clients.
+        creator: { "@id": x.group === "utotech" ? orgId : personId },
+        ...(x.tags.length ? { keywords: x.tags.join(", ") } : {}),
+        ...(x.repo ? { codeRepository: x.repo } : {}),
+        ...(x.url ? { url: x.url } : {}),
+        ...(x.year ? { dateCreated: x.year } : {}),
+        ...(x.image && !isClient(x) ? { image: abs(c, x.image.url) } : {}),
+      },
+    })),
   };
 
   const page = {
@@ -256,7 +387,10 @@ export function buildJsonLd(c: Content): Record<string, unknown> {
     isPartOf: { "@id": siteId },
     mainEntity: { "@id": personId },
     about: [{ "@id": personId }, { "@id": orgId }],
-    hasPart: [{ "@id": `${base}/#utotech-projects` }, { "@id": `${base}/#projects` }],
+    hasPart: [
+      ...(coProjects.length ? [{ "@id": `${base}/#utotech-projects` }] : []),
+      ...(own.length ? [{ "@id": `${base}/#projects` }] : []),
+    ],
     primaryImageOfPage: ogImageUrl(c),
     ...(c.updatedAt ? { dateModified: c.updatedAt } : {}),
   };
@@ -270,9 +404,9 @@ export function buildJsonLd(c: Content): Record<string, unknown> {
     publisher: { "@id": personId },
   };
 
-  return JSON.parse(
-    JSON.stringify({ "@context": "https://schema.org", "@graph": [website, page, person, org, portfolio, projects] }),
-  ) as Record<string, unknown>;
+  const graph = [website, page, person, org, ...(coProjects.length ? [portfolio] : []), ...(own.length ? [projects] : [])];
+  // Round-trip drops the `undefined` fields left by optional values.
+  return JSON.parse(JSON.stringify({ "@context": "https://schema.org", "@graph": graph })) as Record<string, unknown>;
 }
 
 /** JSON for a <script> tag: escape "<" so "</script>" can never close it early. */
@@ -288,7 +422,10 @@ export function buildHead(c: Content): string {
   const title = pageTitle(c, lang);
   const desc = pageDescription(c, lang);
   const img = ogImageUrl(c);
-  const imgAlt = `${t(c.profile.name, "en")} · ${t(c.profile.role, "en")}`;
+  const imgAlt = t(c.site.ogImage?.alt, "en") || `${t(c.profile.name, "en")} · ${t(c.profile.role, "en")}`;
+  // The default /og.png is 1200×630; a custom image only gets a size when the content gives one.
+  const og = c.site.ogImage;
+  const imgSize = og?.url ? (og.width && og.height ? [og.width, og.height] : null) : [1200, 630];
   const keywords = [
     c.profile.handle,
     t(c.profile.name, "en"),
@@ -320,8 +457,7 @@ export function buildHead(c: Content): string {
     pr("og:url", `${base}/`),
     pr("og:image", img),
     pr("og:image:alt", imgAlt),
-    pr("og:image:width", "1200"),
-    pr("og:image:height", "630"),
+    ...(imgSize ? [pr("og:image:width", String(imgSize[0])), pr("og:image:height", String(imgSize[1]))] : []),
     pr("og:locale", lang === "th" ? "th_TH" : "en_US"),
     pr("og:locale:alternate", lang === "th" ? "en_US" : "th_TH"),
     pr("profile:username", c.profile.handle),
@@ -360,8 +496,13 @@ export function buildSnapshot(c: Content): string {
   const frames = timelineFrames(c);
   const out: string[] = [];
   out.push(`<div class="seo-static">`);
-  out.push(`<header><p class="seo-handle">${esc(p.handle)}</p><h1>${esc(t(p.name, "en"))}${t(p.name, "th") ? ` <span lang="th">(${esc(t(p.name, "th"))})</span>` : ""}</h1>`);
-  out.push(`<p>${T(p.role)}</p>${P(p.headline)}${P(p.bio)}${P(p.dream)}`);
+  const kicker = [p.handle && `@${esc(p.handle)}`, p.nickname && esc(p.nickname), T(p.location)].filter(Boolean).join(" · ");
+  out.push(`<header><p class="seo-handle">${kicker}</p><h1>${esc(t(p.name, "en"))}${t(p.name, "th") ? ` <span lang="th">(${esc(t(p.name, "th"))})</span>` : ""}</h1>`);
+  out.push(`<p>${T(p.role)}</p>`);
+  for (const e of p.education) {
+    out.push(`<p>${[T(e.school), T(e.program), e.period && esc(e.period)].filter(Boolean).join(" · ")}</p>`);
+  }
+  out.push(`${P(p.headline)}${P(p.bio)}${P(p.dream)}`);
   out.push(`<nav aria-label="Sections"><ul>${[["#film", "Timeline"], ["#utotech", "Utotech"], ["#projects", "Projects"], ["#skills", "Skills"], ["#diary", "Co-op diary"], ["#contact", "Contact"]].map(([h, l]) => `<li>${A(h!, l!)}</li>`).join("")}</ul></nav></header>`);
 
   out.push(`<main>`);
@@ -417,15 +558,19 @@ export function buildSnapshot(c: Content): string {
   if (co.links.length) out.push(`<ul>${co.links.map((l) => `<li>${A(abs(c, l.url), l.label || l.url)}</li>`).join("")}</ul>`);
   out.push(`</section>`);
 
-  // Personal projects
-  const projects = c.projects.filter((x) => x.published);
-  if (projects.length) {
-    out.push(`<section id="projects"><h2>Projects · โปรเจกต์</h2><ul>`);
-    for (const x of projects) {
-      const links = [x.repo && A(x.repo, "source"), x.url && A(x.url, "demo")].filter(Boolean).join(" · ");
-      out.push(`<li><strong>${esc(x.name)}</strong>${x.year ? ` (${esc(x.year)})` : ""}: ${T(x.description)}${x.tags.length ? ` [${esc(x.tags.join(", "))}]` : ""}${links ? ` ${links}` : ""}</li>`);
+  // Projects, grouped like the site's filter (Utotech, client work, personal, teaching, school, co-op)
+  const groups = projectGroups(c);
+  if (groups.length) {
+    out.push(`<section id="projects"><h2>Projects · โปรเจกต์</h2>`);
+    for (const g of groups) {
+      out.push(`<h3>${T(g.label)}</h3><ul>`);
+      for (const x of g.items) {
+        const links = [x.repo && A(x.repo, "source"), x.url && A(x.url, "demo")].filter(Boolean).join(" · ");
+        out.push(`<li><strong>${esc(x.name)}</strong>${x.year ? ` (${esc(x.year)})` : ""}: ${T(x.description)}${x.tags.length ? ` [${esc(x.tags.join(", "))}]` : ""}${links ? ` ${links}` : ""}</li>`);
+      }
+      out.push(`</ul>`);
     }
-    out.push(`</ul></section>`);
+    out.push(`</section>`);
   }
 
   // Skills
@@ -506,13 +651,18 @@ export function buildLlmsTxt(c: Content): string {
   if (co.contact.email) L.push(`- Contact: ${co.contact.email}${co.contact.phone ? `, ${co.contact.phone}` : ""}`);
   L.push("");
   L.push("## Projects");
-  for (const x of c.projects.filter((y) => y.published)) {
-    const href = x.url || x.repo;
-    L.push(href ? `- [${x.name}](${href}): ${oneLine(t(x.description, "en"))}` : `- ${x.name}: ${oneLine(t(x.description, "en"))}`);
+  for (const g of projectGroups(c)) {
+    for (const x of g.items) {
+      const href = x.url || x.repo;
+      const name = href ? `[${x.name}](${href})` : x.name;
+      const meta = [g.label.en, x.year].filter(Boolean).join(", ");
+      L.push(`- ${name} (${meta}): ${oneLine(t(x.description, "en"))}`);
+    }
   }
   L.push("");
   L.push("## Optional");
-  L.push(`- [Co-op diary at ${t(c.diary.company.name, "en")}](${base}/#diary): monthly notes, May to October 2023`);
+  const range = diaryRange(c);
+  L.push(`- [Co-op diary at ${t(c.diary.company.name, "en")}](${base}/#diary): monthly notes${range ? `, ${range}` : ""}`);
   for (const l of p.links) L.push(`- [${l.label || l.kind}](${l.url})`);
   L.push("");
   return L.join("\n");
@@ -538,10 +688,21 @@ export function buildLlmsFull(c: Content): string {
   para(`> ${t(p.role, "en")} · ${t(p.role, "th")}`);
   para(`Source: ${base}/ · Last updated: ${c.updatedAt || "unknown"} · Languages: Thai and English. AI crawlers and assistants are welcome to read and cite this content.`);
   h(2, "Profile");
+  para(
+    [
+      p.nickname && `- Nickname: ${p.nickname}`,
+      t(p.location, "en") && `- Location: ${t(p.location, "en")}`,
+      p.codingSince && `- Coding since: ${p.codingSince}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
   para(md(p.headline));
   para(md(p.bio));
   para(md(p.dream));
   if (p.education.length) para(p.education.map((e) => `- Education: ${t(e.school, "en")} · ${t(e.program, "en")}${e.period ? ` (${e.period})` : ""}`).join("\n"));
+  const awards = awardsOf(c);
+  if (awards.length) para(awards.map((a) => `- Award: ${a}`).join("\n"));
   para(p.links.map((l) => `- ${l.label || l.kind}: ${l.url}`).join("\n"));
   if (p.email.visible && p.email.value) para(`- Email: ${p.email.value}`);
 
@@ -597,7 +758,7 @@ export function buildLlmsFull(c: Content): string {
   }
   const ups = co.projects.filter((x) => x.published);
   if (ups.length) {
-    h(3, "Client projects");
+    h(3, "Portfolio");
     for (const x of ups) {
       h(4, `${x.name} (${x.category})`);
       para(md(x.summary));
@@ -625,11 +786,18 @@ export function buildLlmsFull(c: Content): string {
       .join("\n"),
   );
 
-  h(2, "Personal projects");
-  for (const x of c.projects.filter((y) => y.published)) {
-    h(3, `${x.name}${x.year ? ` (${x.year})` : ""}`);
-    para(md(x.description));
-    para([x.tags.length && `Tags: ${x.tags.join(", ")}`, x.repo && `Source: ${x.repo}`, x.url && `Demo: ${x.url}`].filter(Boolean).join("\n"));
+  const groups = projectGroups(c);
+  if (groups.length) {
+    h(2, "Projects");
+    for (const g of groups) {
+      h(3, g.label.th !== g.label.en ? `${g.label.en} · ${g.label.th}` : g.label.en);
+      if (g.group === "client") para("Work for clients, described in text only.");
+      for (const x of g.items) {
+        h(4, `${x.name}${x.year ? ` (${x.year})` : ""}`);
+        para(md(x.description));
+        para([x.tags.length && `Tags: ${x.tags.join(", ")}`, x.repo && `Source: ${x.repo}`, x.url && `Demo: ${x.url}`].filter(Boolean).join("\n"));
+      }
+    }
   }
 
   h(2, "Skills");

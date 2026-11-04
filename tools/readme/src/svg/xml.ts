@@ -36,11 +36,12 @@ export function el(name: string, a: Record<string, AttrValue>, children?: string
 
 /**
  * Wrap a card body in a standalone SVG document with an accessible title and only
- * the @font-face rules the body uses.
+ * the @font-face rules the body uses. `css` is appended to the stylesheet (animations;
+ * wrap them with motionCss() so viewers who prefer reduced motion get the static card).
  */
-export function svgDocument(width: number, height: number, title: string, body: string, defs = ""): string {
-  const css = fontCss(body);
-  const style = css ? `<style>${css}</style>` : "";
+export function svgDocument(width: number, height: number, title: string, body: string, defs = "", css = ""): string {
+  const rules = fontCss(body) + css;
+  const style = rules ? `<style>${rules}</style>` : "";
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${n(width)}" height="${n(height)}" viewBox="0 0 ${n(width)} ${n(height)}" role="img" aria-labelledby="title">` +
     `<title id="title">${esc(title)}</title>` +

@@ -94,14 +94,17 @@ export function autoLevels(img: Gray, low = 0.02, high = 0.98, gamma = 0.75): Gr
   return { width: img.width, height: img.height, data };
 }
 
-/** Two-tone ordered dither. Returns 1 for ink, 0 for paper (same curve as ditherPrint). */
-export function ditherBits(img: Gray, black = 0.12, white = 0.88): Uint8Array {
+/**
+ * Two-tone ordered dither. Returns 1 for ink, 0 for paper (same curve as ditherPrint).
+ * `level` < 1 is a partly developed print: only the darker tones have come up yet.
+ */
+export function ditherBits(img: Gray, black = 0.12, white = 0.88, level = 1): Uint8Array {
   const bits = new Uint8Array(img.width * img.height);
   const span = Math.max(0.01, white - black);
   for (let y = 0; y < img.height; y++)
     for (let x = 0; x < img.width; x++) {
       const lum = img.data[y * img.width + x]!;
-      const dark = Math.max(0, Math.min(1, (white - lum) / span));
+      const dark = Math.max(0, Math.min(1, (white - lum) / span)) * level;
       bits[y * img.width + x] = dark > (BAYER8[(y & 7) * 8 + (x & 7)]! + 0.5) / 64 ? 1 : 0;
     }
   return bits;

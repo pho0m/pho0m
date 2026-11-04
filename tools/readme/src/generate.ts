@@ -1,8 +1,12 @@
 import { timelineFrames, type Content, type IconName } from "@pho0m/content";
-import { portraitPrint, printDataUri } from "./image/print.ts";
+import { filmGif } from "./gif/film.ts";
+import { bitsDataUri, grayDataUri, portraitPrints } from "./image/print.ts";
 import type { MediaLoader } from "./media.ts";
 import {
   GROUP_LABEL,
+  capRows,
+  clientProjectRows,
+  clientProjects,
   companyRows,
   en,
   footerLinks,
@@ -10,6 +14,7 @@ import {
   hostOf,
   latestFrames,
   linkHref,
+  ownProjects,
   profileButtons,
   projectRows,
   sectionUrl,
@@ -18,6 +23,7 @@ import {
   type GithubStats,
   type TableRow,
 } from "./model.ts";
+import { filmPrint, frameSources, gifPrint } from "./prints.ts";
 import { WAKA_END, WAKA_START, cell, extractWaka, html, linkText, linkUrl, linked, picture } from "./readme.ts";
 import { bandCard } from "./svg/band.ts";
 import { badgeCard, badgeLabel, BADGE_H } from "./svg/badge.ts";
@@ -36,34 +42,55 @@ export type GenerateInput = {
   media: MediaLoader;
   /** Current README.md (for the WakaTime block), or null when there is none. */
   currentReadme: string | null;
-  /** Path of the SVG folder as seen from README.md, e.g. "assets/readme". */
+  /** Path of the asset folder as seen from README.md, e.g. "assets/readme". */
   assetPath: string;
+  /** Rows per project table before the README links to the site for the rest (default 12). */
+  maxRows?: number;
   warn?: (message: string) => void;
 };
 
 export type Output = {
   /** file name → SVG source */
   files: Map<string, string>;
+  /** file name → binary asset (the film GIF) */
+  binaries: Map<string, Uint8Array>;
   readme: string;
 };
 
 /** Every file this tool writes into its output folder matches this (used to clean up stale ones). */
-export const GENERATED_FILE = /^(hero|btn|band|film|utotech|badge|skills|panel|roll|link)(-[a-z0-9-]+)?-(dark|light)\.svg$/;
+export const GENERATED_FILE = /^(?:(hero|btn|band|film|utotech|badge|skills|panel|roll|link)(-[a-z0-9-]+)?-(dark|light)\.svg|film(-[a-z0-9-]+)?\.gif)$/;
+
+export const MAX_TABLE_ROWS = 12;
+/** Frames in the film card's loop (the newest 5 show when it is still). */
+export const FILM_CARD_FRAMES = 8;
+/** Frames in the GIF. */
+export const FILM_GIF_FRAMES = 5;
 
 const MAX_RAW_AVATAR = 100_000;
 const MAX_LOGO = 150_000;
+/** Avatar print: 88 dither cells (drawn 2 px each), clear print at 2x the 176 px it is shown at. */
+const AVATAR_CELLS = 88;
+const AVATAR_CLEAR = 352;
+const AVATAR_DEV_LEVELS = [0.35, 0.7, 1];
 
 async function avatarImage(input: GenerateInput, warn: (m: string) => void): Promise<AvatarImage> {
   const url = input.content.profile.avatar?.url;
   if (!url) return null;
   const media = await input.media(url);
   if (!media) return null;
-  const print = portraitPrint(media.bytes, 88);
-  if (print) return { kind: "print", uri: printDataUri(print, 4, FILM.paper, FILM.ink) };
+  const prints = portraitPrints(media.bytes, AVATAR_CELLS, AVATAR_CLEAR, AVATAR_DEV_LEVELS);
+  if (prints) {
+    return {
+      kind: "print",
+      clear: grayDataUri(prints.clear, prints.clearSize, prints.clearSize),
+      developing: prints.developing.map((bits) => bitsDataUri(bits, prints.cells, prints.cells, 4, FILM.paper, FILM.ink)),
+    };
+  }
+  // Any other format the browser can show (WebP, AVIF…) is embedded as is; the duotone filter tones it.
   if (media.mime.startsWith("image/") && media.bytes.byteLength <= MAX_RAW_AVATAR) {
     return { kind: "raw", uri: `data:${media.mime};base64,${Buffer.from(media.bytes).toString("base64")}` };
   }
-  warn(`[readme] avatar ${url} is not a baseline JPEG/PNG and is too large to embed; using a monogram`);
+  warn(`[readme] avatar ${url} can't be decoded here and is over ${MAX_RAW_AVATAR / 1000} KB to embed as is; using a monogram`);
   return null;
 }
 
@@ -84,8 +111,9 @@ function bandText(content: Content) {
   const first = frames[0];
   const last = frames[frames.length - 1];
   const c = content.company;
-  const own = content.projects.filter((p) => p.published);
+  const own = ownProjects(content);
   const client = c.projects.filter((p) => p.published).length;
+  const clientMore = clientProjects(content).length;
   const groups = [...new Set(own.map((p) => GROUP_LABEL[p.group].toLowerCase()))];
   const tiers = skillGroups(content)
     .filter((g, i, all) => all.findIndex((x) => x.level === g.level) === i)
@@ -100,7 +128,15 @@ function bandText(content: Content) {
       .filter(Boolean)
       .join(". ")
       .replace(/\.\./g, "."),
-    projects: `${client} client projects at ${company}, and ${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}.`,
+    projects:
+      [
+        client ? `${client} client projects at ${company}` : "",
+        clientMore ? `${clientMore} more client works` : "",
+        own.length ? `${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}` : "",
+      ]
+        .filter(Boolean)
+        .join(", ")
+        .replace(/, ([^,]*)$/, ", and $1") + ".",
     skills: tiers.length ? `Rated on a ${tiers.length}-step scale: ${tiers.join(" · ")}.` : "Tools I use.",
   };
 }
@@ -108,7 +144,9 @@ function bandText(content: Content) {
 export async function generate(input: GenerateInput): Promise<Output> {
   const { content, github } = input;
   const warn = input.warn ?? ((m: string) => console.warn(m));
+  const maxRows = input.maxRows ?? MAX_TABLE_ROWS;
   const files = new Map<string, string>();
+  const binaries = new Map<string, Uint8Array>();
   const base = input.assetPath.replace(/\/+$/, "");
   const render = (name: string, draw: (t: Theme) => string) => {
     for (const theme of THEMES) files.set(`${name}-${theme.name}.svg`, draw(theme));
@@ -155,6 +193,20 @@ export async function generate(input: GenerateInput): Promise<Output> {
   );
   md.push(["<p>", ...buttons.map((b) => `  ${b}`), "</p>"].join("\n"));
 
+  // film GIF banner ----------------------------------------------------------------------------
+  const cardFrames = latestFrames(content, FILM_CARD_FRAMES);
+  const sources = await Promise.all(cardFrames.map((f) => frameSources(content, f, input.media, warn)));
+  const gifFrames = cardFrames.slice(-FILM_GIF_FRAMES);
+  if (gifFrames.length) {
+    const prints = gifFrames.map((f, i) => gifPrint(f, sources[cardFrames.length - gifFrames.length + i]!.gif));
+    const gif = filmGif(prints, p.handle || "film");
+    binaries.set("film.gif", gif.bytes);
+    const gifAlt =
+      `Animated film strip running to the right: the latest ${gifFrames.length} timeline frames, ` +
+      `each flashed in the gate and developed from a dither into a clear print — ${[...gifFrames].reverse().map((f) => `${f.date}, ${f.title}`).join("; ")}.`;
+    md.push(linked(sectionUrl(content, "film"), `<img src="${html(`${base}/film.gif`)}" alt="${html(gifAlt)}" width="100%">`));
+  }
+
   // film --------------------------------------------------------------------------------------
   const bands = bandText(content);
   const band = (id: string, number: number, title: string, description: string, icon: IconName, section: Parameters<typeof sectionUrl>[1]) =>
@@ -163,10 +215,11 @@ export async function generate(input: GenerateInput): Promise<Output> {
       picture({ ...render(`band-${id}`, (t) => bandCard({ number, title, description, icon }, t)), alt: `${title} — ${description}` }),
     );
   md.push(band("film", 1, "Film", bands.film, "eye", "film"));
-  const frames = latestFrames(content, 5);
-  if (frames.length) {
-    const filmAlt = `Film strip of the latest ${frames.length} timeline frames: ${frames.map((f) => `${f.date}, ${f.title}`).join("; ")}.`;
-    md.push(linked(sectionUrl(content, "film"), picture({ ...render("film-latest", (t) => filmCard(frames, p.handle || "film", t)), alt: filmAlt })));
+  if (cardFrames.length) {
+    const withPrints = cardFrames.map((f, i) => ({ ...f, print: filmPrint(sources[i]!.card) }));
+    const newestFirst = [...cardFrames].reverse();
+    const filmAlt = `Film strip of the latest ${cardFrames.length} timeline frames, newest first: ${newestFirst.map((f) => `${f.date}, ${f.title}`).join("; ")}.`;
+    md.push(linked(sectionUrl(content, "film"), picture({ ...render("film-latest", (t) => filmCard(withPrints, p.handle || "film", t)), alt: filmAlt })));
   }
 
   // utotech -----------------------------------------------------------------------------------
@@ -216,10 +269,19 @@ export async function generate(input: GenerateInput): Promise<Output> {
     }
     return lines.join("\n");
   };
-  const clientRows = companyRows(content);
-  if (clientRows.length) md.push(`**Client work at ${html(companyShort)}**`, table(clientRows));
+  // Long lists are capped; the README says how many more there are and links to the site.
+  const capped = (rows: TableRow[], noun: string, section: Parameters<typeof sectionUrl>[1]) => {
+    const { shown, more } = capRows(rows, maxRows);
+    const out = [table(shown)];
+    if (more) out.push(`**+${more} more** ${noun} not listed here — [see all ${rows.length} on the site →](${linkUrl(sectionUrl(content, section))})`);
+    return out;
+  };
+  const companyClientRows = companyRows(content);
+  if (companyClientRows.length) md.push(`**Client work at ${html(companyShort)}**`, ...capped(companyClientRows, "client projects", "utotech"));
+  const clientRows = clientProjectRows(content);
+  if (clientRows.length) md.push("**Client projects** — work built for clients, described in text only.", ...capped(clientRows, "client projects", "projects"));
   const ownRows = projectRows(content, github);
-  if (ownRows.length) md.push("**My own projects**", table(ownRows));
+  if (ownRows.length) md.push("**My own projects**", ...capped(ownRows, "projects", "projects"));
 
   // skills ------------------------------------------------------------------------------------
   md.push(band("skills", 4, "Skills", bands.skills, "star", "skills"));
@@ -274,5 +336,5 @@ export async function generate(input: GenerateInput): Promise<Output> {
 
   const readme = md.join("\n\n") + "\n";
   if (!readme.includes(WAKA_START) || !readme.includes(WAKA_END)) throw new Error("WakaTime markers were lost");
-  return { files, readme };
+  return { files, binaries, readme };
 }

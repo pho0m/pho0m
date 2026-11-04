@@ -43,6 +43,7 @@ export type BadgeSegment = { text: string; tone: "led" | "text" | "accent" };
 
 export const GROUP_LABEL: Record<Project["group"], string> = {
   utotech: "Utotech",
+  client: "Client",
   personal: "Personal",
   teaching: "Teaching",
   school: "School",
@@ -84,8 +85,8 @@ export function heroStats(content: Content, gh: GithubStats | null): Stat[] {
     stats.push({ value: String(gh.publicRepos), label: "Repos", alt: `${gh.publicRepos} public repos` });
     stats.push({ value: String(gh.followers), label: "Followers", alt: `${gh.followers} followers` });
   }
-  const own = content.projects.filter((p) => p.published).length;
-  const client = content.company.projects.filter((p) => p.published).length;
+  const own = ownProjects(content).length;
+  const client = content.company.projects.filter((p) => p.published).length + clientProjects(content).length;
   const customers = content.company.customers.length;
   const { teamSize } = content.company;
   const since = content.profile.codingSince;
@@ -182,8 +183,42 @@ export function companyRows(content: Content): TableRow[] {
   });
 }
 
+/** Published projects done for clients (group "client"; often under NDA, so text only). */
+export function clientProjects(content: Content): Project[] {
+  return content.projects.filter((p) => p.published && p.group === "client");
+}
+
+/** Published projects of my own (every group except "client"). */
+export function ownProjects(content: Content): Project[] {
+  return content.projects.filter((p) => p.published && p.group !== "client");
+}
+
+/** Rows for client projects from the projects list: text only, every badge says "Client". */
+export function clientProjectRows(content: Content): TableRow[] {
+  return byFeatured(clientProjects(content)).map((p) => {
+    const link = p.url || p.repo;
+    return {
+      id: `client-${p.id}`,
+      name: p.name,
+      url: link ? linkHref(content, link) : sectionUrl(content, "projects"),
+      about: [en(p.description), p.tags.join(", ")].filter(Boolean).join(" · "),
+      extras: [],
+      badge: {
+        segments: [{ text: "Client", tone: "accent" as const }, ...(p.year ? [{ text: p.year, tone: "led" as const }] : [])],
+        stars: null,
+      },
+    };
+  });
+}
+
+/** First `max` rows and how many were left out (so the README can say so). */
+export function capRows<T>(rows: T[], max: number): { shown: T[]; more: number } {
+  const limit = Math.max(1, Math.floor(max));
+  return { shown: rows.slice(0, limit), more: Math.max(0, rows.length - limit) };
+}
+
 export function projectRows(content: Content, gh: GithubStats | null): TableRow[] {
-  const list = content.projects.filter((p) => p.published);
+  const list = ownProjects(content);
   const sorted = list
     .map((item, i) => ({ item, i }))
     .sort(

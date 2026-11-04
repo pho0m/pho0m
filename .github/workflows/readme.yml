@@ -9,6 +9,10 @@ on:
     # Daily at 01:17 UTC (08:17 in Bangkok), after waka.yml (00:00 UTC).
     - cron: "17 1 * * *"
   workflow_dispatch:
+  # Sent by the admin API after a save (see api/src/redeploy.ts), so the README follows the
+  # live content without waiting for the daily run.
+  repository_dispatch:
+    types: [content-updated]
   push:
     branches: [main]
     paths:

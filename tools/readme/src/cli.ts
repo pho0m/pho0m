@@ -11,7 +11,7 @@ const HELP = `Generate the GitHub profile README and its SVG cards from the port
 
 Usage: npm run readme -- [options]
 
-  --out-dir <dir>   folder for the SVG cards (default: assets/readme in the repo root)
+  --out-dir <dir>   folder for the SVG cards and the film GIF (default: assets/readme in the repo root)
   --readme <file>   README to write (default: README.md in the repo root)
   --check           write nothing; exit 1 if regenerating would change any file (for CI)
   --help            show this help
@@ -78,7 +78,9 @@ export async function run(argv: string[], env: Record<string, string | undefined
   const out = await generate({ content, github, media, currentReadme, assetPath });
 
   const rel = (p: string) => toPosix(relative(base, p)) || p;
-  const summary = `content: ${source}; github stats: ${github ? `@${github.login}` : "off"}; ${out.files.size} SVGs`;
+  const kb = (bytes: number) => `${Math.round(bytes / 1024)} KB`;
+  const gifs = [...out.binaries].map(([name, data]) => `${name} ${kb(data.byteLength)}`);
+  const summary = `content: ${source}; github stats: ${github ? `@${github.login}` : "off"}; ${out.files.size} SVGs${gifs.length ? ` + ${gifs.join(", ")}` : ""}`;
   if (args.check) {
     const p = await plan(out, outDir, readmePath);
     if (!p.changed.length && !p.removed.length) {

@@ -1,7 +1,8 @@
 # คู่มือติดตั้งและ deploy เว็บ pho0m
 
 คู่มือนี้พาตั้งค่าตั้งแต่ศูนย์จนเว็บขึ้นจริง: Google Cloud (bucket + Cloud Run), GitHub secrets,
-deploy ครั้งแรก, ใช้หน้าหลังบ้าน `/admin`, README อัตโนมัติ, รันในเครื่อง และวิธีแก้ปัญหาที่เจอบ่อย
+deploy ครั้งแรก, ใช้หน้าหลังบ้าน `/admin`, README อัตโนมัติ, SEO และ AI crawler, รันในเครื่อง
+และวิธีแก้ปัญหาที่เจอบ่อย
 
 คำสั่งทุกบล็อกคัดลอกไปวางใน terminal ได้เลย (ต้องมี [`gcloud`](https://cloud.google.com/sdk/docs/install)
 และ [`gh`](https://cli.github.com/) สำหรับขั้นที่ใช้ GitHub CLI)
@@ -16,9 +17,10 @@ deploy ครั้งแรก, ใช้หน้าหลังบ้าน `
 6. [Deploy ครั้งแรก](#6-deploy-ครั้งแรก)
 7. [ใช้งานหน้าหลังบ้าน /admin](#7-ใช้งานหน้าหลังบ้าน-admin)
 8. [README อัปเดตอย่างไร](#8-readme-อัปเดตอย่างไร)
-9. [พัฒนาในเครื่อง](#9-พัฒนาในเครื่อง)
-10. [แก้ปัญหา](#10-แก้ปัญหา)
-11. [ความปลอดภัย](#11-ความปลอดภัย)
+9. [SEO และการเปิดให้ AI อ่านเว็บ](#9-seo-และการเปิดให้-ai-อ่านเว็บ)
+10. [พัฒนาในเครื่อง](#10-พัฒนาในเครื่อง)
+11. [แก้ปัญหา](#11-แก้ปัญหา)
+12. [ความปลอดภัย](#12-ความปลอดภัย)
 
 ---
 
@@ -38,8 +40,9 @@ deploy ครั้งแรก, ใช้หน้าหลังบ้าน `
 
 GitHub Actions
 ├─ deploy.yml                         push เข้า main → ตรวจ → deploy API → deploy เว็บ → tag + release → Discord
+│                                     บันทึกใน /admin และทุกวัน → build เว็บใหม่ด้วยเนื้อหาล่าสุด (ไม่ deploy API)
 ├─ firebase-hosting-pull-request.yml  เปิด PR → ตรวจ → deploy preview channel (ลิงก์อยู่ในคอมเมนต์ของ PR)
-├─ readme.yml                         ทุกวัน → สร้าง README.md + assets/readme/*.svg จากเนื้อหาล่าสุด
+├─ readme.yml                         ทุกวัน และหลังบันทึกใน /admin → สร้าง README.md + assets/readme/*.svg จากเนื้อหาล่าสุด
 └─ waka.yml                           ทุกวัน → อัปเดตบล็อก WakaTime ใน README
 ```
 
@@ -47,6 +50,8 @@ GitHub Actions
   ถ้าโหลดไม่ได้หรือข้อมูลไม่ผ่านการตรวจ จะใช้เนื้อหาในตัว (`content/seed.json`) แทน
 - **API** มีไว้ให้หน้าหลังบ้านเท่านั้น: login, บันทึกเนื้อหา, อัปโหลดไฟล์, ดูประวัติ
 - **bucket** เก็บทั้งเนื้อหาและไฟล์ ทุกไฟล์ใน bucket เปิดให้ทุกคนอ่านได้
+- **ไฟล์สำหรับ search engine และ AI** (`sitemap.xml`, `llms.txt`, ข้อความและ JSON-LD ใน `index.html`)
+  สร้างตอน build จึงอัปเดตเมื่อ deploy ซึ่งเกิดเองหลังบันทึกใน `/admin` และทุกวัน (หัวข้อ 9)
 
 โฟลเดอร์ในรีโป
 
@@ -221,6 +226,7 @@ rm cors.json
 | `SESSION_SECRET` | สตริงสุ่มยาว ๆ ใช้เซ็น token การ login | ไม่บังคับ |
 | `FIREBASE_SERVICE_ACCOUNT_KIATTIPHOOM_PHO0M` | มีอยู่แล้ว ใช้ deploy Firebase Hosting | ต้องมี |
 | `DISCORD_WEBHOOK` | URL ของ Discord webhook | ไม่บังคับ (ไม่ตั้ง = ไม่แจ้งเตือน) |
+| `DISPATCH_TOKEN` | fine-grained token ของ GitHub ที่ให้ API สั่ง build เว็บใหม่หลังบันทึก (วิธีสร้างในหัวข้อ 9) | ไม่บังคับ (ไม่ตั้ง = ไฟล์ SEO อัปเดตรอบ deploy หรือรอบรายวัน) |
 | `WAKATIME_API_KEY` | มีอยู่แล้ว ใช้กับ `waka.yml` | ใช้กับ WakaTime เท่านั้น |
 
 | Variable | ค่า | ใช้เมื่อ |
@@ -270,6 +276,10 @@ gh run watch --repo pho0m/pho0m
 4. **Release** — เพิ่มเลขเวอร์ชัน สร้าง tag และ GitHub release
 5. **Notify** — ส่งสถานะไป Discord (ถ้ามี `DISCORD_WEBHOOK`)
 
+ตอนที่ workflow ถูกเรียกจากการบันทึกใน `/admin` (`repository_dispatch`) หรือรอบรายวัน (`schedule`)
+จะเป็นรอบ **content refresh**: Check แค่ `npm ci` + build, ไม่ deploy API (แค่อ่าน URL ของ API ที่รันอยู่),
+deploy เว็บ, ไม่สร้าง release และแจ้ง Discord เฉพาะตอนล้มเหลว (รายละเอียดหัวข้อ 9)
+
 URL ของ API (เช่น `https://pho0m-api-xxxxxxxxxx-as.a.run.app`) อยู่ในหน้า Summary ของ run นั้น
 แทน `<API_URL>` ด้านล่างด้วย URL นี้ แล้วตรวจได้ด้วย:
 
@@ -293,14 +303,14 @@ gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 
 - **เข้าสู่ระบบ** — เปิด `https://kiattiphoom-pho0m.web.app/admin` ใส่ `ADMIN_PASSWORD`
   กล่องสถานะด้านบนบอกว่า API ออนไลน์ไหม และใช้ storage แบบไหน เซสชันอยู่ได้ 12 ชั่วโมง
-  ใส่รหัสผิด 5 ครั้งใน 10 นาที ต้องรอสักพักก่อนลองใหม่
+  ใส่รหัสผิด 5 ครั้งใน 10 นาทีจากเครื่องเดียวกัน ต้องรอสักพักก่อนลองใหม่
+  และถ้ามีคนใส่ผิดรวมกันเกิน 30 ครั้งใน 10 นาที (เช่นโดนสุ่มรหัส) ระบบจะปิด login ทุกคนชั่วคราวไม่เกิน 10 นาที
 - **แก้เนื้อหา** — เลือกส่วนจากเมนู (โปรไฟล์, ไทม์ไลน์, บริษัท, โปรเจกต์, ทักษะ, บันทึกสหกิจ, เอกสาร ฯลฯ)
   การแก้ไขเก็บเป็นฉบับร่างในเบราว์เซอร์ก่อน กด **บันทึก** (หรือ `Ctrl+S`) เพื่อขึ้นเว็บจริง
   ถ้ามีช่องที่ต้องแก้ ระบบจะบอกจำนวนจุดและไม่ยอมบันทึกจนกว่าจะแก้ครบ
   บันทึกแล้วเว็บแสดงเนื้อหาใหม่ทันทีที่มีคนเปิดหน้า ไม่ต้อง deploy ใหม่
-  ยกเว้นไฟล์สำหรับ search engine และ AI (`sitemap.xml`, `llms.txt`, ข้อความใน `index.html`)
-  ที่สร้างตอน deploy จากเนื้อหาใน bucket ถ้าแก้เนื้อหาเยอะ ให้สั่ง Deploy อีกครั้ง
-  (`gh workflow run deploy.yml --repo pho0m/pho0m --ref main`)
+  ส่วนไฟล์สำหรับ search engine และ AI (`sitemap.xml`, `llms.txt`, ข้อความใน `index.html`) และ README
+  จะตามมาเองภายในไม่กี่นาทีถ้าตั้ง `DISPATCH_TOKEN` ไว้ ไม่อย่างนั้นจะอัปเดตรอบรายวัน (หัวข้อ 9)
 - **อัปโหลด** — รูป JPEG, PNG, WebP, GIF, AVIF และ PDF ขนาดไม่เกิน 15 MB
   ไฟล์ไปอยู่ที่ `media/<ปี>/<เดือน>/…` ใน bucket ทุกไฟล์ที่อัปโหลด**ทุกคนเปิดดูได้** อย่าอัปโหลดเอกสารส่วนตัว
 - **ประวัติ** — ทุกครั้งที่บันทึก เวอร์ชันก่อนหน้าจะถูกเก็บไว้ (แสดง 30 เวอร์ชันล่าสุด)
@@ -326,7 +336,8 @@ gh workflow run readme.yml --repo pho0m/pho0m
 - อ่านเนื้อหาจาก bucket (`SERVICE_ACCOUNT_BUCKET_NAME`) ถ้าไม่มีจะใช้ `content/seed.json`
   ตัวเลข GitHub (ดาว, รีโป, ผู้ติดตาม) มาจาก `GITHUB_TOKEN` ที่ Actions ให้มา
 - บล็อก WakaTime (`<!--START_SECTION:waka-->` … `<!--END_SECTION:waka-->`) ถูกคัดลอกไปตามเดิม `waka.yml` ยังอัปเดตส่วนนี้เหมือนเดิม
-- แก้เนื้อหาใน `/admin` ไม่ได้ push อะไรเข้า repo ดังนั้น README จะตามทันในรอบรายวันถัดไป หรือสั่งรันเองตามด้านบน
+- รันหลังบันทึกใน `/admin` (event `repository_dispatch` ชื่อ `content-updated`) ถ้าตั้ง `DISPATCH_TOKEN` ไว้ (หัวข้อ 9)
+  ไม่ได้ตั้ง README จะตามทันในรอบรายวันถัดไป หรือสั่งรันเองตามด้านบน
 - ถ้าตั้ง branch protection บน `main` ต้องอนุญาตให้ `github-actions[bot]` push ได้
 
 ลองสร้างในเครื่อง:
@@ -341,7 +352,130 @@ npm run readme -- --check
 
 ---
 
-## 9. พัฒนาในเครื่อง
+## 9. SEO และการเปิดให้ AI อ่านเว็บ
+
+หน้าเว็บเป็น React แต่ crawler ส่วนใหญ่ โดยเฉพาะของ AI (GPTBot, ClaudeBot, PerplexityBot …) ไม่รัน JavaScript
+ตอน build จึงมีขั้น `web/src/seo/postbuild.ts` อบเนื้อหาลงไฟล์ธรรมดาให้อ่านได้ทันที
+
+| ไฟล์ | มีอะไร |
+| --- | --- |
+| `/` (`index.html`) | `<title>`, meta, Open Graph, JSON-LD และเนื้อหาทั้งเว็บเป็น HTML ใน `#root` (React แทนที่เมื่อโหลดเสร็จ) |
+| `/robots.txt` | อนุญาตทุก bot รวมถึง AI crawler (GPTBot, ClaudeBot, PerplexityBot, Google-Extended …) ยกเว้น `/admin` |
+| `/sitemap.xml` | หน้าแรก (ไทย/อังกฤษ) และ `llms-full.txt` พร้อมวันที่แก้ล่าสุด |
+| `/llms.txt` | สรุปสั้นสำหรับ AI ตามรูปแบบ [llms.txt](https://llmstxt.org/) |
+| `/llms-full.txt` | เนื้อหาทั้งเว็บเป็นข้อความล้วน ไทยและอังกฤษ |
+
+- เนื้อหาที่ใช้คือ `content/site.json` ใน bucket ตอน build ถ้ายังไม่เคยบันทึกจากหลังบ้านจะใช้ `content/seed.json`
+- JSON-LD ใช้เฉพาะข้อมูลที่มีในเนื้อหา: ตำแหน่งงาน (`hasOccupation`), สถาบันและหลักสูตร (`alumniOf`, `hasCredential`)
+  และรางวัล (`award`) ซึ่งมาจากคำว่า Honors ในช่องหลักสูตร กับเฟรมไทม์ไลน์ที่ติดแท็ก `Award`, `Prize`,
+  `Competition`, `Contest`, `Hackathon`, `CTF` หรือ `Scholarship` อยากให้เฟรมไหนขึ้นเป็นรางวัล ให้เพิ่มแท็กเหล่านี้
+- โปรเจกต์แบ่งกลุ่มเหมือนบนเว็บ งานลูกค้า (`client`) เป็นข้อความอย่างเดียว ไม่มีรูป
+- `firebase.json` ส่ง `llms.txt` และ `llms-full.txt` เป็น `text/plain; charset=utf-8` และให้ cache ไฟล์ทั้งสี่ได้ 1 ชั่วโมง
+  `X-Robots-Tag: noindex` มีเฉพาะ `/admin`
+
+### ไฟล์เหล่านี้อัปเดตเมื่อไหร่
+
+หน้าเว็บโหลดเนื้อหาสดทุกครั้งที่เปิด แต่ไฟล์ข้างบนสร้างตอน deploy จึงอัปเดตเมื่อ
+
+1. **push เข้า `main`** — deploy เต็มรูปแบบ
+2. **ทุกวัน 02:41 UTC (09:41 เวลาไทย)** — `deploy.yml` รอบ content refresh
+3. **หลังกดบันทึกใน `/admin`** — ถ้าตั้ง `DISPATCH_TOKEN` API จะส่ง event `content-updated` ไปที่ GitHub
+   ส่งไม่เกิน 1 ครั้งต่อ 5 นาที ถ้าบันทึกเพิ่มระหว่างนั้น จะส่งอีกครั้งเดียวตอนครบ 5 นาที
+   เว็บใหม่ขึ้นภายในไม่กี่นาที และ `readme.yml` ก็อัปเดต README ด้วย การบันทึกไม่ต้องรอ GitHub และไม่ล้มเพราะ GitHub
+
+รอบ content refresh (ข้อ 2 และ 3) ทำเท่าที่จำเป็น: `npm ci` + build, อ่าน URL ของ API ที่รันอยู่ (ไม่ deploy API ใหม่),
+build เว็บด้วยเนื้อหาสดแล้ว deploy ไม่สร้าง tag/release และแจ้ง Discord เฉพาะตอนล้มเหลว
+ถ้าอ่าน `content/site.json` จาก bucket ไม่ได้ (เช่น 403, 500, ข้อมูลไม่ผ่าน schema) รอบนั้นจะล้มเหลว
+แทนที่จะเอาเนื้อหาในตัวไปทับ (ถ้าเป็น 404 เพราะยังไม่เคยบันทึก ถือว่าปกติ)
+
+สั่งเองได้:
+
+```bash
+gh api repos/pho0m/pho0m/dispatches -f event_type=content-updated   # refresh เว็บ + README
+gh workflow run deploy.yml --repo pho0m/pho0m --ref main            # deploy เต็มรูปแบบ
+```
+
+### สร้าง `DISPATCH_TOKEN` (ให้เว็บอัปเดตทันทีหลังบันทึก)
+
+1. เปิด GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
+   (หรือ https://github.com/settings/personal-access-tokens/new)
+2. **Token name** เช่น `pho0m-admin-dispatch` และตั้ง **Expiration** (เช่น 1 ปี) แล้วจดวันหมดอายุไว้
+3. **Repository access** → *Only select repositories* → เลือก `pho0m/pho0m` รีโปเดียว
+4. **Permissions** → Repository permissions → **Contents: Read and write**
+   (สิทธิ์ที่ `repository_dispatch` ต้องใช้ ส่วน Metadata: Read-only จะติดมาเอง) ไม่ต้องเปิดสิทธิ์อื่น
+5. กด Generate token แล้วคัดลอก (ขึ้นต้นด้วย `github_pat_`)
+
+ใส่เป็น secret ชื่อ `DISPATCH_TOKEN` (GitHub ไม่ให้ตั้งชื่อ secret ที่ขึ้นต้นด้วย `GITHUB_`) วาง token ตอนที่ `gh` ถาม:
+
+```bash
+gh secret set DISPATCH_TOKEN --repo pho0m/pho0m
+```
+
+แล้ว deploy เต็มรอบหนึ่งครั้ง เพื่อส่งค่าไปที่ Cloud Run:
+
+```bash
+gh workflow run deploy.yml --repo pho0m/pho0m --ref main
+```
+
+ลองยิง event ด้วย token เอง ถ้าได้ `204` แปลว่าใช้ได้ และจะเห็น run ใหม่ของ Deploy (event `repository_dispatch`) ในแท็บ Actions
+ได้ `401` = token ผิดหรือหมดอายุ, `403`/`404` = token ไม่ได้เลือกรีโปนี้ หรือไม่มีสิทธิ์ Contents: write
+
+```bash
+read -rs TOKEN   # วาง token แล้วกด Enter (ไม่แสดงบนจอ)
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://api.github.com/repos/pho0m/pho0m/dispatches \
+  -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+  -d '{"event_type":"content-updated"}'
+unset TOKEN
+```
+
+ดูว่า API เปิดใช้แล้ว (บรรทัดตอนเริ่มต้องเป็น `redeploy on save: on (pho0m/pho0m)`) และดูผลการส่งแต่ละครั้ง:
+
+```bash
+gcloud run services logs read pho0m-api --region asia-southeast1 --limit 100 | grep -i redeploy
+```
+
+token หมดอายุเมื่อไหร่ การบันทึกยังใช้ได้ปกติ แค่ log จะขึ้น `dispatch … failed … HTTP 401`
+ให้สร้าง token ใหม่ ตั้ง secret ใหม่ แล้ว deploy เต็มรอบ
+
+### ตัวแปรที่เกี่ยวข้อง (ไม่บังคับทั้งหมด)
+
+| ตั้งที่ | ชื่อ | ค่า |
+| --- | --- | --- |
+| GitHub secret | `DISPATCH_TOKEN` | fine-grained token จากขั้นตอนด้านบน |
+| Cloud Run (`deploy.yml` ตั้งให้) | `GITHUB_DISPATCH_TOKEN` | ค่าเดียวกับ `DISPATCH_TOKEN` ไม่ตั้ง = ปิดการสั่ง build หลังบันทึก |
+| Cloud Run (`deploy.yml` ตั้งให้) | `GITHUB_REPOSITORY` | รีโปที่ workflow รันอยู่ (`pho0m/pho0m`) ค่าเริ่มต้นก็เป็น `pho0m/pho0m` |
+
+รัน API ในเครื่องก็ใส่สองตัวนี้ใน `api/.env` ได้ (ดู `api/.env.example`) แต่ระวัง: บันทึกในเครื่องจะสั่ง deploy เว็บจริง
+
+### ตรวจด้วย curl
+
+```bash
+SITE=https://kiattiphoom-pho0m.web.app
+curl -sI "$SITE/llms.txt" | grep -i -E "^HTTP|^content-type|^cache-control"
+curl -sI "$SITE/robots.txt" | grep -i -E "^HTTP|^cache-control"
+curl -s "$SITE/robots.txt" | grep -E "GPTBot|ClaudeBot|PerplexityBot|Google-Extended|Sitemap"
+curl -s "$SITE/sitemap.xml" | grep -E "<loc>|<lastmod>"
+curl -s "$SITE/llms-full.txt" | grep -m1 "Last updated"
+curl -s -A "GPTBot" "$SITE/" | grep -o "<title>[^<]*</title>"
+curl -s "$SITE/" | grep -c "application/ld+json"
+curl -sI "$SITE/" | grep -i x-robots-tag
+curl -sI "$SITE/admin" | grep -i x-robots-tag
+```
+
+ควรเห็น
+
+- `llms.txt`: `content-type: text/plain; charset=utf-8` และ `cache-control: public, max-age=3600`
+- `robots.txt`: `cache-control: public, max-age=3600` และมีชื่อ bot ของ AI ครบ
+- `Last updated` ใน `llms-full.txt` ตรงกับเวลาที่บันทึกล่าสุด (ถ้ายังไม่ตรง ดูว่า run ของ Deploy เสร็จหรือยัง)
+- `<title>` ขึ้นแม้ไม่รัน JavaScript และมี JSON-LD 1 บล็อก
+- หน้าแรก **ไม่มี** `x-robots-tag` ส่วน `/admin` ต้องเห็น `noindex, nofollow`
+
+ตรวจ JSON-LD ละเอียดได้ที่ [validator.schema.org](https://validator.schema.org/) หรือ
+[Rich Results Test](https://search.google.com/test/rich-results) โดยใส่ URL ของเว็บ
+
+---
+
+## 10. พัฒนาในเครื่อง
 
 ต้องมี Node 22 ขึ้นไป ไม่ต้องมีบัญชี GCP: ถ้าไม่ตั้ง bucket, API จะใช้ **local driver**
 เก็บไฟล์ไว้ใน `api/.data/` และเสิร์ฟที่ `http://localhost:8787/files/…`
@@ -387,7 +521,7 @@ docker run --rm -p 8080:8080 -e ADMIN_PASSWORD=change-me pho0m-api
 
 ---
 
-## 10. แก้ปัญหา
+## 11. แก้ปัญหา
 
 **`/admin` ขึ้น CORS error ใน console (`blocked by CORS policy`)**
 - API รับเฉพาะ origin ใน `ALLOWED_ORIGINS` ซึ่ง `deploy.yml` ตั้งเป็น
@@ -401,7 +535,8 @@ docker run --rm -p 8080:8080 -e ADMIN_PASSWORD=change-me pho0m-api
 - รหัสผ่านผิด หรือเซสชันหมดอายุ (12 ชั่วโมง) ให้เข้าสู่ระบบใหม่ การแก้ไขที่ยังไม่บันทึกยังอยู่
 - เปลี่ยน `ADMIN_PASSWORD` หรือ `SESSION_SECRET` แล้ว ทุกคนต้อง login ใหม่
 - **503** ตอน login = บน Cloud Run ยังไม่มี `ADMIN_PASSWORD` ตั้ง secret แล้วรัน Deploy ใหม่
-- **429** = ใส่รหัสผิดบ่อยเกินไป รอประมาณ 10 นาที
+- **429** = ใส่รหัสผิดบ่อยเกินไป รอตามเวลาที่บอก (ไม่เกิน 10 นาที) ถ้าขึ้นว่า `login is paused` แปลว่ามีการใส่ผิด
+  รวมกันเกิน 30 ครั้งจากหลายที่ (อาจโดนสุ่มรหัส) รอให้ครบเวลา หรือ deploy เต็มรอบเพื่อล้างตัวนับ แล้วพิจารณาเปลี่ยนรหัส
 
 **409 Conflict ตอนบันทึก**
 - มีคนบันทึกจากที่อื่นหลังจากคุณเปิดหน้า (อีกแท็บหรืออีกเครื่อง) เลือก “โหลดเวอร์ชันล่าสุด” หรือ “บันทึกทับ”
@@ -424,6 +559,16 @@ curl -sI -H "Origin: https://kiattiphoom-pho0m.web.app" "https://storage.googlea
 - เปิด console ของเบราว์เซอร์ ถ้าเห็น `Live content failed validation` แปลว่าข้อมูลใน bucket ไม่ผ่าน schema
   ให้กู้เวอร์ชันก่อนหน้าจาก “ประวัติ”
 
+**บันทึกแล้วแต่ `llms.txt` / `sitemap.xml` / README ยังเป็นของเก่า**
+- ไม่มี run ใหม่ของ Deploy ในแท็บ Actions หลังบันทึก = ยังไม่ได้ตั้ง `DISPATCH_TOKEN` หรือยังไม่ได้ deploy เต็มรอบหลังตั้ง
+  ดู log ของ API (หัวข้อ 9) ถ้าเห็น `HTTP 401` ให้สร้าง token ใหม่ ถ้าเห็น `HTTP 403`/`404` ให้ตรวจว่าเลือกรีโปและสิทธิ์ Contents ถูก
+- บันทึกติดกันหลายครั้ง: run ถัดไปจะเริ่มหลังจากครั้งแรกประมาณ 5 นาที
+- Cloud Run ให้ CPU เฉพาะตอนมี request ถ้า API ถูกปิดไปก่อนส่งรอบท้าย รอบรายวันจะตามให้เอง
+  หรือสั่งเอง: `gh api repos/pho0m/pho0m/dispatches -f event_type=content-updated`
+- run ของ content refresh ล้มเหลวที่ขั้น Build site พร้อม `SEO_REQUIRE_LIVE_CONTENT` = อ่านเนื้อหาจาก bucket ไม่ได้
+  หรือเนื้อหาไม่ผ่าน schema ดูข้อความ `[seo]` ใน log
+- `No API URL` ในรอบ content refresh = หา URL ของ API บน Cloud Run ไม่เจอ ให้ deploy เต็มรอบ หรือตั้ง variable `API_URL`
+
 **Deploy API ไม่ผ่าน (Cloud Run / สิทธิ์)**
 - `API deploy skipped` = ยังไม่ได้ตั้ง `SERVICE_ACCOUNT_KEY` หรือ `SERVICE_ACCOUNT_BUCKET_NAME`
 - `iam.serviceaccounts.actAs` denied = ขาด `roles/iam.serviceAccountUser` (หัวข้อ 3.6 บล็อกสุดท้าย)
@@ -443,7 +588,7 @@ gcloud run services logs read pho0m-api --region asia-southeast1 --limit 50
 
 ---
 
-## 11. ความปลอดภัย
+## 12. ความปลอดภัย
 
 - **ห้าม commit key** — เก็บ key นอกรีโป ใส่ไว้ใน GitHub secret อย่างเดียว ถ้าเผลอหลุด ให้ลบ key ทันที:
 
@@ -465,7 +610,9 @@ gh secret set SESSION_SECRET --repo pho0m/pho0m --body "$(openssl rand -hex 32)"
 gh workflow run deploy.yml --repo pho0m/pho0m --ref main
 ```
 
-- **รหัสผ่านบน Cloud Run** ตอนนี้เป็น environment variable ใครมีสิทธิ์ดูโปรเจกต์ใน Cloud Console ก่อนก็เห็นได้
+- **`DISPATCH_TOKEN`** มีสิทธิ์ Contents: write ซึ่งแก้โค้ดในรีโปได้ จำกัดไว้ที่ `pho0m/pho0m` รีโปเดียว ตั้งวันหมดอายุ
+  และลบทิ้งที่หน้า Fine-grained tokens ทันทีถ้าสงสัยว่าหลุด (การบันทึกยังใช้ได้ แค่ไม่สั่ง build ทันที)
+- **รหัสผ่านและ token บน Cloud Run** ตอนนี้เป็น environment variable ใครมีสิทธิ์ดูโปรเจกต์ใน Cloud Console ก็เห็นได้
   ถ้าจะแชร์โปรเจกต์กับคนอื่น ให้ย้ายไปเก็บใน **Secret Manager** แล้วแก้ขั้น “Deploy to Cloud Run” ใน `deploy.yml`
   ให้ใช้ `--set-secrets ADMIN_PASSWORD=pho0m-admin-password:latest` แทนการใส่ในไฟล์ env
   (ต้องเปิด `secretmanager.googleapis.com` และให้ service account มี `roles/secretmanager.secretAccessor`)
@@ -474,3 +621,5 @@ gh workflow run deploy.yml --repo pho0m/pho0m --ref main
   ถ้าอยากเข้มขึ้น แยก service account สำหรับรัน API ที่มีแค่ `roles/storage.objectAdmin` บน bucket
   และพิจารณาใช้ Workload Identity Federation แทน JSON key
 - API จำกัดการเดารหัสผ่านไว้ในหน่วยความจำของแต่ละ instance จึงตั้ง `--max-instances 1` ไว้ใน `deploy.yml`
+  นับ IP จากค่าขวาสุดของ `X-Forwarded-For` (ค่าที่ Google ต่อท้ายให้ ปลอมไม่ได้) และมีเพดานรวมทุก IP
+  30 ครั้งต่อ 10 นาที กันการสุ่มรหัสจากหลาย IP

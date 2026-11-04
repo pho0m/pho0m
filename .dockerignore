@@ -7,6 +7,8 @@
 .github
 .firebase
 web/dist
+# The image never copies the site sources either.
+web
 assets
 tools
 public
