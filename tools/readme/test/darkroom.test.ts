@@ -6,13 +6,13 @@ import { ICON_NAMES } from "@pho0m/content";
 import { describe, expect, it } from "vitest";
 import { dotFit, dotSafe, textWidth } from "../src/gif/canvas.ts";
 import { encodeGif, mergeStill } from "../src/gif/encode.ts";
-import { gifPalette } from "../src/gif/film.ts";
+import { DEV_LEVELS, filmGifFrames, gifPalette, type GifPrint } from "../src/gif/film.ts";
 import { FRAME_H, FRAME_W, clearLevels, developingBits, iconScene, iconSource, lumaOf, negativeAt, photoSource } from "../src/image/darkroom.ts";
 import { deflateRaw, huffmanLengths, zlibDeflate } from "../src/image/deflate.ts";
 import { BAYER8 } from "../src/image/gray.ts";
 import { decodePngLuma, encodeGrayPng, encodeIndexedPng } from "../src/image/png.ts";
 import { portraitPrints } from "../src/image/print.ts";
-import { ROOT, parseGif } from "./helpers.ts";
+import { ROOT, decodeGifFrames, parseGif } from "./helpers.ts";
 
 /** The standard 8x8 Bayer (dispersed-dot) matrix, as in web/src/lib/pixel.ts. */
 const STANDARD_BAYER8 = [
@@ -161,7 +161,23 @@ describe("GIF pieces", () => {
     const info = parseGif(bytes);
     expect(info.version).toBe("GIF89a");
     expect(info.loop).toBe(0);
-    expect(info.frames.map((f) => [f.delay, f.transparent, f.dispose])).toEqual([[160, true, 1], [100, true, 1]]);
+    expect(info.frames.map((f) => [f.delay, f.transparent, f.dispose, f.x, f.y, f.w, f.h])).toEqual([[160, true, 1, 0, 0, 4, 4], [100, true, 1, 1, 1, 1, 1]]);
+    expect(decodeGifFrames(bytes).map((px) => [...px])).toEqual([[...a], [...b]]);
+  });
+
+  it("encodes changed rectangles that decode back to exactly the rendered frames", () => {
+    const prints: GifPrint[] = (["rocket", "code", "board"] as const).map((icon, i) => {
+      const src = iconSource(icon, i / 2, i);
+      return { number: i + 1, date: `Jan 202${i}`, stamp: `'2${i}`, title: `Frame ${i}`, clear: clearLevels(src), developing: DEV_LEVELS.map((l) => developingBits(src, l)) };
+    });
+    const { frames, palette } = filmGifFrames(prints, "pho0m");
+    const bytes = encodeGif(frames, { width: 840, height: 260, palette: palette.colors, transparentIndex: palette.transparent });
+    const info = parseGif(bytes);
+    expect(info.frames.length).toBe(frames.length);
+    expect(info.frames.slice(1).some((f) => f.w < 840 || f.h < 260)).toBe(true); // cropped
+    const decoded = decodeGifFrames(bytes);
+    expect(decoded.length).toBe(frames.length);
+    decoded.forEach((px, i) => expect(Buffer.from(px).equals(Buffer.from(frames[i]!.pixels)), `frame ${i}`).toBe(true));
   });
 
   it("writes only what the dot-matrix font can draw", () => {

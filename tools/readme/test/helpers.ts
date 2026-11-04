@@ -131,3 +131,78 @@ export function outsideMotionQuery(css: string): string {
 export function styleOf(svg: string): string {
   return [...svg.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join("");
 }
+
+/** GIF LZW decoder (for checking the encoder's output, not for speed). */
+function lzwDecode(minCodeSize: number, data: Uint8Array, count: number): Uint8Array {
+  const out = new Uint8Array(count);
+  const clear = 1 << minCodeSize;
+  const eoi = clear + 1;
+  let size = minCodeSize + 1;
+  let dict: number[][] = [];
+  const reset = () => {
+    dict = Array.from({ length: clear + 2 }, (_, i) => (i < clear ? [i] : []));
+    size = minCodeSize + 1;
+  };
+  reset();
+  let bit = 0;
+  let n = 0;
+  let prev: number[] | null = null;
+  while (n < count && bit + size <= data.length * 8) {
+    let code = 0;
+    for (let i = 0; i < size; i++, bit++) code |= ((data[bit >> 3]! >> (bit & 7)) & 1) << i;
+    if (code === clear) {
+      reset();
+      prev = null;
+      continue;
+    }
+    if (code === eoi) break;
+    const entry: number[] = code < dict.length ? dict[code]! : [...prev!, prev![0]!];
+    for (const v of entry) if (n < count) out[n++] = v;
+    if (prev && dict.length < 4096) dict.push([...prev, entry[0]!]);
+    if (dict.length === 1 << size && size < 12) size++;
+    prev = entry;
+  }
+  return out;
+}
+
+/** Decode every frame of a GIF and composite it (transparency + "do not dispose") into full palette-index canvases. */
+export function decodeGifFrames(b: Uint8Array): Uint8Array[] {
+  const info = parseGif(b);
+  const canvas = new Uint8Array(info.width * info.height);
+  const frames: Uint8Array[] = [];
+  let pos = 13 + info.globalColors * 3;
+  let transparentIndex = -1;
+  const u16 = (i: number) => b[i]! | (b[i + 1]! << 8);
+  const subBlocks = () => {
+    const parts: number[] = [];
+    while (b[pos] !== 0) {
+      parts.push(...b.subarray(pos + 1, pos + 1 + b[pos]!));
+      pos += b[pos]! + 1;
+    }
+    pos++;
+    return Uint8Array.from(parts);
+  };
+  for (;;) {
+    const id = b[pos++];
+    if (id === 0x3b) break;
+    if (id === 0x21) {
+      const label = b[pos++];
+      if (label === 0xf9) transparentIndex = b[pos + 1]! & 1 ? b[pos + 4]! : -1;
+      pos += b[pos]! + 1;
+      subBlocks();
+    } else if (id === 0x2c) {
+      const [x, y, w, h] = [u16(pos), u16(pos + 2), u16(pos + 4), u16(pos + 6)];
+      const p = b[pos + 8]!;
+      pos += 9 + (p & 0x80 ? (1 << ((p & 7) + 1)) * 3 : 0);
+      const min = b[pos++]!;
+      const px = lzwDecode(min, subBlocks(), w * h);
+      for (let j = 0; j < h; j++)
+        for (let i = 0; i < w; i++) {
+          const v = px[j * w + i]!;
+          if (v !== transparentIndex) canvas[(y + j) * info.width + x + i] = v;
+        }
+      frames.push(canvas.slice());
+    }
+  }
+  return frames;
+}

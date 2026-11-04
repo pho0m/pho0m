@@ -99,7 +99,7 @@ export function gifPalette(q: Pick<GifQuality, "duoLevels" | "negLevels"> = GIF_
     halo: (k: number) => halo0 + Math.max(0, Math.min(HALO.length - 1, k)),
   };
 }
-type Palette = ReturnType<typeof gifPalette>;
+export type Palette = ReturnType<typeof gifPalette>;
 
 /** What the frame in the gate looks like at one tick. */
 type GateState =
@@ -275,6 +275,13 @@ export function filmGif(prints: GifPrint[], handle: string, budget = GIF_BUDGET)
 }
 
 export function renderFilmGif(prints: GifPrint[], handle: string, quality: GifQuality = GIF_QUALITY[0]): FilmGif {
+  const { frames, palette } = filmGifFrames(prints, handle, quality);
+  const bytes = encodeGif(frames, { width: GIF_W, height: GIF_H, palette: palette.colors, transparentIndex: palette.transparent });
+  return { bytes, frames: frames.length, durationMs: frames.reduce((a, f) => a + f.delay, 0), quality };
+}
+
+/** The animation as full-canvas palette-index frames (identical neighbours merged), before encoding. */
+export function filmGifFrames(prints: GifPrint[], handle: string, quality: GifQuality = GIF_QUALITY[0]): { frames: GifFrame[]; palette: Palette } {
   if (!prints.length) throw new Error("film GIF needs at least one frame");
   const P = gifPalette(quality);
   const L = layout(prints.length);
@@ -310,7 +317,5 @@ export function renderFilmGif(prints: GifPrint[], handle: string, quality: GifQu
     if (capFrame) caption(c, P, capFrame);
     frames.push({ pixels: c.px, delay: tick.delay });
   }
-  const merged = mergeStill(frames);
-  const bytes = encodeGif(merged, { width: GIF_W, height: GIF_H, palette: P.colors, transparentIndex: P.transparent });
-  return { bytes, frames: merged.length, durationMs: merged.reduce((a, f) => a + f.delay, 0), quality };
+  return { frames: mergeStill(frames), palette: P };
 }

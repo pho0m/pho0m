@@ -210,8 +210,10 @@ describe("film GIF", () => {
     expect(info.loop).toBe(0); // NETSCAPE2.0, 0 = loop forever
     const frames = Math.min(FILM_GIF_FRAMES, timelineFrames(clone()).length);
     expect(info.frames.length).toBe(gifTimeline(frames).length);
+    expect([info.frames[0]!.x, info.frames[0]!.y, info.frames[0]!.w, info.frames[0]!.h]).toEqual([0, 0, GIF_W, GIF_H]);
     for (const f of info.frames) {
-      expect([f.x, f.y, f.w, f.h]).toEqual([0, 0, GIF_W, GIF_H]);
+      expect(f.x + f.w).toBeLessThanOrEqual(GIF_W);
+      expect(f.y + f.h).toBeLessThanOrEqual(GIF_H);
       expect(f.delay).toBeGreaterThanOrEqual(60);
       expect(f.dispose).toBe(1);
     }
