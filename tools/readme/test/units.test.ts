@@ -5,7 +5,7 @@ import { fit, measure, sentences, sentencesThatFit, wrap } from "../src/font/fon
 import { autoLevels, BAYER8, ditherBits } from "../src/image/gray.ts";
 import { decodeJpegLuma } from "../src/image/jpeg.ts";
 import { decodePngLuma, encodeTwoTonePng } from "../src/image/png.ts";
-import { portraitPrint, sniffMime } from "../src/image/print.ts";
+import { portraitPrints, sniffMime } from "../src/image/print.ts";
 import { categoryParts } from "../src/model.ts";
 import { cell, extractWaka, linkUrl } from "../src/readme.ts";
 import { dotMatrixText, dotMatrixWidth, monogramLetters } from "../src/svg/glyphs.ts";
@@ -136,11 +136,12 @@ describe("images", () => {
   });
 
   it("makes a square print of the avatar, or null for undecodable files", () => {
-    const print = portraitPrint(jpeg, 88)!;
-    expect(print.size).toBe(88);
-    const ink = print.bits.reduce((a, b) => a + b, 0) / print.bits.length;
+    const print = portraitPrints(jpeg, 88, 176, [1])!;
+    expect(print.cells).toBe(88);
+    const bits = print.developing[0]!;
+    const ink = bits.reduce((a, b) => a + b, 0) / bits.length;
     expect(ink).toBeGreaterThan(0.2);
     expect(ink).toBeLessThan(0.8);
-    expect(portraitPrint(new TextEncoder().encode("RIFF0000WEBPVP8 "), 88)).toBeNull();
+    expect(portraitPrints(new TextEncoder().encode("RIFF0000WEBPVP8 "), 88, 176, [1])).toBeNull();
   });
 });

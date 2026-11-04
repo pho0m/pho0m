@@ -54,11 +54,19 @@ export class Canvas {
     this.pxBox(x + t, y + t, w - 2 * t, h - 2 * t, fill, s);
   }
 
-  /** Copy a w x h image; `color(i)` gives the palette index of source pixel i. */
+  /** Copy a w x h image; `color(i)` gives the palette index of source pixel i (only visible pixels are asked for). */
   blit(x: number, y: number, w: number, h: number, color: (i: number) => number): void {
     const X = Math.round(x);
     const Y = Math.round(y);
-    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) this.set(X + i, Y + j, color(j * w + i));
+    const { x0, y0, x1, y1 } = this.clipBox;
+    const ia = Math.max(0, x0 - X);
+    const ib = Math.min(w, x1 - X);
+    const ja = Math.max(0, y0 - Y);
+    const jb = Math.min(h, y1 - Y);
+    for (let j = ja; j < jb; j++) {
+      const row = (Y + j) * this.width + X;
+      for (let i = ia; i < ib; i++) this.px[row + i] = color(j * w + i);
+    }
   }
 
   /** Right-pointing triangle, `size` px tall. */

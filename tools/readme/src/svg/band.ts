@@ -32,7 +32,7 @@ export function bandCard(d: BandData, t: Theme): string {
   s += `<rect x="${descX - 14}" y="30" width="2" height="40" fill="${t.line2}" shape-rendering="crispEdges"/>`;
   // pixel shadow + the sprite, which hops in place (static card: standing still)
   s += `<rect class="shd" x="${spriteX + 9}" y="75" width="30" height="3" fill="${t.stripMuted}" fill-opacity="0.35" shape-rendering="crispEdges"/>`;
-  s += `<g class="bob">${sprite(d.icon, spriteX, 26, 3, "color")}</g>`;
+  s += `<g class="bob">${sprite(d.icon, spriteX, 26, 3)}</g>`;
   return svgDocument(CARD_W, H, `${d.title} — ${d.description}`, s, "", motionCss(bounceCss(-0.45 * d.number)));
 }
 

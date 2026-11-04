@@ -163,11 +163,6 @@ const FONT5X7: Record<string, readonly string[]> = {
   "<": ["...#.", "..#..", ".#...", "#....", ".#...", "..#..", "...#."],
 };
 
-/** Can the dot-matrix font draw this character (after upper-casing)? */
-export function hasDotGlyph(c: string): boolean {
-  return c in FONT5X7;
-}
-
 /** The 5x7 rows of one character ("#" = lit), or undefined when the font lacks it. */
 export function dotGlyph(c: string): readonly string[] | undefined {
   return FONT5X7[c];

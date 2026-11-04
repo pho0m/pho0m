@@ -103,7 +103,8 @@ describe("writing and --check", () => {
     const readme = join(dir, "README.md");
     await writeFile(join(dir, "keep.txt"), "x");
     const first = await apply(out, outDir, readme);
-    expect(first.changed.length).toBe(out.files.size + 1);
+    expect(first.changed.length).toBe(out.files.size + out.binaries.size + 1);
+    expect(await readFile(join(outDir, "film.gif"))).toEqual(Buffer.from(out.binaries.get("film.gif")!));
     expect(await plan(out, outDir, readme)).toEqual({ changed: [], removed: [] });
 
     await writeFile(join(outDir, "hero-dark.svg"), "<svg/>");

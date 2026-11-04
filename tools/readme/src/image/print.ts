@@ -3,8 +3,6 @@ import { autoLevels, ditherBits, orient, portraitCrop, resampleSquare, type Gray
 import { decodeJpegLuma } from "./jpeg.ts";
 import { decodePngLuma, encodeGrayPng, encodeTwoTonePng, isPng } from "./png.ts";
 
-export type Print = { bits: Uint8Array; size: number };
-
 /** Detect an image type from its first bytes. */
 export function sniffMime(bytes: Uint8Array): string | null {
   const ascii = (a: number, b: number) => String.fromCharCode(...bytes.subarray(a, b));
@@ -26,23 +24,6 @@ export function decodeLuma(bytes: Uint8Array): Gray & { cutout?: boolean } {
   }
   if (mime === "image/png") return decodePngLuma(bytes);
   throw new Error(`cannot decode ${mime ?? "unknown"} images`);
-}
-
-/** A square two-tone print of a portrait, `size` x `size` dither cells. Null when the file can't be decoded. */
-export function portraitPrint(bytes: Uint8Array, size: number): Print | null {
-  try {
-    const img = decodeLuma(bytes);
-    const small = resampleSquare(img, portraitCrop(img.width, img.height), size);
-    return { bits: ditherBits(autoLevels(small)), size };
-  } catch {
-    return null;
-  }
-}
-
-/** PNG data URI of a print, each cell drawn as `scale` x `scale` pixels. */
-export function printDataUri(print: Print, scale: number, paper: string, ink: string): string {
-  const png = encodeTwoTonePng(print.bits, print.size, print.size, scale, paper, ink);
-  return `data:image/png;base64,${png.toString("base64")}`;
 }
 
 export type PortraitPrints = {

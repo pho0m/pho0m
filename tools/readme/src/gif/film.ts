@@ -31,7 +31,6 @@ export const GIF_H = 260;
 export const DEV_LEVELS = [0.12, 0.26, 0.4, 0.55, 0.7, 0.85, 1];
 /** Milliseconds per animation tick (12.5 fps). */
 export const TICK = 80;
-const MOVE_TICKS = 6;
 const FIX_STEPS = [0.2, 0.4, 0.6, 0.8];
 const STOP_MS = 240;
 const DRY_MS = 900;
@@ -44,14 +43,27 @@ const EDGE_Y = 58;
 const PRINT_Y = 68;
 const CAPTION_Y = 228;
 
-const DUO_LEVELS = 96;
-const NEG_LEVELS = 48;
+/**
+ * Quality steps, best first. The generator takes the first one that keeps the GIF under its
+ * size budget: photos compress far worse than pixel scenes, so a roll full of photos gets
+ * fewer tones and fewer in-between frames while the film advances.
+ */
+export const GIF_QUALITY = [
+  { duoLevels: 96, negLevels: 48, moveTicks: 6 },
+  { duoLevels: 64, negLevels: 32, moveTicks: 4 },
+  { duoLevels: 32, negLevels: 24, moveTicks: 3 },
+] as const;
+export type GifQuality = (typeof GIF_QUALITY)[number];
+/** Target size of the GIF in bytes. */
+export const GIF_BUDGET = 1.5 * 1024 * 1024;
+
 const HALO = [0.85, 0.6, 0.4, 0.22];
 
 const FLASH = "#fffaf0";
 
 /** Fixed palette: index 0 is the transparent marker, then the darkroom colours, the duotone and negative ramps and the flash halo. */
-export function gifPalette() {
+export function gifPalette(q: Pick<GifQuality, "duoLevels" | "negLevels"> = GIF_QUALITY[0]) {
+  const { duoLevels: DUO_LEVELS, negLevels: NEG_LEVELS } = q;
   const named = {
     bg: DARKROOM.bg,
     bg2: DARKROOM.bg2,
@@ -59,7 +71,6 @@ export function gifPalette() {
     lineDark: "#4a1812",
     red: DARKROOM.red,
     led: DARKROOM.led,
-    ledDim: "#a8574a",
     paper: DARKROOM.paper,
     muted: DARKROOM.muted,
     base: DARKROOM.filmBase,
@@ -105,13 +116,13 @@ type Tick = { step: number; shift: number; gate: GateState; hud: Hud; caption: n
  * the gate slot, so frames come through in date order. The loop opens on the newest frame,
  * finished (DRY), so the first GIF frame is a good still.
  */
-export function gifTimeline(count: number): Tick[] {
+export function gifTimeline(count: number, moveTicks: number = GIF_QUALITY[0].moveTicks): Tick[] {
   const N = Math.max(1, count);
   const g = Math.floor(Math.min(5, N) / 2);
   const ticks: Tick[] = [];
   for (let k = 0; k < N; k++) {
     const s = g + 1 + k;
-    for (let m = 1; m <= MOVE_TICKS && N > 1; m++) ticks.push({ step: s - 1, shift: m / MOVE_TICKS, gate: { kind: "clear" }, hud: -1, caption: s - 1, delay: TICK });
+    for (let m = 1; m <= moveTicks && N > 1; m++) ticks.push({ step: s - 1, shift: m / moveTicks, gate: { kind: "clear" }, hud: -1, caption: s - 1, delay: TICK });
     const hold = (gate: GateState, hud: Hud, delay = TICK) => ticks.push({ step: s, shift: 0, gate, hud, caption: s, delay });
     hold({ kind: "flash", strength: 1 }, 0);
     hold({ kind: "flash", strength: 0 }, 0);
@@ -181,12 +192,11 @@ function holes(c: Canvas, P: Palette, L: Layout, shift: number) {
 
 type Look = "negative" | "clear" | GateState;
 
-function drawFrame(c: Canvas, P: Palette, f: GifPrint, x: number, look: Look, handle: string) {
+function drawFrame(c: Canvas, P: Palette, f: GifPrint, x: number, look: Look) {
   const ix = x + 6;
   const iy = PRINT_Y + 6;
   const W = FRAME_W;
-  // film edge: emulsion name on the left, frame number on the right, the date underneath
-  c.text(`${dotSafe(handle) || "FILM"} 400`, x, EDGE_Y, 1, P.ledDim);
+  // film edge: frame number above, the date underneath
   const num = String(f.number).padStart(2, "0");
   const nw = textWidth(num, 1);
   c.text(num, x + PW - nw, EDGE_Y, 1, P.led);
@@ -249,16 +259,28 @@ function caption(c: Canvas, P: Palette, f: GifPrint) {
   c.text(text, Math.round((GIF_W - w) / 2), CAPTION_Y, 2, P.paper);
 }
 
-export type FilmGif = { bytes: Uint8Array; frames: number; durationMs: number };
+export type FilmGif = { bytes: Uint8Array; frames: number; durationMs: number; quality: GifQuality };
 
-/** Render and encode the film strip GIF for `prints` (oldest → newest). */
-export function filmGif(prints: GifPrint[], handle: string): FilmGif {
+/**
+ * Render and encode the film strip GIF for `prints` (oldest → newest): the best quality step
+ * that fits `budget` bytes, or the smallest one when none does.
+ */
+export function filmGif(prints: GifPrint[], handle: string, budget = GIF_BUDGET): FilmGif {
+  let out: FilmGif | null = null;
+  for (const q of GIF_QUALITY) {
+    out = renderFilmGif(prints, handle, q);
+    if (out.bytes.byteLength <= budget) break;
+  }
+  return out!;
+}
+
+export function renderFilmGif(prints: GifPrint[], handle: string, quality: GifQuality = GIF_QUALITY[0]): FilmGif {
   if (!prints.length) throw new Error("film GIF needs at least one frame");
-  const P = gifPalette();
+  const P = gifPalette(quality);
   const L = layout(prints.length);
   const { N, p, x0, g } = L;
   const frames: GifFrame[] = [];
-  for (const tick of gifTimeline(N)) {
+  for (const tick of gifTimeline(N, quality.moveTicks)) {
     const c = new Canvas(GIF_W, GIF_H, P.bg);
     drawStatic(c, P, handle, N);
     drawHud(c, P, tick.hud);
@@ -279,7 +301,7 @@ export function filmGif(prints: GifPrint[], handle: string): FilmGif {
         if (tick.shift === 0 && slot === g) look = tick.gate;
         else if (wrapped || slot < g) look = "negative";
         else look = "clear";
-        drawFrame(c, P, f, x, look, handle);
+        drawFrame(c, P, f, x, look);
       }
     });
     c.unclip();
@@ -290,5 +312,5 @@ export function filmGif(prints: GifPrint[], handle: string): FilmGif {
   }
   const merged = mergeStill(frames);
   const bytes = encodeGif(merged, { width: GIF_W, height: GIF_H, palette: P.colors, transparentIndex: P.transparent });
-  return { bytes, frames: merged.length, durationMs: merged.reduce((a, f) => a + f.delay, 0) };
+  return { bytes, frames: merged.length, durationMs: merged.reduce((a, f) => a + f.delay, 0), quality };
 }

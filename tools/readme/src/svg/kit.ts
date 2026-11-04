@@ -1,6 +1,6 @@
-import { SPRITE_PALETTE, spritePixels, type IconName } from "@pho0m/content";
+import { spritePixels, type IconName } from "@pho0m/content";
 import { measure, type FontKey } from "../font/fonts.ts";
-import { FILM, type Theme } from "./theme.ts";
+import type { Theme } from "./theme.ts";
 import { GLYPHS, dotMatrixRows, dotMatrixWidth, monogramLetters, monogramRows, type GlyphName, type LinkIcon } from "./glyphs.ts";
 import { el, esc, n } from "./xml.ts";
 
@@ -158,48 +158,13 @@ export function levelDots(level: number, max: number, x: number, y: number, size
   return `<g shape-rendering="crispEdges">${out}</g>`;
 }
 
-// ---------------------------------------------------------------------------------------------
-// Two-tone prints: 2x2 Bayer dither tiles (2 px cells) shared by the sprite prints and skies.
-
-/** <pattern> defs for dither levels 1..3 of 4 (0 = paper, 4 = ink are solid fills). */
-export function ditherDefs(prefix: string, paper: string = FILM.paper, ink: string = FILM.ink): string {
-  const order: [number, number][] = [[0, 0], [1, 1], [1, 0], [0, 1]];
-  let out = "";
-  for (let level = 1; level <= 3; level++) {
-    const cells = order.slice(0, level).map(([cx, cy]) => `<rect x="${cx * 2}" y="${cy * 2}" width="2" height="2" fill="${ink}"/>`);
-    out += `<pattern id="${prefix}-d${level}" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="${paper}"/>${cells.join("")}</pattern>`;
-  }
-  return out;
-}
-
-export function ditherFill(prefix: string, level: number, paper: string = FILM.paper, ink: string = FILM.ink): string {
-  if (level <= 0) return paper;
-  if (level >= 4) return ink;
-  return `url(#${prefix}-d${level})`;
-}
-
-const hexLum = (hex: string) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return (r! * 0.3 + g! * 0.59 + b! * 0.11) / 255;
-};
-
-/** Dither level 0..4 for each sprite palette key (darker colour → more ink). */
-export const SPRITE_LEVEL: Record<string, number> = Object.fromEntries(
-  Object.entries(SPRITE_PALETTE).map(([key, hex]) => [key, Math.max(0, Math.min(4, Math.round((1 - hexLum(hex)) * 4)))]),
-);
-
-/**
- * A 16x16 sprite as one <rect> per opaque pixel (exactly spritePixels(icon)).
- * mode "print" renders it as a two-tone darkroom print; "color" keeps the sprite palette.
- * Place it at multiples of 4 px with scale 4 so dither tiles line up with sprite pixels.
- */
-export function sprite(icon: IconName, x: number, y: number, scale: number, mode: "print" | "color", prefix = "p"): string {
+/** A 16x16 sprite in its own colours, one <rect> per opaque pixel (exactly spritePixels(icon)). */
+export function sprite(icon: IconName, x: number, y: number, scale: number): string {
   const groups = new Map<string, string[]>();
   for (const px of spritePixels(icon)) {
-    const fill = mode === "color" ? px.color : ditherFill(prefix, SPRITE_LEVEL[px.key] ?? 4);
-    const list = groups.get(fill) ?? [];
+    const list = groups.get(px.color) ?? [];
     list.push(`<rect x="${n(x + px.x * scale)}" y="${n(y + px.y * scale)}" width="${n(scale)}" height="${n(scale)}"/>`);
-    groups.set(fill, list);
+    groups.set(px.color, list);
   }
   const body = [...groups.entries()].map(([fill, rects]) => `<g fill="${fill}">${rects.join("")}</g>`).join("");
   return `<g data-sprite="${icon}" shape-rendering="crispEdges">${body}</g>`;

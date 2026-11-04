@@ -686,6 +686,7 @@ export function buildLlmsFull(c: Content): string {
   };
   h(1, `${t(p.name, "en")} (${p.handle})`);
   para(`> ${t(p.role, "en")} · ${t(p.role, "th")}`);
+  // deploy.yml's daily run reads "Last updated: <updatedAt> " from here to skip rebuilding unchanged content.
   para(`Source: ${base}/ · Last updated: ${c.updatedAt || "unknown"} · Languages: Thai and English. AI crawlers and assistants are welcome to read and cite this content.`);
   h(2, "Profile");
   para(

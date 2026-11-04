@@ -90,10 +90,10 @@ jobs:
             echo "needed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.stale.outputs.needed != 'false'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: steps.stale.outputs.needed != 'false'
         with:
           node-version: 22
@@ -158,7 +158,7 @@ jobs:
 
       # Also on refreshes: google-github-actions/auth writes its credentials file into the
       # workspace and warns when the workspace is empty.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.gate.outputs.enabled == 'true'
 
       # Build before authenticating, so the credentials file that auth writes into the
@@ -340,9 +340,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -416,7 +416,7 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.new_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Bump version and push tag
         id: tag

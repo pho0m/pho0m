@@ -306,6 +306,11 @@ describe("llms.txt", () => {
     expect(s).toContain(seed.diary.entries[0]!.body.th.slice(0, 20));
     expect(s).not.toMatch(/\n{3,}/);
   });
+  it("llms-full.txt states the content's updatedAt in the form deploy.yml reads", () => {
+    const s = buildLlmsFull(withContent((x) => void (x.updatedAt = "2026-12-01T08:09:10.000Z")));
+    // Same pattern as the sed in .github/workflows/deploy.yml ("Is the live site behind the content?").
+    expect(s.match(/Last updated: ([^ ]*) /)?.[1]).toBe("2026-12-01T08:09:10.000Z");
+  });
 });
 
 describe("parsePrice", () => {

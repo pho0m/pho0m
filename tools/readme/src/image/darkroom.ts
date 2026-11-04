@@ -280,12 +280,3 @@ export function clearLevels(src: PrintSource, opts: ClearOptions = {}): Uint8Arr
     }
   return out;
 }
-
-/** Nearest-neighbour scale of a byte image by an integer factor. */
-export function scaleBytes(src: Uint8Array, w: number, h: number, k: number): Uint8Array {
-  if (k === 1) return src;
-  const out = new Uint8Array(w * k * h * k);
-  for (let y = 0; y < h * k; y++)
-    for (let x = 0; x < w * k; x++) out[y * w * k + x] = src[Math.floor(y / k) * w + Math.floor(x / k)]!;
-  return out;
-}

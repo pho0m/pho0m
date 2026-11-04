@@ -1,5 +1,5 @@
 import { timelineFrames, type Content, type IconName } from "@pho0m/content";
-import { filmGif } from "./gif/film.ts";
+import { GIF_BUDGET, filmGif } from "./gif/film.ts";
 import { bitsDataUri, grayDataUri, portraitPrints } from "./image/print.ts";
 import type { MediaLoader } from "./media.ts";
 import {
@@ -68,17 +68,19 @@ export const FILM_GIF_FRAMES = 5;
 
 const MAX_RAW_AVATAR = 100_000;
 const MAX_LOGO = 150_000;
-/** Avatar print: 88 dither cells (drawn 2 px each), clear print at 2x the 176 px it is shown at. */
+/** Every SVG card stays under this size (GitHub's image proxy and page weight). */
+export const SVG_BUDGET = 240 * 1024;
+/** Avatar print: 88 dither cells (drawn 2 px each); the clear print at 2x the 176 px it is shown at, smaller if the card gets too big. */
 const AVATAR_CELLS = 88;
-const AVATAR_CLEAR = 352;
+const AVATAR_CLEAR = [352, 264, 176];
 const AVATAR_DEV_LEVELS = [0.35, 0.7, 1];
 
-async function avatarImage(input: GenerateInput, warn: (m: string) => void): Promise<AvatarImage> {
+async function avatarImage(input: GenerateInput, warn: (m: string) => void, clearSize: number): Promise<AvatarImage> {
   const url = input.content.profile.avatar?.url;
   if (!url) return null;
   const media = await input.media(url);
   if (!media) return null;
-  const prints = portraitPrints(media.bytes, AVATAR_CELLS, AVATAR_CLEAR, AVATAR_DEV_LEVELS);
+  const prints = portraitPrints(media.bytes, AVATAR_CELLS, clearSize, AVATAR_DEV_LEVELS);
   if (prints) {
     return {
       kind: "print",
@@ -106,6 +108,13 @@ async function logoImage(input: GenerateInput, warn: (m: string) => void): Promi
   return `data:${media.mime};base64,${Buffer.from(media.bytes).toString("base64")}`;
 }
 
+/** "a", "a and b", "a, b, and c" */
+function andList(items: string[]): string {
+  if (items.length < 2) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
+}
+
 function bandText(content: Content) {
   const frames = timelineFrames(content);
   const first = frames[0];
@@ -129,14 +138,13 @@ function bandText(content: Content) {
       .join(". ")
       .replace(/\.\./g, "."),
     projects:
-      [
-        client ? `${client} client projects at ${company}` : "",
-        clientMore ? `${clientMore} more client works` : "",
-        own.length ? `${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}` : "",
-      ]
-        .filter(Boolean)
-        .join(", ")
-        .replace(/, ([^,]*)$/, ", and $1") + ".",
+      andList(
+        [
+          client ? `${client} client projects at ${company}` : "",
+          clientMore ? `${clientMore} more client works` : "",
+          own.length ? `${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}` : "",
+        ].filter(Boolean),
+      ) + ".",
     skills: tiers.length ? `Rated on a ${tiers.length}-step scale: ${tiers.join(" · ")}.` : "Tools I use.",
   };
 }
@@ -152,7 +160,7 @@ export async function generate(input: GenerateInput): Promise<Output> {
     for (const theme of THEMES) files.set(`${name}-${theme.name}.svg`, draw(theme));
     return { dark: `${base}/${name}-dark.svg`, light: `${base}/${name}-light.svg` };
   };
-  const [avatar, logo] = await Promise.all([avatarImage(input, warn), logoImage(input, warn)]);
+  const [avatar, logo] = await Promise.all([avatarImage(input, warn, AVATAR_CLEAR[0]!), logoImage(input, warn)]);
   const p = content.profile;
   const c = content.company;
   const site = content.site.url;
@@ -185,6 +193,12 @@ export async function generate(input: GenerateInput): Promise<Output> {
   ]
     .filter(Boolean)
     .join(" ");
+  // a busy photo can make the clear print big: step its resolution down until the card fits
+  for (const size of AVATAR_CLEAR.slice(1)) {
+    if (!heroData.avatar || heroData.avatar.kind !== "print") break;
+    if (THEMES.every((t) => Buffer.byteLength(heroCard(heroData, t)) <= SVG_BUDGET)) break;
+    heroData.avatar = await avatarImage(input, () => {}, size);
+  }
   md.push(linked(sectionUrl(content, "top"), picture({ ...render("hero", (t) => heroCard(heroData, t)), alt: heroAlt })));
 
   // pill buttons ------------------------------------------------------------------------------
@@ -200,6 +214,7 @@ export async function generate(input: GenerateInput): Promise<Output> {
   if (gifFrames.length) {
     const prints = gifFrames.map((f, i) => gifPrint(f, sources[cardFrames.length - gifFrames.length + i]!.gif));
     const gif = filmGif(prints, p.handle || "film");
+    if (gif.bytes.byteLength > GIF_BUDGET) warn(`[readme] film.gif is ${Math.round(gif.bytes.byteLength / 1024)} KB, over the ${GIF_BUDGET / 1024} KB budget even at the lowest quality`);
     binaries.set("film.gif", gif.bytes);
     const gifAlt =
       `Animated film strip running to the right: the latest ${gifFrames.length} timeline frames, ` +
@@ -216,10 +231,13 @@ export async function generate(input: GenerateInput): Promise<Output> {
     );
   md.push(band("film", 1, "Film", bands.film, "eye", "film"));
   if (cardFrames.length) {
-    const withPrints = cardFrames.map((f, i) => ({ ...f, print: filmPrint(sources[i]!.card) }));
+    // photos go in at 2x for sharp screens, or at 1x when that would make the card too big
+    const withPrints = (pick: "card" | "gif") => cardFrames.map((f, i) => ({ ...f, print: filmPrint(sources[i]![pick]) }));
+    let prints = withPrints("card");
+    if (THEMES.some((t) => Buffer.byteLength(filmCard(prints, p.handle || "film", t)) > SVG_BUDGET)) prints = withPrints("gif");
     const newestFirst = [...cardFrames].reverse();
     const filmAlt = `Film strip of the latest ${cardFrames.length} timeline frames, newest first: ${newestFirst.map((f) => `${f.date}, ${f.title}`).join("; ")}.`;
-    md.push(linked(sectionUrl(content, "film"), picture({ ...render("film-latest", (t) => filmCard(withPrints, p.handle || "film", t)), alt: filmAlt })));
+    md.push(linked(sectionUrl(content, "film"), picture({ ...render("film-latest", (t) => filmCard(prints, p.handle || "film", t)), alt: filmAlt })));
   }
 
   // utotech -----------------------------------------------------------------------------------
