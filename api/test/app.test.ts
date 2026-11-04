@@ -155,6 +155,14 @@ describe("authentication on protected routes", () => {
     }
   });
 
+  it("rejects unsigned (alg none) tokens", async () => {
+    const h = makeHarness();
+    const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const exp = Math.floor(h.clock.now.getTime() / 1000) + 3600;
+    const none = `${b64({ alg: "none", typ: "JWT" })}.${b64({ sub: "admin", exp })}.`;
+    expect((await h.app.request("/api/content", authed(none))).status).toBe(401);
+  });
+
   it("rejects an expired token", async () => {
     const h = makeHarness();
     const token = await login(h);
@@ -512,6 +520,34 @@ describe("CORS", () => {
       headers: { Origin: "https://evil.example", "Access-Control-Request-Method": "PUT" },
     });
     expect(evil.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
+  it("keeps CORS headers on error responses so the admin can read them", async () => {
+    const h = makeHarness();
+    const origin = { Origin: "http://localhost:5173" };
+    const unauth = await h.app.request("/api/content", { headers: origin });
+    expect(unauth.status).toBe(401);
+    expect(unauth.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+    const missing = await h.app.request("/api/nope", { headers: origin });
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+    for (let i = 0; i < 6; i++) {
+      await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: { ...origin, "X-Forwarded-For": "192.0.2.77" } });
+    }
+    const limited = await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: { ...origin, "X-Forwarded-For": "192.0.2.77" } });
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+    expect(limited.headers.get("access-control-expose-headers")).toContain("Retry-After");
+    expect(limited.headers.get("retry-after")).toMatch(/^\d+$/);
+
+    const token = await login(h);
+    h.store.list = async () => {
+      throw new Error("boom");
+    };
+    const crash = await h.app.request("/api/media", authed(token, { headers: origin }));
+    expect(crash.status).toBe(500);
+    expect(crash.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+    expect(crash.headers.get("cache-control")).toBe("no-store");
   });
 
   it("respects ALLOWED_ORIGINS", async () => {

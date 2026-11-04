@@ -1,0 +1,101 @@
+import * as simpleIcons from "simple-icons";
+import type { SimpleIcon } from "simple-icons";
+import type { Link } from "@pho0m/content";
+
+/** 8x8 pixel glyphs for link kinds that have no brand logo ("#" = ink). */
+export const GLYPHS = {
+  globe: ["..####..", ".#.##.#.", "#..##..#", "########", "#..##..#", "#..##..#", ".#.##.#.", "..####.."],
+  mail: ["........", "########", "##....##", "#.#..#.#", "#..##..#", "#......#", "########", "........"],
+  doc: [".#####..", ".#...##.", ".#....#.", ".#.##.#.", ".#....#.", ".#.##.#.", ".#....#.", ".######."],
+  phone: ["..####..", "..#..#..", "..####..", "..#..#..", "..####..", "..#..#..", "..####..", "..####.."],
+  film: ["########", ".#.#.#.#", "########", "##....##", "##....##", "########", ".#.#.#.#", "########"],
+  play: ["........", ".##.....", ".####...", ".######.", ".######.", ".####...", ".##.....", "........"],
+  link: ["....####", "......##", ".....#.#", "....#..#", "...#....", "..#.....", ".#......", "#......."],
+} as const;
+export type GlyphName = keyof typeof GLYPHS;
+
+/** 3x5 pixel font for monograms. */
+const FONT3X5: Record<string, readonly string[]> = {
+  A: [".#.", "#.#", "###", "#.#", "#.#"], B: ["##.", "#.#", "##.", "#.#", "##."], C: [".##", "#..", "#..", "#..", ".##"],
+  D: ["##.", "#.#", "#.#", "#.#", "##."], E: ["###", "#..", "##.", "#..", "###"], F: ["###", "#..", "##.", "#..", "#.."],
+  G: [".##", "#..", "#.#", "#.#", ".##"], H: ["#.#", "#.#", "###", "#.#", "#.#"], I: ["###", ".#.", ".#.", ".#.", "###"],
+  J: ["..#", "..#", "..#", "#.#", ".#."], K: ["#.#", "#.#", "##.", "#.#", "#.#"], L: ["#..", "#..", "#..", "#..", "###"],
+  M: ["#.#", "###", "###", "#.#", "#.#"], N: ["##.", "#.#", "#.#", "#.#", "#.#"], O: [".#.", "#.#", "#.#", "#.#", ".#."],
+  P: ["##.", "#.#", "##.", "#..", "#.."], Q: [".#.", "#.#", "#.#", "##.", ".##"], R: ["##.", "#.#", "##.", "#.#", "#.#"],
+  S: [".##", "#..", ".#.", "..#", "##."], T: ["###", ".#.", ".#.", ".#.", ".#."], U: ["#.#", "#.#", "#.#", "#.#", "###"],
+  V: ["#.#", "#.#", "#.#", "#.#", ".#."], W: ["#.#", "#.#", "###", "###", "#.#"], X: ["#.#", "#.#", ".#.", "#.#", "#.#"],
+  Y: ["#.#", "#.#", ".#.", ".#.", ".#."], Z: ["###", "..#", ".#.", "#..", "###"], "0": ["###", "#.#", "#.#", "#.#", "###"],
+  "1": [".#.", "##.", ".#.", ".#.", "###"], "2": ["##.", "..#", ".#.", "#..", "###"], "3": ["##.", "..#", ".#.", "..#", "##."],
+  "4": ["#.#", "#.#", "###", "..#", "..#"], "5": ["###", "#..", "##.", "..#", "##."], "6": [".##", "#..", "###", "#.#", "###"],
+  "7": ["###", "..#", ".#.", ".#.", ".#."], "8": ["###", "#.#", "###", "#.#", "###"], "9": ["###", "#.#", "###", "..#", "##."],
+};
+
+/** One or two letters for a monogram: initials of the first two words, else the first two characters. */
+export function monogramLetters(name: string): string {
+  const words = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]+/g, " ")
+    .split(" ")
+    .filter(Boolean);
+  if (!words.length) return "?";
+  if (words.length > 1) return (words[0]![0]! + words[1]![0]!).slice(0, 2);
+  return words[0]!.slice(0, 2);
+}
+
+/** Pixel rows ("#" = on) of a monogram, letters 1 px apart. Unknown characters are skipped. */
+export function monogramRows(letters: string): string[] {
+  const glyphs = Array.from(letters)
+    .map((c) => FONT3X5[c])
+    .filter((g): g is readonly string[] => !!g);
+  if (!glyphs.length) return FONT3X5["0"]!.map(() => "");
+  return [0, 1, 2, 3, 4].map((y) => glyphs.map((g) => g[y]!).join("."));
+}
+
+const BY_SLUG = new Map<string, SimpleIcon>();
+for (const value of Object.values(simpleIcons)) {
+  if (value && typeof value === "object" && "slug" in value && "path" in value) {
+    const icon = value as SimpleIcon;
+    BY_SLUG.set(icon.slug, icon);
+  }
+}
+
+/** A simple-icons logo by slug (e.g. "typescript"), or undefined when the package has none. */
+export function brandIcon(slug: string): SimpleIcon | undefined {
+  return slug ? BY_SLUG.get(slug.toLowerCase()) : undefined;
+}
+
+const KIND_SLUG: Partial<Record<Link["kind"], string>> = {
+  github: "github",
+  facebook: "facebook",
+  instagram: "instagram",
+  linkedin: "linkedin",
+  x: "x",
+  youtube: "youtube",
+  tiktok: "tiktok",
+  line: "line",
+};
+
+const KIND_GLYPH: Record<Link["kind"], GlyphName> = {
+  website: "globe",
+  github: "link",
+  facebook: "link",
+  instagram: "link",
+  linkedin: "link",
+  x: "link",
+  youtube: "play",
+  tiktok: "play",
+  line: "mail",
+  email: "mail",
+  phone: "phone",
+  document: "doc",
+  demo: "play",
+  other: "link",
+};
+
+export type LinkIcon = { type: "brand"; icon: SimpleIcon } | { type: "glyph"; glyph: GlyphName };
+
+export function linkIcon(kind: Link["kind"]): LinkIcon {
+  const slug = KIND_SLUG[kind];
+  const icon = slug ? brandIcon(slug) : undefined;
+  return icon ? { type: "brand", icon } : { type: "glyph", glyph: KIND_GLYPH[kind] };
+}

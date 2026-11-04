@@ -81,13 +81,16 @@ export function resampleSquare(img: Gray, crop: Crop, n: number): Gray {
   return { width: n, height: n, data: out };
 }
 
-/** Stretch tones so the 2nd–98th percentiles span the full range (a "good print"). */
-export function autoLevels(img: Gray, low = 0.02, high = 0.98): Gray {
+/**
+ * Stretch tones so the 2nd–98th percentiles span the full range, then lift the mid-tones
+ * (gamma < 1) so faces don't sink into the shadows of a two-tone print.
+ */
+export function autoLevels(img: Gray, low = 0.02, high = 0.98, gamma = 0.75): Gray {
   const sorted = Array.from(img.data).sort((a, b) => a - b);
   const lo = sorted[Math.floor(low * (sorted.length - 1))] ?? 0;
   const hi = sorted[Math.floor(high * (sorted.length - 1))] ?? 1;
   const span = Math.max(0.05, hi - lo);
-  const data = img.data.map((v) => Math.max(0, Math.min(1, (v - lo) / span)));
+  const data = img.data.map((v) => Math.max(0, Math.min(1, (v - lo) / span)) ** gamma);
   return { width: img.width, height: img.height, data };
 }
 
