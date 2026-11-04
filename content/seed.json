@@ -634,8 +634,8 @@
         "en": "CEO · Utotech Co., Ltd."
       },
       "summary": {
-        "th": "นำทีมซอฟต์แวร์เฮาส์กว่า 20 คน: เว็บและแอปมือถือ, ERP และอีคอมเมิร์ซ, IoT และ AI, ออกแบบและมีเดีย พร้อมผลิตภัณฑ์อย่าง UtoEyes และ Checkal",
-        "en": "Leading a 20+ person software house: web and mobile apps, ERP and e-commerce, IoT and AI, design and media, plus products such as UtoEyes and Checkal."
+        "th": "นำทีมซอฟต์แวร์เฮาส์กว่า 20 คน: เว็บและแอปมือถือ, ERP และอีคอมเมิร์ซ, IoT และ AI, ออกแบบและมีเดีย พร้อมผลิตภัณฑ์อย่าง UtoEyes และ Calcount",
+        "en": "Leading a 20+ person software house: web and mobile apps, ERP and e-commerce, IoT and AI, design and media, plus products such as UtoEyes and Calcount."
       },
       "body": {
         "th": "",
@@ -1308,12 +1308,12 @@
         "name": "Calcount",
         "category": "Platform / Mobile Application / Web Application",
         "summary": {
-          "th": "แอปพลิเคชันด้านการแพทย์",
-          "en": "Applications for medicine"
+          "th": "แอปคำนวณโภชนบำบัดทางคลินิก บนเว็บและมือถือ",
+          "en": "Clinical nutrition calculator for web and mobile"
         },
         "description": {
-          "th": "Calcount เป็นแอปมือถือที่ช่วยให้บุคลากรทางการแพทย์จัดการตารางการให้ยาและติดตามค่าสุขภาพของผู้ป่วยได้อย่างมีประสิทธิภาพ พร้อมวิเคราะห์และแสดงผลข้อมูลเป็นภาพ จัดการสต๊อกยา และให้แอดมินปรับตั้งค่าได้ทั้งบนเว็บและมือถือ",
-          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently. It also analyzes and visualizes data, tracks medicine stock, and lets admins customize settings on web and mobile."
+          "th": "Calcount คือเครื่องมือคำนวณโภชนบำบัดทางคลินิกของ Utotech ช่วยบุคลากรทางการแพทย์ประเมินและติดตามผู้ป่วย มีแดชบอร์ดให้แอดมินจัดการรายการยา (ชนิด enteral หรือ parenteral พลังงาน โปรตีน ปริมาตร) ลูกค้า และผู้ใช้ รองรับภาษาไทยและอังกฤษ ส่วนแอปมือถือใช้บันทึกข้อมูลเคส คำนวณ BMI ความต้องการพลังงานและโปรตีนต่อวัน ตอบแบบคัดกรองภาวะโภชนาการ ดูรายการผลิตภัณฑ์ และส่งออกเป็น PDF พร้อมวิเคราะห์ข้อมูล แสดงผลเป็นกราฟ และจัดการคลังยา",
+          "en": "Calcount is Utotech's clinical nutrition calculator that helps healthcare professionals assess and follow patients. The admin dashboard manages medicines (enteral or parenteral, energy, protein, volume), customers and users in English and Thai. The mobile app records case information, calculates BMI and daily energy and protein requirements, runs nutrition screening questions, shows the product list and exports to PDF. It also analyzes and visualizes data and tracks medicine stock."
         },
         "url": "",
         "features": [
@@ -1384,9 +1384,39 @@
                 "en": "Setting customization"
               }
             }
+          },
+          {
+            "title": {
+              "th": "แดชบอร์ดแอดมิน",
+              "en": "Admin dashboard"
+            },
+            "description": {
+              "th": "จัดการรายการยา (enteral/parenteral พลังงาน โปรตีน ปริมาตร) ลูกค้า และผู้ใช้ สลับภาษาไทยและอังกฤษได้",
+              "en": "Manage medicines (enteral/parenteral, energy, protein, volume), customers and users, in Thai or English."
+            }
+          },
+          {
+            "title": {
+              "th": "แอปมือถือสำหรับเคสผู้ป่วย",
+              "en": "Patient case app"
+            },
+            "description": {
+              "th": "บันทึกข้อมูลเคส คำนวณ BMI ความต้องการพลังงานและโปรตีนต่อวัน และส่งออกรายงานเป็น PDF",
+              "en": "Record case information, calculate BMI and daily energy and protein requirements, and export the report as a PDF."
+            }
+          },
+          {
+            "title": {
+              "th": "คัดกรองภาวะโภชนาการ",
+              "en": "Nutrition screening"
+            },
+            "description": {
+              "th": "แบบคัดกรองภาวะโภชนาการในแอป พร้อมรายการผลิตภัณฑ์ให้เลือกตามชนิดโภชนาการ",
+              "en": "In-app nutrition screening questions and a product list filtered by nutrition type."
+            }
           }
         ],
-        "featured": false,
+        "featured": true,
         "published": true,
         "cover": {
           "url": "/media/utotech/projects/calcount/logo-calcount.webp",
@@ -2142,25 +2172,6 @@
         "Mobile app",
         "Smart home",
         "Camera"
-      ],
-      "group": "utotech",
-      "year": "",
-      "featured": true,
-      "published": true
-    },
-    {
-      "id": "checkal",
-      "name": "Checkal",
-      "description": {
-        "th": "เครื่องมือคำนวณโภชนบำบัดทางคลินิกของ Utotech มี Checkal Dashboard ให้แอดมินจัดการรายการยา (ชนิด enteral หรือ parenteral พลังงาน โปรตีน ปริมาตร) ลูกค้า และผู้ใช้ รองรับภาษาไทยและอังกฤษ และ Checkal Mobile Application สำหรับบันทึกข้อมูลเคส คำนวณ BMI ความต้องการพลังงานและโปรตีนต่อวัน ตอบแบบคัดกรองภาวะโภชนาการ ดูรายการผลิตภัณฑ์ และส่งออกเป็น PDF",
-        "en": "Utotech's clinical nutrition calculator. Checkal Dashboard lets admins manage medicines (enteral or parenteral, energy, protein, volume), customers and users, in English and Thai. Checkal Mobile Application covers case information, BMI, daily energy and protein requirements, nutrition screening questions, a product list and export to PDF."
-      },
-      "url": "",
-      "repo": "",
-      "tags": [
-        "Dashboard",
-        "Mobile app",
-        "Clinical nutrition"
       ],
       "group": "utotech",
       "year": "",
