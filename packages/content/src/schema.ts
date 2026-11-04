@@ -36,9 +36,31 @@ export const ICON_NAMES = [
 export const IconName = z.enum(ICON_NAMES);
 export type IconName = z.infer<typeof IconName>;
 
+/**
+ * Only link/image targets that are safe to put in an href/src: http(s), mailto:, tel:,
+ * site-relative paths ("/…") and in-page anchors ("#…"). Blocks javascript:, data:, vbscript: etc.
+ */
+export function isSafeUrl(value: string): boolean {
+  const v = value.trim();
+  if (!v || v !== value || /[\u0000-\u001f\u007f\s]/.test(v)) return false;
+  return /^(https?:\/\/[^/]|mailto:|tel:|\/(?!\/)|#)/i.test(v);
+}
+/** Images: http(s) or site-relative only. */
+export function isSafeImageUrl(value: string): boolean {
+  return isSafeUrl(value) && /^(https?:\/\/|\/(?!\/))/i.test(value);
+}
+const URL_MSG = "use https://…, mailto:, tel:, a site path (/…) or #anchor";
+/** Required safe URL. */
+export const SafeUrl = z.string().min(1).refine(isSafeUrl, URL_MSG);
+/** Optional safe URL ("" = none). */
+export const OptionalUrl = z
+  .string()
+  .default("")
+  .refine((v) => v === "" || isSafeUrl(v), URL_MSG);
+
 /** `url` is absolute (https://…) or site-relative (/media/…, /img/…). */
 export const ImageRef = z.object({
-  url: z.string().min(1),
+  url: z.string().min(1).refine(isSafeImageUrl, "use https://… or a site path (/media/…)"),
   alt: Localized.default(emptyL),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
@@ -65,7 +87,7 @@ export const LinkKind = z.enum(LINK_KINDS);
 export const Link = z.object({
   kind: LinkKind.default("website"),
   label: z.string().default(""),
-  url: z.string().min(1),
+  url: SafeUrl,
 });
 export type Link = z.infer<typeof Link>;
 
@@ -142,7 +164,7 @@ export const CompanyProject = z.object({
   category: z.string().default(""),
   summary: Localized,
   description: Localized.default(emptyL),
-  url: z.string().default(""),
+  url: OptionalUrl,
   cover: ImageRef.optional(),
   features: z
     .array(
@@ -161,7 +183,7 @@ export type CompanyProject = z.infer<typeof CompanyProject>;
 export const Customer = z.object({
   name: z.string().min(1),
   logo: ImageRef.optional(),
-  url: z.string().default(""),
+  url: OptionalUrl,
 });
 export type Customer = z.infer<typeof Customer>;
 
@@ -215,8 +237,8 @@ export const Project = z.object({
   id,
   name: z.string().min(1),
   description: Localized,
-  url: z.string().default(""),
-  repo: z.string().default(""),
+  url: OptionalUrl,
+  repo: OptionalUrl,
   tags: z.array(z.string()).default([]),
   group: z.enum(PROJECT_GROUPS).default("personal"),
   year: z.string().default(""),
@@ -260,8 +282,8 @@ export const Diary = z.object({
     type: Localized.default(emptyL),
     address: Localized.default(emptyL),
     about: Localized.default(emptyL),
-    website: z.string().default(""),
-    facebook: z.string().default(""),
+    website: OptionalUrl,
+    facebook: OptionalUrl,
     logo: ImageRef.optional(),
   }),
   duties: z.array(z.object({ title: Localized, description: Localized })).default([]),
@@ -276,14 +298,17 @@ export const DocumentItem = z.object({
   title: Localized,
   description: Localized.default(emptyL),
   /** Empty url → hidden on the site until a file is uploaded. */
-  url: z.string().default(""),
+  url: OptionalUrl,
   image: ImageRef.optional(),
 });
 export type DocumentItem = z.infer<typeof DocumentItem>;
 
 export const Site = z.object({
   defaultLang: z.enum(LANGS).default("th"),
-  url: z.string().default("https://kiattiphoom-pho0m.web.app"),
+  url: z
+    .string()
+    .default("https://kiattiphoom-pho0m.web.app")
+    .refine((v) => /^https:\/\/[^/]+/.test(v), "use https://…"),
   title: Localized,
   description: Localized,
   ogImage: ImageRef.optional(),

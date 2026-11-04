@@ -77,3 +77,27 @@ describe("sprites", () => {
     }
   });
 });
+
+describe("safe urls + public projection", async () => {
+  const m = await import("../src/index.ts");
+  it("accepts http(s), mailto, tel, site paths and anchors; rejects script-ish schemes", () => {
+    for (const ok of ["https://a.b/c", "http://x.y", "mailto:a@b.c", "tel:+6612", "/media/a.png", "#film"]) expect(m.isSafeUrl(ok), ok).toBe(true);
+    for (const bad of ["javascript:alert(1)", "JaVaScRiPt:x", " https://a.b", "data:text/html,x", "//evil.com", "vbscript:x", "https://a b", ""]) expect(m.isSafeUrl(bad), bad).toBe(false);
+    expect(m.isSafeImageUrl("mailto:x@y.z")).toBe(false);
+    const bad = { ...seedJson, profile: { ...seedJson.profile, links: [{ kind: "website", label: "x", url: "javascript:alert(1)" }] } };
+    expect(m.parseContent(bad).ok).toBe(false);
+  });
+  it("publicProjection drops drafts and hidden contact values, idempotently", () => {
+    const c = structuredClone(m.seed);
+    c.timeline[0]!.published = false;
+    c.projects[0]!.published = false;
+    c.profile.phone = { value: "+66 81-PRIVATE", visible: false };
+    const p = m.publicProjection(c);
+    expect(p.timeline).toHaveLength(c.timeline.length - 1);
+    expect(p.projects).toHaveLength(c.projects.length - 1);
+    expect(JSON.stringify(p)).not.toContain("PRIVATE");
+    expect(p.documents.every((d) => d.url)).toBe(true);
+    expect(m.publicProjection(p)).toEqual(p);
+    expect(m.parseContent(p).ok).toBe(true);
+  });
+});

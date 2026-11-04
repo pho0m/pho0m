@@ -59,7 +59,17 @@ export type ContentResponse = {
   url: string | null;
 };
 export type SaveContentRequest = { content: unknown; generation: string | null };
-export type SaveContentResponse = { generation: string; updatedAt: string; url: string | null };
+/**
+ * redeploy: whether a site rebuild (SEO snapshot, llms.txt, README) was requested after this save —
+ * "sent" (GitHub accepted it), "queued" (rate-limited; goes out with a later save or the daily refresh),
+ * "failed" (GitHub refused or timed out), "off" (no DISPATCH token configured).
+ */
+export type SaveContentResponse = {
+  generation: string;
+  updatedAt: string;
+  url: string | null;
+  redeploy?: "sent" | "queued" | "failed" | "off";
+};
 
 export type HistoryItem = { path: string; updated: string; size: number };
 export type HistoryResponse = { items: HistoryItem[] };

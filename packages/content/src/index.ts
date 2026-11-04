@@ -4,6 +4,7 @@ import seedJson from "../../../content/seed.json";
 export * from "./schema.ts";
 export * from "./sprites.ts";
 export * from "./api.ts";
+export * from "./public.ts";
 
 export type ParseResult =
   | { ok: true; content: Content }
