@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { PROJECT_GROUPS, seed } from "@pho0m/content";
-import { badgeTint, groupLabel, hostOf, linkCode, linkLabel, monogram, paragraphs, PROJECT_GROUP_LABEL, projectGroups, telHref } from "./util.ts";
+import { PROJECT_GROUPS } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
+import { badgeTint, groupLabel, hostOf, imgRatio, imgSize, linkCode, linkLabel, monogram, paragraphs, PROJECT_GROUP_LABEL, projectGroups, telHref } from "./util.ts";
 
 describe("monogram", () => {
   it("uses initials, camel capitals or the first two letters", () => {
@@ -13,12 +14,26 @@ describe("monogram", () => {
     expect(monogram("X")).toBe("X");
   });
 
+  it("ignores a bracketed qualifier and punctuation", () => {
+    // "(advanced)" is a level note, not part of the name: the badge is the same as for "Figma"
+    expect(monogram("Figma (advanced)")).toBe("Fi");
+    expect(monogram("Figma (advanced)")).toBe(monogram("Figma"));
+    expect(monogram("Object detection (Faster R-CNN, YOLOv5)")).toBe("OD");
+    expect(monogram("AWS CI/CD")).toBe("AC");
+    expect(monogram("draw.io")).toBe("DI");
+    expect(monogram("\"Quoted\" name!")).toBe("QN");
+    expect(monogram("(beta)")).toBe("Be");
+    expect(monogram("C#")).toBe("C#");
+    expect(monogram("")).toBe("?");
+  });
+
   it("gives every seeded skill a 1–2 character badge", () => {
     for (const g of seed.skills)
       for (const s of g.items) {
         const m = monogram(s.name);
         expect(m.length).toBeGreaterThan(0);
         expect([...m].length).toBeLessThanOrEqual(2);
+        expect(m, s.name).toMatch(/^[\p{L}\p{N}#+]+$/u);
         expect(badgeTint(s.name)).toMatch(/^#[0-9a-f]{6}$/);
       }
   });
@@ -57,5 +72,15 @@ describe("projectGroups", () => {
   it("keeps contract order and appends groups it does not know", () => {
     expect(projectGroups(PROJECT_GROUPS, ["school", "client", "zine", "school"])).toEqual(["client", "school", "zine"]);
     expect(projectGroups(PROJECT_GROUPS, [])).toEqual([]);
+  });
+});
+
+describe("image sizes", () => {
+  it("gives width/height only when the content knows both", () => {
+    expect(imgSize({ width: 1600, height: 1200 })).toEqual({ width: 1600, height: 1200 });
+    expect(imgSize({ width: 1600 })).toEqual({});
+    expect(imgSize({})).toEqual({});
+    expect(imgRatio({ width: 400, height: 900 }, "4 / 3")).toBe("400 / 900");
+    expect(imgRatio({}, "4 / 3")).toBe("4 / 3");
   });
 });

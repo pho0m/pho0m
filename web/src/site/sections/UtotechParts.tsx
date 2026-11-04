@@ -1,9 +1,9 @@
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { Company, CompanyProject } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { A } from "../ui/bits.tsx";
 import { Modal } from "../ui/Modal.tsx";
-import { hostOf, paragraphs } from "../util.ts";
+import { hostOf, imgRatio, imgSize, paragraphs } from "../util.ts";
 
 /** "Work with us" as accessible tabs (arrow keys move between tabs). */
 export function WorkWithUs({ items }: { items: Company["workWithUs"] }) {
@@ -58,8 +58,15 @@ export function WorkWithUs({ items }: { items: Company["workWithUs"] }) {
           ))}
         </div>
         {cur.image ? (
-          <div className="tabpanel-img paper-print px">
-            <img key={cur.image.url} src={cur.image.url} alt={t(cur.image.alt)} loading="lazy" decoding="async" />
+          <div className="tabpanel-img paper-print px imgbox">
+            <img
+              key={cur.image.url}
+              src={cur.image.url}
+              alt={t(cur.image.alt)}
+              {...imgSize(cur.image)}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         ) : null}
       </div>
@@ -86,8 +93,8 @@ export function Services({ services }: { services: Company["services"] }) {
               <p className="price-desc">{t(s.description)}</p>
             </div>
             {s.image ? (
-              <div className="price-img paper-print px">
-                <img src={s.image.url} alt={t(s.image.alt)} loading="lazy" decoding="async" />
+              <div className="price-img paper-print px imgbox">
+                <img src={s.image.url} alt={t(s.image.alt)} {...imgSize(s.image)} loading="lazy" decoding="async" />
               </div>
             ) : null}
             {t(s.price) ? <p className="price-tag lcd">{t(s.price)}</p> : null}
@@ -109,8 +116,10 @@ export function CompanyProjects({ projects }: { projects: CompanyProject[] }) {
       <ul className="cp-grid" role="list">
         {projects.map((p, i) => (
           <li key={p.id} className="cp-card">
-            <div className="cp-cover paper-print">
-              {p.cover ? <img src={p.cover.url} alt={t(p.cover.alt)} loading="lazy" decoding="async" /> : null}
+            <div className="cp-cover paper-print imgbox">
+              {p.cover ? (
+                <img src={p.cover.url} alt={t(p.cover.alt)} {...imgSize(p.cover)} loading="lazy" decoding="async" />
+              ) : null}
               {p.featured ? (
                 <span className="cp-star lcd" title={ui(lang, "ผลงานเด่น", "Featured")}>
                   ★
@@ -148,8 +157,8 @@ function ProjectModal({ project: p, onClose }: { project: CompanyProject; onClos
     <Modal onClose={onClose} labelledBy={titleId} className="proj-modal">
       <header className="pj-head">
         {p.cover ? (
-          <div className="pj-cover paper-print px">
-            <img src={p.cover.url} alt={t(p.cover.alt)} />
+          <div className="pj-cover paper-print px imgbox">
+            <img src={p.cover.url} alt={t(p.cover.alt)} {...imgSize(p.cover)} />
           </div>
         ) : null}
         <div>
@@ -181,8 +190,17 @@ function ProjectModal({ project: p, onClose }: { project: CompanyProject; onClos
             {p.features.map((f, k) => (
               <li key={k} className="pj-feature">
                 {f.image ? (
-                  <div className="pj-shot paper-print">
-                    <img src={f.image.url} alt={t(f.image.alt) || t(f.title)} loading="lazy" decoding="async" />
+                  <div
+                    className="pj-shot paper-print imgbox"
+                    style={{ "--ratio": imgRatio(f.image, "4 / 3") } as CSSProperties}
+                  >
+                    <img
+                      src={f.image.url}
+                      alt={t(f.image.alt) || t(f.title)}
+                      {...imgSize(f.image)}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 ) : null}
                 <div>
@@ -217,7 +235,7 @@ export function Customers({ customers }: { customers: Company["customers"] }) {
           const inner = (
             <>
               {c.logo ? (
-                <img src={c.logo.url} alt={t(c.logo.alt) || c.name} loading="lazy" decoding="async" />
+                <img src={c.logo.url} alt={t(c.logo.alt) || c.name} {...imgSize(c.logo)} loading="lazy" decoding="async" />
               ) : (
                 <span className="logo-name">{c.name}</span>
               )}

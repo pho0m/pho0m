@@ -1,6 +1,6 @@
 import type { Diary, DiaryEntry } from "@pho0m/content";
 import { autoId } from "../validate.ts";
-import { Grid, Group, IdField, LocalizedField, TextField, bind } from "../fields/basic.tsx";
+import { Grid, Group, IdField, LocalizedField, TextField, UrlField, bind } from "../fields/basic.tsx";
 import { ImageField, ImagesField } from "../fields/ImageField.tsx";
 import { ListEditor } from "../fields/ListEditor.tsx";
 import { SectionHead } from "./common.tsx";
@@ -35,17 +35,17 @@ export function DiarySection({ value, onChange }: { value: Diary; onChange: (v: 
         <LocalizedField label="ชื่อหัวข้อ" required {...f("title")} />
         <LocalizedField label="บทนำ" multiline rows={4} {...f("intro")} />
         <Grid>
-          <TextField label="ลิงก์ตารางบันทึก (Sheets)" type="url" mono {...f("sheetUrl")} />
-          <TextField label="ลิงก์สไลด์" type="url" mono {...f("slidesUrl")} />
+          <UrlField label="ลิงก์ตารางบันทึก (Sheets)" placeholder="https://…" {...f("sheetUrl")} />
+          <UrlField label="ลิงก์สไลด์" placeholder="https://…" {...f("slidesUrl")} />
         </Grid>
       </Group>
       <Group title="สถานประกอบการ" hint="Company" defaultOpen={false}>
         <LocalizedField label="ชื่อบริษัท" required {...co("name")} />
         <Grid>
           <TextField label="ชื่อนิติบุคคล" {...co("legalName")} />
-          <TextField label="เว็บไซต์" type="url" mono {...co("website")} />
+          <UrlField label="เว็บไซต์" placeholder="https://…" {...co("website")} />
         </Grid>
-        <TextField label="Facebook" type="url" mono {...co("facebook")} />
+        <UrlField label="Facebook" placeholder="https://facebook.com/…" {...co("facebook")} />
         <LocalizedField label="ประเภทธุรกิจ" {...co("type")} />
         <LocalizedField label="ที่อยู่" multiline rows={3} {...co("address")} />
         <LocalizedField label="เกี่ยวกับบริษัท" multiline rows={4} {...co("about")} />

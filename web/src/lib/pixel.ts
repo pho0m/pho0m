@@ -1,4 +1,7 @@
-import { DARKROOM, SPRITES, SPRITE_PALETTE, type IconName } from "@pho0m/content";
+import type { IconName } from "@pho0m/content";
+// The sprites module itself, not the @pho0m/content index: the print worker (print.worker.ts)
+// bundles this file, and the index would bring zod and the whole seed into the worker.
+import { DARKROOM, SPRITES, SPRITE_PALETTE } from "../../../packages/content/src/sprites.ts";
 
 /**
  * Pixel / darkroom image engine shared by the site and the admin preview.
@@ -42,6 +45,12 @@ export function hash(n: number): number {
 export function createImageData(w: number, h: number): ImageData {
   if (typeof ImageData !== "undefined") return new ImageData(w, h);
   return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4), colorSpace: "srgb" } as ImageData;
+}
+
+/** ImageData over existing pixels (no copy), e.g. a buffer that came back from the print worker. */
+export function imageDataFrom(data: Uint8ClampedArray, w: number, h: number): ImageData {
+  if (typeof ImageData !== "undefined") return new ImageData(data as Uint8ClampedArray<ArrayBuffer>, w, h);
+  return { width: w, height: h, data, colorSpace: "srgb" } as ImageData;
 }
 
 /** Draw a sprite onto a 2D context at integer scale. */
@@ -162,14 +171,37 @@ export function iconScene(icon: IconName, t: number, seed = 0): ImageData {
   return out;
 }
 
+/** Anything with pixels to draw: an <img>, an ImageBitmap (in a worker), a canvas. */
+export type PixelImage = CanvasImageSource & { width: number; height: number };
+
+/** Natural size of a drawable (an <img>'s natural size, else its width/height). */
+export function naturalSize(src: PixelImage): { w: number; h: number } {
+  const img = src as Partial<HTMLImageElement>;
+  return { w: img.naturalWidth || src.width || 1, h: img.naturalHeight || src.height || 1 };
+}
+
+/**
+ * A 2D context to read pixels back from: a <canvas> on the page, an OffscreenCanvas in
+ * a worker (the print worker, web/src/lib/print.worker.ts). Throws when neither exists.
+ */
+export function scratchContext(w: number, h: number): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
+  let ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+  if (typeof document !== "undefined") {
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    ctx = c.getContext("2d", { willReadFrequently: true });
+  } else if (typeof OffscreenCanvas !== "undefined") {
+    ctx = new OffscreenCanvas(w, h).getContext("2d", { willReadFrequently: true });
+  }
+  if (!ctx) throw new Error("No 2D canvas available");
+  return ctx;
+}
+
 /** Cover-fit any drawable (photo) into an ImageData of w x h. Throws on tainted (non-CORS) images. */
-export function sourceToImageData(src: CanvasImageSource & { width: number; height: number }, w = FRAME_W, h = FRAME_H): ImageData {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d", { willReadFrequently: true })!;
-  const sw = (src as HTMLImageElement).naturalWidth || src.width;
-  const sh = (src as HTMLImageElement).naturalHeight || src.height;
+export function sourceToImageData(src: PixelImage, w = FRAME_W, h = FRAME_H): ImageData {
+  const ctx = scratchContext(w, h);
+  const { w: sw, h: sh } = naturalSize(src);
   const scale = Math.max(w / sw, h / sh);
   const dw = sw * scale;
   const dh = sh * scale;
@@ -217,21 +249,35 @@ export function ditherPrint(src: ImageData, opts: DitherOptions = {}, out?: Imag
   return o;
 }
 
+/** Colour of each possible r+g+b sum (0…765) on the negative: built once, same maths as mix(). */
+let negativeTable: Uint8ClampedArray | null = null;
+function negativeLut(): Uint8ClampedArray {
+  if (negativeTable) return negativeTable;
+  const base = hex(DARKROOM.filmBase);
+  const hi = hex(DARKROOM.led);
+  const t = new Uint8ClampedArray(766 * 3);
+  for (let sum = 0; sum <= 765; sum++) {
+    const c = mix(hi, base, sum / 765);
+    t[sum * 3] = c[0];
+    t[sum * 3 + 1] = c[1];
+    t[sum * 3 + 2] = c[2];
+  }
+  return (negativeTable = t);
+}
+
 /** Negative of a print under safelight: paper → deep red film base, ink → red-orange highlight. */
 export function negativeOf(print: ImageData, out?: ImageData): ImageData {
   const W = print.width;
   const H = print.height;
   const o = out ?? createImageData(W, H);
-  const base = hex(DARKROOM.filmBase);
-  const hi = hex(DARKROOM.led);
+  const lut = negativeLut();
   const s = print.data;
   const d = o.data;
   for (let k = 0; k < s.length; k += 4) {
-    const lum = (s[k]! + s[k + 1]! + s[k + 2]!) / 765;
-    const c = mix(hi, base, lum);
-    d[k] = c[0];
-    d[k + 1] = c[1];
-    d[k + 2] = c[2];
+    const j = (s[k]! + s[k + 1]! + s[k + 2]!) * 3;
+    d[k] = lut[j]!;
+    d[k + 1] = lut[j + 1]!;
+    d[k + 2] = lut[j + 2]!;
     d[k + 3] = 255;
   }
   return o;

@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { CONTENT_OBJECT, MAX_UPLOAD_BYTES, seed, type Content, type HistoryItem, type MediaItem } from "@pho0m/content";
+import { CONTENT_OBJECT, MAX_UPLOAD_BYTES, type Content, type HistoryItem, type MediaItem } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { sign } from "hono/jwt";
+import { DECRYPT_WARNING } from "../src/app.ts";
+import { deriveContentKey, open, seal } from "../src/content-crypto.ts";
+import type { RedeployStatus } from "../src/redeploy.ts";
+import { PRIVATE_CONTENT_OBJECT } from "../src/storage/storage.ts";
 import {
   PASSWORD,
   PDF_BYTES,
   PNG_BYTES,
+  SESSION_SECRET,
   authed,
   json,
   login,
@@ -28,6 +34,37 @@ function loginReq(password: string, ip = "198.51.100.1", spoofed = "10.0.0.1"): 
 async function save(h: Harness, token: string, content: unknown, generation: string | null) {
   const res = await h.app.request("/api/content", putJson(token, { content, generation }));
   return { res, body: await json(res) };
+}
+
+const dec = new TextDecoder();
+const enc = new TextEncoder();
+const text = (bytes: Uint8Array) => dec.decode(bytes);
+const PRIVATE_PHONE = "+66 81-PRIVATE";
+const DRAFT_TITLE = "Unannounced acquisition (draft)";
+
+/** Seed plus a hidden phone, a draft frame, a hidden project and a document without a URL. */
+function withSecrets(base: Content = seed): Content {
+  const frame = base.timeline[0]!;
+  const project = base.projects[0]!;
+  return {
+    ...base,
+    profile: { ...base.profile, phone: { value: PRIVATE_PHONE, visible: false } },
+    timeline: [...base.timeline, { ...frame, id: "secret-draft", published: false, title: { th: DRAFT_TITLE, en: DRAFT_TITLE } }],
+    projects: [...base.projects, { ...project, id: "secret-project", published: false }],
+  };
+}
+
+/** The decrypted private copy as stored. */
+function privateCopy(h: Harness): Content {
+  const stored = h.store.peek(PRIVATE_CONTENT_OBJECT);
+  if (!stored) throw new Error("no private copy");
+  return JSON.parse(open(deriveContentKey(SESSION_SECRET), text(stored.bytes))) as Content;
+}
+
+function publicCopy(h: Harness): Content {
+  const stored = h.store.peek(CONTENT_OBJECT);
+  if (!stored) throw new Error("no public copy");
+  return JSON.parse(text(stored.bytes)) as Content;
 }
 
 describe("health and basics", () => {
@@ -79,10 +116,68 @@ describe("login", () => {
 
   it("rejects a malformed body with 400", async () => {
     const h = makeHarness();
-    const bad = await h.app.request("/api/auth/login", { method: "POST", body: "password=x" });
+    const headers = { "Content-Type": "application/json" };
+    const bad = await h.app.request("/api/auth/login", { method: "POST", headers, body: "password=x" });
     expect(bad.status).toBe(400);
-    const missing = await h.app.request("/api/auth/login", { method: "POST", body: "{}" });
+    const missing = await h.app.request("/api/auth/login", { method: "POST", headers, body: "{}" });
     expect(missing.status).toBe(400);
+  });
+
+  it("requires Content-Type: application/json (415), so a cross-origin simple POST is not processed", async () => {
+    const h = makeHarness();
+    const body = JSON.stringify({ password: PASSWORD });
+    for (const type of [undefined, "text/plain;charset=UTF-8", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x"]) {
+      const res = await h.app.request("/api/auth/login", {
+        method: "POST",
+        headers: { "X-Forwarded-For": "198.51.100.3", ...(type ? { "Content-Type": type } : {}) },
+        body,
+      });
+      expect(res.status, String(type)).toBe(415);
+      expect(String((await json(res)).error)).toContain("application/json");
+    }
+    // Parameters and case are fine.
+    const ok = await h.app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "Application/JSON; charset=utf-8" },
+      body,
+    });
+    expect(ok.status).toBe(200);
+  });
+
+  it("refuses a foreign Origin with 403 and accepts allowed origins or no Origin", async () => {
+    const h = makeHarness();
+    const req = (origin?: string) => ({
+      ...loginReq(PASSWORD, "198.51.100.4"),
+      headers: {
+        "Content-Type": "application/json",
+        "X-Forwarded-For": "198.51.100.4",
+        ...(origin !== undefined ? { Origin: origin } : {}),
+      },
+    });
+    for (const origin of ["https://evil.example", "null", "https://kiattiphoom-pho0m.web.app.evil.example"]) {
+      const res = await h.app.request("/api/auth/login", req(origin));
+      expect(res.status, origin).toBe(403);
+    }
+    expect((await h.app.request("/api/auth/login", req("https://kiattiphoom-pho0m.web.app"))).status).toBe(200);
+    expect((await h.app.request("/api/auth/login", req("http://localhost:5173"))).status).toBe(200);
+    expect((await h.app.request("/api/auth/login", req())).status).toBe(200);
+  });
+
+  it("does not count refused cross-origin or non-JSON attempts as failures", async () => {
+    const h = makeHarness();
+    for (let i = 0; i < 40; i++) {
+      const res = await h.app.request("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "X-Forwarded-For": "198.51.100.5",
+          ...(i % 2 ? { "Content-Type": "text/plain;charset=UTF-8" } : { "Content-Type": "application/json", Origin: "https://evil.example" }),
+        },
+        body: JSON.stringify({ password: "guess" }),
+      });
+      expect(res.status).toBe(i % 2 ? 415 : 403);
+    }
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "198.51.100.5"))).status).toBe(200);
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "198.51.100.6"))).status).toBe(200);
   });
 
   it("returns 503 when ADMIN_PASSWORD is not configured", async () => {
@@ -133,7 +228,7 @@ describe("login", () => {
     expect(other.status).toBe(200);
   });
 
-  it("pauses all logins after 30 failures in 10 minutes from any mix of addresses", async () => {
+  it("after 30 failures from many addresses, refuses only addresses with a recent failure", async () => {
     const h = makeHarness();
     // 30 addresses, one failure each: none reaches the per-IP limit of 5.
     for (let i = 0; i < 30; i++) {
@@ -141,18 +236,40 @@ describe("login", () => {
       expect(res.status, `attempt ${i}`).toBe(401);
       h.clock.advance(1000);
     }
-    const blocked = await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.200"));
+    // An address that already failed is refused, even with the right password, and without a
+    // precise Retry-After (it would tell an attacker when a slot frees up).
+    const blocked = await h.app.request("/api/auth/login", loginReq(PASSWORD, "198.51.100.100"));
     expect(blocked.status).toBe(429);
-    expect(String((await json(blocked)).error)).toContain("too many failed attempts");
-    const retry = Number(blocked.headers.get("retry-after"));
-    // The oldest failure was 30 s ago, so the window frees up in 570 s.
-    expect(retry).toBe(570);
+    expect(String((await json(blocked)).error)).toContain("try again later");
+    expect(blocked.headers.get("retry-after")).toBeNull();
 
-    // While paused even the right password is refused, and nothing more is counted.
-    h.clock.advance((retry - 1) * 1000);
-    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.201"))).status).toBe(429);
-    h.clock.advance(1000);
+    // A clean address (the owner) still gets in.
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.200"))).status).toBe(200);
+
+    // A new address gets one guess; its failure is counted and it is refused from then on.
+    expect((await h.app.request("/api/auth/login", loginReq("guess", "192.0.2.201"))).status).toBe(401);
+    const second = await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.201"));
+    expect(second.status).toBe(429);
+    expect(second.headers.get("retry-after")).toBeNull();
+
+    // Once the failures age out of the window, everyone can log in again.
+    h.clock.advance(10 * 60 * 1000);
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "198.51.100.100"))).status).toBe(200);
     expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.201"))).status).toBe(200);
+  });
+
+  it("a successful login clears that address's failures, so it is not refused by the global limit", async () => {
+    const h = makeHarness();
+    // The owner mistypes once, then logs in.
+    expect((await h.app.request("/api/auth/login", loginReq("typo", "192.0.2.50"))).status).toBe(401);
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.50"))).status).toBe(200);
+    // Then an attack from many addresses trips the global limit.
+    for (let i = 0; i < 30; i++) {
+      expect((await h.app.request("/api/auth/login", loginReq("guess", `198.51.100.${i}`))).status).toBe(401);
+    }
+    expect((await h.app.request("/api/auth/login", loginReq("guess", "198.51.100.0"))).status).toBe(429);
+    // The owner's address has no recent failure left.
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.50"))).status).toBe(200);
   });
 
   it("successful logins do not count towards the global limit", async () => {
@@ -208,7 +325,7 @@ describe("authentication on protected routes", () => {
 
   it("rejects a token signed for another subject", async () => {
     const h = makeHarness();
-    const token = await sign({ sub: "guest", exp: Math.floor(h.clock.now.getTime() / 1000) + 60 }, "test-secret", "HS256");
+    const token = await sign({ sub: "guest", exp: Math.floor(h.clock.now.getTime() / 1000) + 60 }, SESSION_SECRET, "HS256");
     expect((await h.app.request("/api/content", authed(token))).status).toBe(401);
   });
 });
@@ -258,12 +375,15 @@ describe("content", () => {
       generation: expect.stringMatching(/^\d+$/),
       updatedAt: "2026-11-04T09:00:00.000Z",
       url: `https://storage.test/bucket/${CONTENT_OBJECT}`,
+      redeploy: "off",
     });
+    // The generation the admin gets is the private object's (the conflict check).
+    expect(body.generation).toBe(h.store.peek(PRIVATE_CONTENT_OBJECT)!.info.generation);
 
     const stored = h.store.peek(CONTENT_OBJECT)!;
     expect(stored.cacheControl).toBe("no-cache, max-age=0");
     expect(stored.info.contentType).toBe("application/json");
-    const storedJson = JSON.parse(new TextDecoder().decode(stored.bytes)) as Content;
+    const storedJson = publicCopy(h);
     expect(storedJson.updatedAt).toBe("2026-11-04T09:00:00.000Z");
     expect(storedJson.profile.nickname).toBe("Phoom");
 
@@ -271,6 +391,179 @@ describe("content", () => {
     expect(got.generation).toBe(body.generation);
     expect(got.content.profile.nickname).toBe("Phoom");
     expect(got.content.updatedAt).toBe("2026-11-04T09:00:00.000Z");
+  });
+
+  it("keeps drafts, hidden items and hidden contact details out of the public object", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const full = withSecrets();
+    const first = await save(h, token, full, null);
+    expect(first.res.status).toBe(200);
+
+    // Public: no hidden phone, no draft frame, no hidden project, anywhere in the bytes.
+    const publicText = text(h.store.peek(CONTENT_OBJECT)!.bytes);
+    expect(publicText).not.toContain(PRIVATE_PHONE);
+    expect(publicText).not.toContain(DRAFT_TITLE);
+    expect(publicText).not.toContain("secret-draft");
+    expect(publicText).not.toContain("secret-project");
+    const pub = publicCopy(h);
+    expect(pub.profile.phone).toEqual({ value: "", visible: false });
+    expect(pub.timeline.every((f) => f.published)).toBe(true);
+    expect(pub.timeline).toHaveLength(seed.timeline.length);
+
+    // Admin: everything comes back.
+    const got = await json<{ content: Content }>(await h.app.request("/api/content", authed(token)));
+    expect(got.content.profile.phone).toEqual({ value: PRIVATE_PHONE, visible: false });
+    expect(got.content.timeline.find((f) => f.id === "secret-draft")?.published).toBe(false);
+    expect(got.content.projects.find((p) => p.id === "secret-project")?.published).toBe(false);
+
+    // Removing them later: no readable trace left in any stored object (history is encrypted).
+    h.clock.advance(60_000);
+    const second = await save(h, token, seed, first.body.generation as string);
+    expect(second.res.status).toBe(200);
+    for (const path of h.store.paths()) {
+      const bytes = text(h.store.peek(path)!.bytes);
+      expect(bytes, path).not.toContain(PRIVATE_PHONE);
+      expect(bytes, path).not.toContain("secret-draft");
+    }
+    expect(h.store.paths()).toEqual([CONTENT_OBJECT, "private/content.enc", "private/history/2026-11-04T09-01-00-000Z.enc"]);
+  });
+
+  it("stores the full content only as an AES-256-GCM envelope with a fresh IV per write", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const first = await save(h, token, withSecrets(), null);
+    const stored = h.store.peek(PRIVATE_CONTENT_OBJECT)!;
+    expect(stored.cacheControl).toBe("private, no-store");
+    const envelope = JSON.parse(text(stored.bytes)) as Record<string, string | number>;
+    expect(Object.keys(envelope).sort()).toEqual(["data", "iv", "tag", "v"]);
+    expect(envelope.v).toBe(1);
+    expect(Buffer.from(String(envelope.iv), "base64")).toHaveLength(12);
+    expect(Buffer.from(String(envelope.tag), "base64")).toHaveLength(16);
+    expect(privateCopy(h).profile.phone.value).toBe(PRIVATE_PHONE);
+    // Another key cannot open it.
+    expect(() => open(deriveContentKey("another-secret-of-at-least-32-chars"), text(stored.bytes))).toThrow();
+
+    await save(h, token, withSecrets(), first.body.generation as string);
+    const again = JSON.parse(text(h.store.peek(PRIVATE_CONTENT_OBJECT)!.bytes)) as Record<string, string>;
+    expect(again.iv).not.toBe(envelope.iv);
+  });
+
+  it("migrates: reads a legacy full content/site.json, and the first save moves it into private/", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    // Saved before encryption existed: the full document, drafts included, in the public object.
+    const legacyText = JSON.stringify({ ...withSecrets(), updatedAt: "2026-11-01T00:00:00.000Z" });
+    await h.store.put(CONTENT_OBJECT, enc.encode(legacyText), { contentType: "application/json", cacheControl: "" });
+    await h.store.put("content/history/2026-10-31T00-00-00-000Z.json", enc.encode(JSON.stringify({ ...withSecrets(), updatedAt: "2026-10-30T00:00:00.000Z" })), {
+      contentType: "application/json",
+      cacheControl: "",
+    });
+
+    const got = await json<{ content: Content; generation: string | null }>(await h.app.request("/api/content", authed(token)));
+    expect(got.generation).toBeNull();
+    expect(got.content.profile.phone.value).toBe(PRIVATE_PHONE);
+    expect(got.content.timeline.some((f) => f.id === "secret-draft")).toBe(true);
+
+    h.clock.advance(60_000);
+    const saved = await save(h, token, got.content, null);
+    expect(saved.res.status).toBe(200);
+    expect(text(h.store.peek(CONTENT_OBJECT)!.bytes)).not.toContain(PRIVATE_PHONE);
+    expect(privateCopy(h).timeline.some((f) => f.id === "secret-draft")).toBe(true);
+
+    // The legacy copy became the newest history entry and the plaintext history was moved.
+    const list = await json<{ items: HistoryItem[] }>(await h.app.request("/api/content/history", authed(token)));
+    expect(list.items.map((i) => i.path)).toEqual([
+      "private/history/2026-11-04T09-01-00-000Z.enc",
+      "private/history/2026-10-31T00-00-00-000Z.enc",
+    ]);
+    expect(h.store.paths().filter((p) => p.startsWith("content/history/"))).toEqual([]);
+    for (const item of list.items) {
+      const res = await h.app.request(`/api/content/history/item?path=${encodeURIComponent(item.path)}`, authed(token));
+      expect(res.status, item.path).toBe(200);
+      expect((await json<{ content: Content }>(res)).content.profile.phone.value).toBe(PRIVATE_PHONE);
+    }
+    expect(h.logs.map((l) => String(l[0]))).toContain("[api] moved 1 plaintext history file(s) to private/history/ (encrypted)");
+  });
+
+  it("when the secret changed, shows the published version with a warning and the next save replaces the drafts", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const first = await save(h, token, withSecrets({ ...seed, profile: { ...seed.profile, nickname: "published" } }), null);
+    // Simulate a rotated secret: re-encrypt the private copy with a key the server does not have.
+    const otherKey = deriveContentKey("rotated-away-secret-0123456789abcdef");
+    const lost = seal(otherKey, JSON.stringify(withSecrets()));
+    const rotated = await h.store.put(PRIVATE_CONTENT_OBJECT, enc.encode(lost), { contentType: "application/json", cacheControl: "" });
+    expect(rotated.generation).not.toBe(first.body.generation);
+
+    const res = await h.app.request("/api/content", authed(token));
+    expect(res.status).toBe(200);
+    const got = await json<{ content: Content; generation: string; warning?: string }>(res);
+    expect(got.warning).toBe(DECRYPT_WARNING);
+    expect(got.warning).toBe("drafts could not be decrypted; showing the published version");
+    expect(got.generation).toBe(rotated.generation);
+    expect(got.content.profile.nickname).toBe("published");
+    expect(got.content.timeline.some((f) => f.id === "secret-draft")).toBe(false);
+    expect(got.content.profile.phone.value).toBe("");
+
+    // The next save (with that generation) overwrites the unreadable copy with the current key.
+    const next = await save(h, token, got.content, got.generation);
+    expect(next.res.status).toBe(200);
+    const after = await json<{ content: Content; warning?: string }>(await h.app.request("/api/content", authed(token)));
+    expect(after.warning).toBeUndefined();
+    expect(after.content.profile.nickname).toBe("published");
+    // The unreadable version is kept in history as it was; reading it says why it fails.
+    const list = await json<{ items: HistoryItem[] }>(await h.app.request("/api/content/history", authed(token)));
+    const old = await h.app.request(`/api/content/history/item?path=${encodeURIComponent(list.items[0]!.path)}`, authed(token));
+    expect(old.status).toBe(500);
+    expect(String((await json(old)).error)).toContain("could not be decrypted");
+    expect(open(otherKey, text(h.store.peek(list.items[0]!.path)!.bytes))).toContain(DRAFT_TITLE);
+  });
+
+  it("falls back to the seed with the warning when nothing published can be read either", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    await h.store.put(PRIVATE_CONTENT_OBJECT, enc.encode("{\"v\":1,\"iv\":\"\",\"tag\":\"\",\"data\":\"\"}"), {
+      contentType: "application/json",
+      cacheControl: "",
+    });
+    const got = await json<{ content: Content; generation: string; warning?: string }>(await h.app.request("/api/content", authed(token)));
+    expect(got.warning).toBe(DECRYPT_WARNING);
+    expect(got.content).toEqual(seed);
+    expect(got.generation).toBe(h.store.peek(PRIVATE_CONTENT_OBJECT)!.info.generation);
+  });
+
+  it("answers 500 with the new generation when the public copy cannot be written", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const put = h.store.put.bind(h.store);
+    h.store.put = async (path, bytes, o) => {
+      if (path === CONTENT_OBJECT) throw new Error("bucket hiccup");
+      return put(path, bytes, o);
+    };
+    const { res, body } = await save(h, token, seed, null);
+    expect(res.status).toBe(500);
+    expect(String(body.error)).toContain("save again");
+    expect(body.generation).toBe(h.store.peek(PRIVATE_CONTENT_OBJECT)!.info.generation);
+    h.store.put = put;
+    const retry = await save(h, token, seed, body.generation as string);
+    expect(retry.res.status).toBe(200);
+    expect(publicCopy(h).profile.nickname).toBe(seed.profile.nickname);
+  });
+
+  it("still saves when writing history fails, and logs it", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const first = await save(h, token, seed, null);
+    const put = h.store.put.bind(h.store);
+    h.store.put = async (path, bytes, o) => {
+      if (path.startsWith("private/history/")) throw new Error("history hiccup");
+      return put(path, bytes, o);
+    };
+    const second = await save(h, token, { ...seed, profile: { ...seed.profile, nickname: "kept" } }, first.body.generation as string);
+    expect(second.res.status).toBe(200);
+    expect(privateCopy(h).profile.nickname).toBe("kept");
+    expect(h.logs.map((l) => String(l[0]))).toContain("[api] could not update history:");
   });
 
   it("returns 409 for a stale generation and leaves the live copy alone", async () => {
@@ -293,10 +586,9 @@ describe("content", () => {
     expect(live.content.profile.nickname).toBe("A");
   });
 
-  it("returns 500 with issues when the stored object is broken", async () => {
+  it("returns 500 with issues when a legacy content/site.json is broken, and a save replaces it", async () => {
     const h = makeHarness();
     const token = await login(h);
-    const enc = new TextEncoder();
     await h.store.put(CONTENT_OBJECT, enc.encode("{not json"), { contentType: "application/json", cacheControl: "" });
     let res = await h.app.request("/api/content", authed(token));
     expect(res.status).toBe(500);
@@ -311,7 +603,30 @@ describe("content", () => {
     const body = await json(res);
     expect(String(body.error)).toContain("schema");
     expect((body.issues as unknown[]).length).toBeGreaterThan(0);
-    // The owner can still overwrite it using the generation from the error.
+    // Nothing private exists yet, so the owner can overwrite it with generation null.
+    expect(body.generation).toBeNull();
+    const fixed = await save(h, token, seed, body.generation as null);
+    expect(fixed.res.status).toBe(200);
+  });
+
+  it("returns 500 with issues when the decrypted private copy is broken, and a save replaces it", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    const key = deriveContentKey(SESSION_SECRET);
+    await h.store.put(PRIVATE_CONTENT_OBJECT, enc.encode(seal(key, "{not json")), { contentType: "application/json", cacheControl: "" });
+    let res = await h.app.request("/api/content", authed(token));
+    expect(res.status).toBe(500);
+    expect(String((await json(res)).error)).toContain("not valid JSON");
+
+    await h.store.put(PRIVATE_CONTENT_OBJECT, enc.encode(seal(key, JSON.stringify({ schemaVersion: 1 }))), {
+      contentType: "application/json",
+      cacheControl: "",
+    });
+    res = await h.app.request("/api/content", authed(token));
+    expect(res.status).toBe(500);
+    const body = await json(res);
+    expect(String(body.error)).toContain("schema");
+    expect(body.generation).toBe(h.store.peek(PRIVATE_CONTENT_OBJECT)!.info.generation);
     const fixed = await save(h, token, seed, body.generation as string);
     expect(fixed.res.status).toBe(200);
   });
@@ -340,8 +655,10 @@ describe("history", () => {
     list = await json(await h.app.request("/api/content/history", authed(token)));
     expect(list.items).toHaveLength(1);
     const item = list.items[0]!;
-    expect(item.path).toBe("content/history/2026-11-04T09-01-00-000Z.json");
+    expect(item.path).toBe("private/history/2026-11-04T09-01-00-000Z.enc");
     expect(item.size).toBeGreaterThan(1000);
+    // Stored encrypted.
+    expect(text(h.store.peek(item.path)!.bytes)).not.toContain("nickname");
 
     const res = await h.app.request(`/api/content/history/item?path=${encodeURIComponent(item.path)}`, authed(token));
     expect(res.status).toBe(200);
@@ -371,23 +688,25 @@ describe("history", () => {
     expect(newest.content.profile.nickname).toBe("n51");
   });
 
-  it("rejects paths outside content/history/", async () => {
+  it("rejects paths outside private/history/", async () => {
     const h = makeHarness();
     const token = await login(h);
     await save(h, token, seed, null);
     for (const path of [
-      "content/history/../site.json",
+      "private/history/../content.enc",
+      "private/content.enc",
+      "private/history/a/b.enc",
+      "private/history/..%2Fcontent.enc",
+      "content/history/2026-11-04T09-01-00-000Z.json",
       "content/site.json",
-      "content/history/a/b.json",
-      "content/history/..%2Fsite.json",
-      "media/2026/11/x.json",
+      "media/2026/11/x.enc",
       "/etc/passwd",
       "",
     ]) {
       const res = await h.app.request(`/api/content/history/item?path=${encodeURIComponent(path)}`, authed(token));
       expect(res.status, path).toBe(400);
     }
-    const missing = await h.app.request("/api/content/history/item?path=content/history/nope.json", authed(token));
+    const missing = await h.app.request("/api/content/history/item?path=private/history/nope.enc", authed(token));
     expect(missing.status).toBe(404);
   });
 });
@@ -567,10 +886,11 @@ describe("CORS", () => {
     const missing = await h.app.request("/api/nope", { headers: origin });
     expect(missing.status).toBe(404);
     expect(missing.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
+    const loginHeaders = { ...origin, "Content-Type": "application/json", "X-Forwarded-For": "192.0.2.77" };
     for (let i = 0; i < 6; i++) {
-      await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: { ...origin, "X-Forwarded-For": "192.0.2.77" } });
+      await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: loginHeaders });
     }
-    const limited = await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: { ...origin, "X-Forwarded-For": "192.0.2.77" } });
+    const limited = await h.app.request("/api/auth/login", { ...loginReq("bad", "192.0.2.77"), headers: loginHeaders });
     expect(limited.status).toBe(429);
     expect(limited.headers.get("access-control-allow-origin")).toBe("http://localhost:5173");
     expect(limited.headers.get("access-control-expose-headers")).toContain("Retry-After");
@@ -596,24 +916,26 @@ describe("CORS", () => {
 });
 
 describe("redeploy on save", () => {
-  function spy(opts: { throws?: boolean } = {}) {
+  function spy(result: RedeployStatus | Error = "sent") {
     const calls: number[] = [];
     return {
       calls,
-      notify() {
+      async notify(): Promise<RedeployStatus> {
         calls.push(1);
-        if (opts.throws) throw new Error("dispatch exploded");
+        if (result instanceof Error) throw result;
+        return result;
       },
     };
   }
 
-  it("asks for a rebuild after each successful save only", async () => {
-    const redeploy = spy();
+  it("asks for a rebuild after each successful save only, and reports its status", async () => {
+    const redeploy = spy("sent");
     const h = makeHarness(undefined, { redeploy });
     const token = await login(h);
 
     const first = await save(h, token, seed, null);
     expect(first.res.status).toBe(200);
+    expect(first.body.redeploy).toBe("sent");
     expect(redeploy.calls).toHaveLength(1);
 
     // Rejected saves (stale generation, invalid content) do not trigger anything.
@@ -625,12 +947,47 @@ describe("redeploy on save", () => {
     expect(redeploy.calls).toHaveLength(2);
   });
 
-  it("still saves when the trigger throws, and logs it", async () => {
-    const h = makeHarness(undefined, { redeploy: spy({ throws: true }) });
+  it.each(["sent", "queued", "failed"] as const)("passes %s through", async (status) => {
+    const h = makeHarness(undefined, { redeploy: spy(status) });
+    const token = await login(h);
+    const { res, body } = await save(h, token, seed, null);
+    expect(res.status).toBe(200);
+    expect(body.redeploy).toBe(status);
+  });
+
+  it("reports off without a trigger", async () => {
+    const h = makeHarness();
+    const token = await login(h);
+    expect((await save(h, token, seed, null)).body.redeploy).toBe("off");
+  });
+
+  it("waits for the dispatch before answering (no work after the response)", async () => {
+    let release!: (s: RedeployStatus) => void;
+    const h = makeHarness(undefined, {
+      redeploy: { notify: () => new Promise<RedeployStatus>((resolve) => (release = resolve)) },
+    });
+    const token = await login(h);
+    let answered = false;
+    const pending = Promise.resolve(h.app.request("/api/content", putJson(token, { content: seed, generation: null }))).then((r) => {
+      answered = true;
+      return r;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(answered).toBe(false);
+    expect(h.store.peek(CONTENT_OBJECT)).toBeDefined(); // already saved
+    release("sent");
+    const res = await pending;
+    expect(res.status).toBe(200);
+    expect((await json(res)).redeploy).toBe("sent");
+  });
+
+  it("still saves when the trigger throws, reports failed and logs it", async () => {
+    const h = makeHarness(undefined, { redeploy: spy(new Error("dispatch exploded")) });
     const token = await login(h);
     const { res, body } = await save(h, token, seed, null);
     expect(res.status).toBe(200);
     expect(body.generation).toMatch(/^\d+$/);
+    expect(body.redeploy).toBe("failed");
     expect(h.store.peek(CONTENT_OBJECT)).toBeDefined();
     expect(h.logs.map((l) => String(l[0]))).toContain("[api] could not request a site rebuild:");
   });

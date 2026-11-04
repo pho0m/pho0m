@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { PROJECT_GROUPS, type Project } from "@pho0m/content";
 import { GROUP_OPTIONS, NDA_GROUPS, groupLabel } from "../groups.ts";
 import { autoId } from "../validate.ts";
-import { Grid, IdField, LocalizedField, Select, TagsField, TextField, Toggle, bind } from "../fields/basic.tsx";
+import { Grid, IdField, LocalizedField, Select, TagsField, TextField, Toggle, UrlField, bind } from "../fields/basic.tsx";
+import { HIDDEN_HINT, UPLOADS_PUBLIC } from "../notices.ts";
 import { ImageField } from "../fields/ImageField.tsx";
 import { ListEditor } from "../fields/ListEditor.tsx";
 import { Chip, SectionHead } from "./common.tsx";
@@ -25,14 +26,14 @@ function ProjectEditor({ value, onChange }: { value: Project; onChange: (v: Proj
         />
         <TextField label="ปี" placeholder="2025" inputMode="numeric" {...f("year")} />
         <div className="toggles">
-          <Toggle label="แสดงบนเว็บ" {...f("published")} />
+          <Toggle label="แสดงบนเว็บ" hint={HIDDEN_HINT} {...f("published")} />
           <Toggle label="เด่น (featured)" {...f("featured")} />
         </div>
       </Grid>
       <LocalizedField label="คำอธิบาย" multiline rows={3} required {...f("description")} />
       <Grid>
-        <TextField label="ลิงก์เว็บ / เดโม" type="url" mono placeholder="https://…" {...f("url")} />
-        <TextField label="ลิงก์ซอร์สโค้ด (repo)" type="url" mono placeholder="https://github.com/…" {...f("repo")} />
+        <UrlField label="ลิงก์เว็บ / เดโม" placeholder="https://…" {...f("url")} />
+        <UrlField label="ลิงก์ซอร์สโค้ด (repo)" placeholder="https://github.com/…" {...f("repo")} />
       </Grid>
       <TagsField label="เทคโนโลยี / แท็ก" {...f("tags")} />
       {nda && value.image ? (
@@ -61,7 +62,8 @@ export function ProjectsSection({ value, onChange }: { value: Project[]; onChang
   return (
     <>
       <SectionHead title="โปรเจกต์" en="Projects">
-        งาน Utotech งานลูกค้า งานส่วนตัว งานสอน งานเรียน และสหกิจ · ลำดับในรายการ = ลำดับบนเว็บ
+        งาน Utotech งานลูกค้า งานส่วนตัว งานสอน งานเรียน และสหกิจ · ลำดับในรายการ = ลำดับบนเว็บ · โปรเจกต์ที่ซ่อนไม่แสดงบนเว็บ
+        และไม่อยู่ในไฟล์สาธารณะ {UPLOADS_PUBLIC}
       </SectionHead>
       <div className="filter-row" role="group" aria-label="กรองตามกลุ่ม">
         <button type="button" className={`chip-btn${filter === "all" ? " is-on" : ""}`} aria-pressed={filter === "all"} onClick={() => setFilter("all")}>

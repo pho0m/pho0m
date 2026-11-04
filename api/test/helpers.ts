@@ -6,6 +6,8 @@ import type { Storage } from "../src/storage/types.ts";
 import type { Redeployer } from "../src/redeploy.ts";
 
 export const PASSWORD = "film-gate-35mm";
+/** At least 32 characters, like production (loadConfig rejects shorter ones). */
+export const SESSION_SECRET = "test-session-secret-0123456789abcdef";
 
 /** A real 1x1 PNG. */
 export const PNG_BYTES = Uint8Array.from(
@@ -37,7 +39,7 @@ export type Harness = {
 };
 
 export function makeHarness(
-  env: Env = { ADMIN_PASSWORD: PASSWORD, SESSION_SECRET: "test-secret" },
+  env: Env = { ADMIN_PASSWORD: PASSWORD, SESSION_SECRET },
   extra: { redeploy?: Redeployer } = {},
 ): Harness {
   const clock = {

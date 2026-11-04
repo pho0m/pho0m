@@ -24,10 +24,13 @@ export type Config = {
   driver: DriverConfig;
   /** null → login is disabled (503). */
   adminPassword: string | null;
-  /** HS256 signing secret for session tokens. */
+  /**
+   * Server secret: signs session tokens (HS256) and, through HKDF, keys the encrypted private
+   * copy of the content (see content-crypto.ts). Never derived from ADMIN_PASSWORD.
+   */
   sessionSecret: string;
-  /** Where the session secret came from (safe to log). */
-  sessionSecretSource: "SESSION_SECRET" | "service-account-key" | "ADMIN_PASSWORD" | "random";
+  /** Where the session secret came from (safe to log). "random" → lost on restart. */
+  sessionSecretSource: "SESSION_SECRET" | "service-account-key" | "random";
   allowedOrigins: string[];
   tokenTtlSeconds: number;
   /**
@@ -40,6 +43,8 @@ export type Config = {
 export type Env = Record<string, string | undefined>;
 
 export const DEFAULT_PORT = 8787;
+/** Shortest SESSION_SECRET accepted (openssl rand -hex 32 gives 64). */
+export const MIN_SESSION_SECRET_LENGTH = 32;
 export const TOKEN_TTL_SECONDS = 12 * 60 * 60;
 export const DEFAULT_ALLOWED_ORIGINS = [
   "https://kiattiphoom-pho0m.web.app",
@@ -97,7 +102,7 @@ export function parseServiceAccountKey(raw: string): ServiceAccountKey {
   return key;
 }
 
-/** Derive a stable signing secret so no extra env var is needed. */
+/** Derive a stable secret from high-entropy material (the service-account private key). */
 export function deriveSecret(material: string, purpose = "pho0m-admin-session-v1"): string {
   return createHmac("sha256", material).update(purpose).digest("hex");
 }
@@ -123,7 +128,7 @@ function parsePort(raw: string | undefined): number {
 export type LoadConfigOptions = {
   /** Default folder for the local driver when DATA_DIR is unset (server.ts passes api/.data). */
   defaultDataDir: string;
-  /** Used only when no secret material exists at all; injectable for tests. */
+  /** Used when neither SESSION_SECRET nor SERVICE_ACCOUNT_KEY is set; injectable for tests. */
   randomSecret?: () => string;
 };
 
@@ -150,19 +155,24 @@ export function loadConfig(env: Env, opts: LoadConfigOptions): Config {
 
   const adminPassword = env.ADMIN_PASSWORD && env.ADMIN_PASSWORD.length > 0 ? env.ADMIN_PASSWORD : null;
 
+  // Never derived from ADMIN_PASSWORD: a leaked session token would let anyone test password
+  // guesses offline against the HMAC. Order: SESSION_SECRET → service-account key → random.
   let sessionSecret: string;
   let sessionSecretSource: Config["sessionSecretSource"];
   const explicitSecret = clean(env.SESSION_SECRET);
   if (explicitSecret) {
+    if (explicitSecret.length < MIN_SESSION_SECRET_LENGTH) {
+      throw new ConfigError(
+        `SESSION_SECRET must be at least ${MIN_SESSION_SECRET_LENGTH} characters. Generate one with: openssl rand -hex 32`,
+      );
+    }
     sessionSecret = explicitSecret;
     sessionSecretSource = "SESSION_SECRET";
   } else if (key) {
     sessionSecret = deriveSecret(key.private_key);
     sessionSecretSource = "service-account-key";
-  } else if (adminPassword) {
-    sessionSecret = deriveSecret(adminPassword);
-    sessionSecretSource = "ADMIN_PASSWORD";
   } else {
+    // Per process only: sessions and the encrypted drafts do not survive a restart (server.ts warns).
     sessionSecret = (opts.randomSecret ?? (() => randomBytes(32).toString("hex")))();
     sessionSecretSource = "random";
   }

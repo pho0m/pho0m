@@ -1,6 +1,7 @@
 import { Storage as GcsClient } from "@google-cloud/storage";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CONTENT_OBJECT, seed, type Content, type MediaItem } from "@pho0m/content";
+import { CONTENT_OBJECT, type Content, type MediaItem } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { createApp } from "../src/app.ts";
 import { loadConfig } from "../src/config.ts";
 import { createGcsStore, gcsPublicUrl } from "../src/storage/gcs.ts";
@@ -97,7 +98,10 @@ describe("gcs driver (real SDK against a fake JSON API)", () => {
     const live = await json<{ content: Content; generation: string }>(await app.request("/api/content", authed(token)));
     expect(live.content.profile.nickname).toBe("gcs");
     expect(fake.objects.get(CONTENT_OBJECT)?.cacheControl).toBe("no-cache, max-age=0");
-    expect([...fake.objects.keys()].filter((k) => k.startsWith("content/history/"))).toHaveLength(1);
+    expect([...fake.objects.keys()].filter((k) => k.startsWith("private/history/"))).toHaveLength(1);
+    expect([...fake.objects.keys()].filter((k) => k.startsWith("content/history/"))).toHaveLength(0);
+    expect(fake.objects.get("private/content.enc")?.cacheControl).toBe("private, no-store");
+    expect(live.generation).toBe(String(fake.objects.get("private/content.enc")?.generation));
 
     const up = await app.request("/api/media", authed(token, { method: "POST", body: uploadForm(PNG_BYTES, "dot.png", "image/png") }));
     expect(up.status).toBe(201);

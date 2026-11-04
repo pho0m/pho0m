@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { generate } from "./generate.ts";
-import { loadContent, loadGithubStats } from "./load.ts";
+import { LiveContentError, loadContent, loadGithubStats, type ContentSource } from "./load.ts";
 import { createMediaLoader } from "./media.ts";
 import { repoRoot } from "./paths.ts";
 import { apply, plan } from "./write.ts";
@@ -20,6 +20,8 @@ Environment:
   CONTENT_URL                   fetch content JSON from here
   SERVICE_ACCOUNT_BUCKET_NAME   else read https://storage.googleapis.com/<bucket>/content/site.json
                                 (neither set → content/seed.json)
+  README_REQUIRE_LIVE_CONTENT=1 exit 1 and write nothing when that content can't be used
+                                (HTTP 404 = nothing saved yet → the seed is still fine)
   GITHUB_TOKEN, GITHUB_USER     add GitHub stars/repos/followers (user defaults to the profile handle)
 `;
 
@@ -65,7 +67,15 @@ export async function run(argv: string[], env: Record<string, string | undefined
   const outDir = at(args.outDir, join("assets", "readme"));
   const readmePath = at(args.readme, "README.md");
 
-  const { content, source } = await loadContent(env);
+  let loaded: ContentSource;
+  try {
+    loaded = await loadContent(env);
+  } catch (err) {
+    if (!(err instanceof LiveContentError)) throw err;
+    console.error(`readme: ${err.message}`);
+    return 1;
+  }
+  const { content, source } = loaded;
   const github = await loadGithubStats(env, content.profile.handle);
   const media = createMediaLoader({ publicDir: join(root, "web", "public"), siteUrl: content.site.url });
   let currentReadme: string | null = null;

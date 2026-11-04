@@ -8,7 +8,7 @@ import { LinkRow, Tags } from "../ui/bits.tsx";
 import { Modal } from "../ui/Modal.tsx";
 import { Print } from "../ui/Print.tsx";
 import { clearOf, developingAt } from "../ui/images.ts";
-import { paragraphs } from "../util.ts";
+import { imgSize, paragraphs } from "../util.ts";
 import { developLevel, isDry, pad2 } from "./math.ts";
 import { frameSource } from "./sources.ts";
 
@@ -31,7 +31,10 @@ export function PrintDialog({ frame, index, n, onClose }: { frame: Frame; index:
     if (original) return;
     let cancelled = false;
     let raf = 0;
-    const source = photo ? frameSource(frame, index, n, BIG_W, BIG_H) : frameSource(frame, index, n);
+    // Computed in the print worker; here it is only painted. The dialog needs no negative.
+    const source = photo
+      ? frameSource(frame, index, n, BIG_W, BIG_H, { dev: { w: FRAME_W, h: FRAME_H } })
+      : frameSource(frame, index, n);
     void source.then((src) => {
       const dev = devRef.current;
       const clear = clearRef.current;
@@ -79,7 +82,7 @@ export function PrintDialog({ frame, index, n, onClose }: { frame: Frame; index:
           <div className="pm-clip" aria-hidden="true" />
           <div className="pm-paper">
             {original && photo ? (
-              <img className="pm-original" src={photo.url} alt={printAlt} />
+              <img className="pm-original" src={photo.url} alt={printAlt} {...imgSize(photo)} />
             ) : (
               <div className="pm-print" role="img" aria-label={printAlt}>
                 <canvas ref={devRef} className="pm-dev pixelated" width={FRAME_W} height={FRAME_H} />

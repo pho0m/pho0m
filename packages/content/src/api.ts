@@ -57,6 +57,8 @@ export type ContentResponse = {
   /** Storage generation of content/site.json; null when nothing has been saved yet. */
   generation: string | null;
   url: string | null;
+  /** Set when the private (encrypted) copy could not be read and the published version is shown instead. */
+  warning?: string;
 };
 export type SaveContentRequest = { content: unknown; generation: string | null };
 /**

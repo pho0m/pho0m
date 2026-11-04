@@ -1,10 +1,10 @@
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { seed } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseArgs, run as cli } from "../src/cli.ts";
-import { contentUrl, loadContent, loadGithubStats } from "../src/load.ts";
+import { LiveContentError, contentUrl, loadContent, loadGithubStats } from "../src/load.ts";
 import { createMediaLoader } from "../src/media.ts";
 import { apply, plan } from "../src/write.ts";
 import { README_SAMPLE, ROOT, WAKA_SAMPLE, run } from "./helpers.ts";
@@ -37,6 +37,38 @@ describe("content source", () => {
     const missing = await loadContent({ CONTENT_URL: "https://x.test/c.json" }, (async () => json({}, 404)) as unknown as typeof fetch, warn);
     expect(missing.source).toBe("seed");
     expect(warn).toHaveBeenCalledTimes(3);
+  });
+
+  describe("README_REQUIRE_LIVE_CONTENT=1", () => {
+    const env = { CONTENT_URL: "https://x.test/c.json", README_REQUIRE_LIVE_CONTENT: "1" };
+    const fails: [string, () => Promise<Response>][] = [
+      ["HTTP 503", async () => json({}, 503)],
+      ["HTTP 403", async () => json({}, 403)],
+      ["a network error", async () => { throw new Error("offline"); }],
+      ["a timeout", async () => { throw new DOMException("The operation was aborted due to timeout", "TimeoutError"); }],
+      ["invalid JSON", async () => new Response("<html>oops", { status: 200 })],
+      ["content that fails the schema", async () => json({ schemaVersion: 2 })],
+    ];
+    for (const [what, f] of fails) {
+      it(`refuses to fall back to the seed on ${what}`, async () => {
+        const warn = vi.fn();
+        await expect(loadContent(env, f as unknown as typeof fetch, warn)).rejects.toBeInstanceOf(LiveContentError);
+        expect(warn).not.toHaveBeenCalled();
+      });
+    }
+
+    it("still uses the seed on HTTP 404 (nothing saved yet) or with no content source, and live content when it loads", async () => {
+      const missing = await loadContent(env, (async () => json({}, 404)) as unknown as typeof fetch, () => {});
+      expect(missing).toEqual({ content: seed, source: "seed" });
+      expect(await loadContent({ README_REQUIRE_LIVE_CONTENT: "1" }, vi.fn() as unknown as typeof fetch)).toEqual({ content: seed, source: "seed" });
+      const live = await loadContent(env, (async () => json(seed)) as unknown as typeof fetch);
+      expect(live.source).toBe("https://x.test/c.json");
+    });
+
+    it("only the exact value 1 turns it on", async () => {
+      const r = await loadContent({ ...env, README_REQUIRE_LIVE_CONTENT: "0" }, (async () => json({}, 503)) as unknown as typeof fetch, () => {});
+      expect(r.source).toBe("seed");
+    });
   });
 });
 
@@ -119,6 +151,34 @@ describe("writing and --check", () => {
     expect(files).not.toContain("badge-old-thing-dark.svg");
     expect(files).toContain("notes-dark.svg");
     expect(await readFile(join(dir, "keep.txt"), "utf8")).toBe("x");
+  });
+
+  it("CLI exits 1 and writes nothing when README_REQUIRE_LIVE_CONTENT=1 and the live content can't be read", async () => {
+    const readme = join(dir, "README.md");
+    const outDir = join(dir, "assets", "readme");
+    await writeFile(readme, README_SAMPLE);
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetchMock = vi.fn(async () => json({}, 503));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const env = { SERVICE_ACCOUNT_BUCKET_NAME: "b", README_REQUIRE_LIVE_CONTENT: "1" };
+      expect(await cli(["--out-dir", outDir, "--readme", readme], env)).toBe(1);
+      expect(await cli(["--out-dir", outDir, "--readme", readme, "--check"], env)).toBe(1);
+      expect(fetchMock).toHaveBeenCalledWith("https://storage.googleapis.com/b/content/site.json", expect.anything());
+      expect(err.mock.calls.flat().join("\n")).toMatch(/HTTP 503.*README_REQUIRE_LIVE_CONTENT=1/);
+      expect(await readFile(readme, "utf8")).toBe(README_SAMPLE);
+      await expect(stat(outDir)).rejects.toThrow();
+      // without the flag the same failure falls back to the seed and writes
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(await cli(["--out-dir", outDir, "--readme", readme], { SERVICE_ACCOUNT_BUCKET_NAME: "b" })).toBe(0);
+      expect(warn.mock.calls.flat().join("\n")).toContain("Falling back to the seed");
+      warn.mockRestore();
+    } finally {
+      vi.unstubAllGlobals();
+      err.mockRestore();
+      log.mockRestore();
+    }
   });
 
   it("parses CLI flags", () => {

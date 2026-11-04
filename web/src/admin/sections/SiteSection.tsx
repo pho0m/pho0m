@@ -1,11 +1,10 @@
 import type { Site } from "@pho0m/content";
-import { Group, LocalizedField, Select, TextField, bind } from "../fields/basic.tsx";
+import { Group, LocalizedField, Select, UrlField, bind } from "../fields/basic.tsx";
 import { ImageField } from "../fields/ImageField.tsx";
 import { SectionHead } from "./common.tsx";
 
 export function SiteSection({ value, onChange }: { value: Site; onChange: (v: Site) => void }) {
   const f = bind(value, onChange);
-  const urlOk = /^https?:\/\/[^\s/]+/i.test(value.url);
   return (
     <>
       <SectionHead title="ตั้งค่าเว็บ" en="Site settings">
@@ -21,11 +20,11 @@ export function SiteSection({ value, onChange }: { value: Site; onChange: (v: Si
           hint="ภาษาที่ผู้เข้าชมเห็นครั้งแรก (ผู้ใช้เปลี่ยนเองได้)"
           {...f("defaultLang")}
         />
-        <TextField
+        <UrlField
           label="URL ของเว็บ"
-          type="url"
-          mono
-          error={urlOk ? undefined : "ต้องขึ้นต้นด้วย https://"}
+          kind="https"
+          required
+          placeholder="https://…"
           hint="ใช้สร้างลิงก์เต็มของรูปตอนแชร์ และปุ่ม 'เปิดเว็บ' หลังบันทึก"
           {...f("url")}
         />

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { seed, type Content } from "@pho0m/content";
+import { type Content } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { humanPath, sectionForPath } from "./sections.ts";
-import { autoId, duplicateIdIssues, fillAutoIds, thaiMessage, validateDraft } from "./validate.ts";
+import { IMAGE_URL_ERROR, URL_ERROR } from "./urls.ts";
+import { UNSAFE_URL_MESSAGE, autoId, duplicateIdIssues, extraUrlIssues, fillAutoIds, thaiMessage, validateDraft } from "./validate.ts";
 
 const clone = (c: Content): Content => structuredClone(c);
 
@@ -39,6 +41,30 @@ describe("validateDraft", () => {
     if (!r.ok) expect(r.issues).toContainEqual({ path: "timeline.2.date", message: "use YYYY or YYYY-MM" });
   });
 
+  it("blocks unsafe link schemes (schema) and explains them in Thai", () => {
+    const c = clone(seed);
+    c.profile.links = [{ kind: "website", label: "x", url: "javascript:alert(1)" }];
+    const r = validateDraft(c);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    const issue = r.issues.find((i) => i.path === "profile.links.0.url");
+    expect(issue).toBeDefined();
+    expect(issue!.message).toBe(UNSAFE_URL_MESSAGE);
+    expect(thaiMessage(issue!.message)).toBe(URL_ERROR);
+  });
+
+  it("holds the diary sheet / slides links to the same rule", () => {
+    const c = clone(seed);
+    c.diary.sheetUrl = "javascript:alert(1)";
+    c.diary.slidesUrl = "https://docs.google.com/presentation/d/x";
+    expect(extraUrlIssues(c)).toEqual([{ path: "diary.sheetUrl", message: UNSAFE_URL_MESSAGE }]);
+    const r = validateDraft(c);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.issues).toEqual([{ path: "diary.sheetUrl", message: UNSAFE_URL_MESSAGE }]);
+    c.diary.sheetUrl = "";
+    expect(validateDraft(c).ok).toBe(true);
+  });
+
   it("blocks duplicate ids", () => {
     const c = clone(seed);
     c.projects[1] = { ...c.projects[1]!, id: c.projects[0]!.id };
@@ -58,6 +84,9 @@ describe("helpers", () => {
     expect(thaiMessage("Required")).toBe("ต้องกรอก");
     expect(thaiMessage("use YYYY or YYYY-MM")).toContain("YYYY-MM");
     expect(thaiMessage("String must contain at least 1 character(s)")).toBe("ห้ามเว้นว่าง");
+    expect(thaiMessage(UNSAFE_URL_MESSAGE)).toBe(URL_ERROR);
+    expect(thaiMessage("use https://… or a site path (/media/…)")).toBe(IMAGE_URL_ERROR);
+    expect(thaiMessage("use https://…")).toBe("ต้องขึ้นต้นด้วย https://");
   });
   it("maps paths to screens and readable labels", () => {
     expect(sectionForPath("company.projects.2.name")).toBe("utotech");

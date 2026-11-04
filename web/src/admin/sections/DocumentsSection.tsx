@@ -14,7 +14,7 @@ function DocEditor({ value, onChange }: { value: DocumentItem; onChange: (v: Doc
       <LocalizedField label="คำอธิบาย" {...f("description")} />
       <FileUrlField
         label="ไฟล์ / ลิงก์"
-        hint="อัปโหลด PDF หรือวางลิงก์ (Canva, Google Sheets…) · เว้นว่าง = ยังไม่แสดงบนเว็บ"
+        hint="อัปโหลด PDF หรือวางลิงก์ (Canva, Google Sheets…) · เว้นว่าง = ซ่อน: ไม่แสดงบนเว็บ และไม่อยู่ในไฟล์สาธารณะ"
         {...f("url")}
       />
       <ImageField label="ภาพตัวอย่าง (ไม่บังคับ)" folder="docs" aspect={4 / 3} {...f("image")} />
@@ -26,7 +26,8 @@ export function DocumentsSection({ value, onChange }: { value: DocumentItem[]; o
   return (
     <>
       <SectionHead title="เอกสาร" en="Documents">
-        CV พอร์ตโฟลิโอ PDF และลิงก์เอกสารอื่น ๆ · รายการที่ไม่มีลิงก์จะยังไม่แสดงบนเว็บ
+        CV พอร์ตโฟลิโอ PDF และลิงก์เอกสารอื่น ๆ · รายการที่ไม่มีลิงก์ไม่แสดงบนเว็บ และไม่อยู่ในไฟล์สาธารณะ · PDF
+        ที่อัปโหลดทุกคนเปิดดูได้ อย่าอัปโหลดเอกสารส่วนตัว
       </SectionHead>
       <ListEditor
         label="เอกสาร"

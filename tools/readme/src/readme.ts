@@ -1,5 +1,7 @@
 /** Markdown helpers and the WakaTime block that the waka-readme Action keeps updating. */
 
+import { isSafeUrl } from "@pho0m/content";
+
 export const WAKA_START = "<!--START_SECTION:waka-->";
 export const WAKA_END = "<!--END_SECTION:waka-->";
 
@@ -47,6 +49,12 @@ export function picture(p: Picture): string {
   );
 }
 
+/** Wrap `inner` in a link, or return it unlinked when `href` is empty or not a safe URL (isSafeUrl). */
 export function linked(href: string | undefined, inner: string): string {
-  return href ? `<a href="${html(href)}">${inner}</a>` : inner;
+  return href && isSafeUrl(href) ? `<a href="${html(href)}">${inner}</a>` : inner;
+}
+
+/** Markdown link `[text](url)`, or the escaped text alone when `url` is empty or not a safe URL. */
+export function mdLink(text: string, url: string): string {
+  return url && isSafeUrl(url) ? `[${linkText(text)}](${linkUrl(url)})` : linkText(text);
 }

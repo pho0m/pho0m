@@ -50,7 +50,15 @@ export function Diary({ diary: d, profile }: { diary: DiaryT; profile: Profile }
           <article className="co-card paper px" aria-labelledby={`${base}-co`}>
             <div className="co-top">
               {co.logo ? (
-                <img className="co-logo" src={co.logo.url} alt={t(co.logo.alt)} loading="lazy" decoding="async" />
+                <img
+                  className="co-logo"
+                  src={co.logo.url}
+                  alt={t(co.logo.alt)}
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : null}
               <div>
                 <h3 id={`${base}-co`} className="co-name">

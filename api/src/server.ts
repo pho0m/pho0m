@@ -32,13 +32,18 @@ const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" 
     console.log(`[api] local files served at ${config.publicBaseUrl}/files/…`);
   }
   if (config.sessionSecretSource === "random") {
-    console.warn("[api] no secret material configured; sessions will not survive a restart.");
+    console.warn(
+      "[api] WARNING: SESSION_SECRET is not set (and there is no SERVICE_ACCOUNT_KEY), so this process uses a " +
+        "random secret. Sessions and the encrypted drafts (private/content.enc) will not survive a restart: " +
+        "after one, everyone must log in again and the admin shows only the published version (unpublished " +
+        "drafts and hidden items saved before are lost). Set SESSION_SECRET (openssl rand -hex 32).",
+    );
   }
 });
 
 function shutdown(signal: string): void {
   console.log(`[api] ${signal} received, closing…`);
-  // Cloud Run allows ~10 s after SIGTERM: send a rebuild request still waiting for its window.
+  // Cloud Run allows ~10 s after SIGTERM: send a rebuild request still queued by the rate limit.
   const flushed = redeploy?.flush() ?? Promise.resolve();
   server.close(() => {
     void flushed.finally(() => process.exit(0));

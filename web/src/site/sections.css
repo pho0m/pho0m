@@ -249,6 +249,8 @@
   margin: 0 0 8px;
 }
 .tabpanel-img {
+  --ratio: 16 / 10;
+  --pad: 10px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
@@ -291,7 +293,10 @@
   max-width: 70ch;
 }
 .price-img {
+  --ratio: 16 / 10;
+  --pad: 10px;
   grid-column: 2;
+  width: 100%;
   max-width: 260px;
 }
 .price-tag {
@@ -328,18 +333,10 @@
 .cp-card:focus-within {
   border-color: var(--red);
 }
+/* .imgbox: the cover keeps its 16:10 box whatever the logo's own shape */
 .cp-cover {
-  position: relative;
-  display: grid;
-  place-items: center;
-  aspect-ratio: 16 / 10;
-  padding: 18px;
-}
-.cp-cover img {
-  width: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  --ratio: 16 / 10;
+  --pad: 18px;
 }
 .cp-star {
   position: absolute;
@@ -388,9 +385,9 @@
   align-items: center;
   padding-right: 70px;
 }
-.pj-cover img {
-  max-height: 140px;
-  object-fit: contain;
+.pj-cover {
+  --ratio: 9 / 7;
+  --pad: 10px;
 }
 .pj-cat {
   margin: 0;
@@ -436,7 +433,8 @@
   border-top: 1px dashed var(--line-2);
 }
 .pj-shot {
-  padding: 8px;
+  --ratio: 4 / 3;
+  --pad: 8px;
 }
 .pj-feature-title {
   margin: 0 0 6px;
@@ -463,17 +461,22 @@
   padding: 0;
   list-style: none;
 }
+/* The tile keeps its 3:2 box before and after the logo loads; the logo is fitted inside. */
 .logo-tile {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 3 / 2;
+  min-height: 0;
   padding: 14px;
   background: var(--paper);
 }
 .logo-tile img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
+  position: absolute;
+  inset: 14px;
+  width: calc(100% - 28px);
+  height: calc(100% - 28px);
+  max-width: none;
   object-fit: contain;
   filter: grayscale(1) contrast(1.05);
   opacity: 0.78;
@@ -487,10 +490,11 @@
   opacity: 1;
 }
 .logo-link {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  width: 100%;
-  height: 100%;
+  padding: 14px;
 }
 .logo-name {
   color: var(--ink);
@@ -915,7 +919,8 @@
 }
 .co-logo {
   width: 64px;
-  height: auto;
+  height: 64px;
+  object-fit: contain;
   flex: none;
 }
 .co-name {

@@ -2,9 +2,11 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { CONTENT_OBJECT, seed, type Content, type HistoryItem, type MediaItem } from "@pho0m/content";
+import { CONTENT_OBJECT, type Content, type HistoryItem, type MediaItem } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { createApp } from "../src/app.ts";
 import { loadConfig } from "../src/config.ts";
+import { deriveContentKey, open } from "../src/content-crypto.ts";
 import { storageFromConfig } from "../src/storage/index.ts";
 import { createLocalStore, isSafeObjectPath } from "../src/storage/local.ts";
 import { PreconditionFailedError } from "../src/storage/types.ts";
@@ -25,12 +27,13 @@ function makeLocalApp() {
     { defaultDataDir: "/unused" },
   );
   const storage = storageFromConfig(config);
-  return { app: createApp({ config, storage, logger: { error() {}, warn() {} } }), storage };
+  return { app: createApp({ config, storage, logger: { error() {}, warn() {} } }), storage, config };
 }
 
 describe("local driver end to end", () => {
   it("saves content, keeps history, uploads, serves and deletes files on disk", async () => {
-    const { app } = makeLocalApp();
+    const { app, config } = makeLocalApp();
+    const key = deriveContentKey(config.sessionSecret);
     const health = await json(await app.request("/api/health"));
     expect(health).toMatchObject({ driver: "local", bucket: null, contentUrl: `http://localhost:8799/files/${CONTENT_OBJECT}` });
 
@@ -47,13 +50,29 @@ describe("local driver end to end", () => {
     const empty = await json<{ generation: string | null }>(await app.request("/api/content", authed(token)));
     expect(empty.generation).toBeNull();
 
-    // First save creates content/site.json.
-    const s1 = await app.request("/api/content", putJson(token, { content: seed, generation: null }));
+    // First save creates private/content.enc (encrypted, with the hidden phone and a draft frame)
+    // and content/site.json (public projection, without them).
+    const withSecrets: Content = {
+      ...seed,
+      profile: { ...seed.profile, phone: { value: "+66 81-PRIVATE", visible: false } },
+      timeline: [...seed.timeline, { ...seed.timeline[0]!, id: "secret-draft", published: false }],
+    };
+    const s1 = await app.request("/api/content", putJson(token, { content: withSecrets, generation: null }));
     expect(s1.status).toBe(200);
     const g1 = (await json<{ generation: string }>(s1)).generation;
     const onDisk = JSON.parse(await fs.readFile(path.join(dir, "content/site.json"), "utf8")) as Content;
     expect(onDisk.schemaVersion).toBe(1);
     expect(onDisk.updatedAt).not.toBe("");
+    expect(onDisk.profile.phone.value).toBe("");
+    expect(onDisk.timeline.some((f) => f.id === "secret-draft")).toBe(false);
+    const privateOnDisk = await fs.readFile(path.join(dir, "private/content.enc"), "utf8");
+    expect(privateOnDisk).not.toContain("+66 81-PRIVATE");
+    const decrypted = JSON.parse(open(key, privateOnDisk)) as Content;
+    expect(decrypted.profile.phone.value).toBe("+66 81-PRIVATE");
+    expect(decrypted.timeline.some((f) => f.id === "secret-draft")).toBe(true);
+    const back = await json<{ content: Content; generation: string }>(await app.request("/api/content", authed(token)));
+    expect(back.generation).toBe(g1);
+    expect(back.content.profile.phone.value).toBe("+66 81-PRIVATE");
 
     // Second save → history copy of the first.
     const edited = { ...seed, profile: { ...seed.profile, nickname: "local" } };
@@ -68,8 +87,11 @@ describe("local driver end to end", () => {
 
     const history = await json<{ items: HistoryItem[] }>(await app.request("/api/content/history", authed(token)));
     expect(history.items).toHaveLength(1);
+    expect(history.items[0]!.path).toMatch(/^private\/history\/[0-9TZ-]+\.enc$/);
     const histFile = path.join(dir, history.items[0]!.path);
-    expect(JSON.parse(await fs.readFile(histFile, "utf8")).profile.nickname).toBe(seed.profile.nickname);
+    const histText = await fs.readFile(histFile, "utf8");
+    expect(histText).not.toContain("+66 81-PRIVATE");
+    expect((JSON.parse(open(key, histText)) as Content).profile.phone.value).toBe("+66 81-PRIVATE");
 
     // Live content is served publicly at /files/content/site.json with no-cache.
     const pub = await app.request(`/files/${CONTENT_OBJECT}`);
@@ -101,6 +123,10 @@ describe("local driver end to end", () => {
     expect(del.status).toBe(200);
     await expect(fs.stat(path.join(dir, png.path))).rejects.toThrow();
     expect((await app.request(`/files/${png.path}`)).status).toBe(404);
+
+    // The private copy and its history are never served.
+    expect((await app.request("/files/private/content.enc")).status).toBe(404);
+    expect((await app.request(`/files/${history.items[0]!.path}`)).status).toBe(404);
 
     // Sidecar metadata is never served or listed.
     expect((await app.request(`/files/.meta/${CONTENT_OBJECT}.json`)).status).toBe(404);

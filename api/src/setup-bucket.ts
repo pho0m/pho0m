@@ -8,6 +8,8 @@ import { gcsClient, gcsPublicUrl } from "./storage/gcs.ts";
  * npm run setup:bucket [-- --dry-run]
  * Prepares SERVICE_ACCOUNT_BUCKET_NAME for the site: public-read CORS, uniform bucket-level
  * access, and allUsers objectViewer. Safe to run again; it only changes what differs.
+ * Everything in the bucket becomes readable (and listable) by anyone; the API therefore stores
+ * drafts, hidden items and history under private/ only as ciphertext (content-crypto.ts).
  */
 
 const dryRun = process.argv.includes("--dry-run");

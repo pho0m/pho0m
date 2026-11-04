@@ -1,9 +1,13 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { seed, t, timelineFrames, type Project } from "@pho0m/content";
+import { t, timelineFrames, type Project } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { LangProvider } from "../lib/i18n.tsx";
+import { EMBEDDED_CONTENT_ID, initialContent } from "../lib/content.ts";
+import { pageUrl } from "../seo/build.ts";
 import { App } from "./App.tsx";
 import { Projects } from "./sections/Projects.tsx";
+import { CompanyProjects, Customers } from "./sections/UtotechParts.tsx";
 import { groupLabel } from "./util.ts";
 
 // Everything below is derived from content/seed.json: the seed grows (frames, projects,
@@ -27,12 +31,16 @@ beforeAll(() => {
   };
   HTMLCanvasElement.prototype.getContext = (() => ctx) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 });
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  // The language lives in the URL (/ or /en/): every test starts on the Thai page.
+  history.replaceState(null, "", "/");
+});
 afterEach(cleanup);
 
 describe("public site", () => {
   it("renders every section from the seed", () => {
-    const { container } = render(<App />);
+    const { container } = render(<App initial={seed} />);
     for (const id of ["top", "film", "utotech", "projects", "skills", "diary", "contact"])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(t(seed.profile.name, lang));
@@ -47,7 +55,7 @@ describe("public site", () => {
   });
 
   it("only shows the profile phone when it is marked visible", () => {
-    const { container } = render(<App />);
+    const { container } = render(<App initial={seed} />);
     const footer = container.ownerDocument.getElementById("contact")!;
     const personal = footer.querySelector(".contact-card")!;
     expect(personal.textContent?.includes(seed.profile.phone.value)).toBe(seed.profile.phone.visible);
@@ -55,7 +63,7 @@ describe("public site", () => {
   });
 
   it("switches language", () => {
-    render(<App />);
+    render(<App initial={seed} />);
     expect(document.documentElement.lang).toBe("th");
     fireEvent.click(screen.getByRole("button", { name: "English" }));
     expect(document.documentElement.lang).toBe("en");
@@ -64,7 +72,7 @@ describe("public site", () => {
   });
 
   it("opens the print dialog and closes it with Escape", () => {
-    render(<App />);
+    render(<App initial={seed} />);
     const open = screen.getByRole("button", { name: "เปิดภาพ ▸" });
     open.focus();
     fireEvent.click(open);
@@ -80,7 +88,7 @@ describe("public site", () => {
   });
 
   it("filters personal projects by group", () => {
-    const { container } = render(<App />);
+    const { container } = render(<App initial={seed} />);
     const published = seed.projects.filter((p) => p.published);
     expect(container.querySelectorAll(".pcard")).toHaveLength(published.length);
     const group = published[published.length - 1]!.group;
@@ -127,11 +135,119 @@ describe("public site", () => {
   });
 
   it("opens a Utotech project with its features", () => {
-    render(<App />);
+    render(<App initial={seed} />);
     const p = seed.company.projects.find((x) => x.published)!;
     fireEvent.click(screen.getByRole("button", { name: new RegExp(`ดูรายละเอียด ${p.name}`) }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("heading", { level: 2 }).textContent).toBe(p.name);
     expect(dialog.querySelectorAll(".pj-feature")).toHaveLength(p.features.length);
+  });
+
+  it("marks #root as mounted so the head script keeps the snapshot hidden", () => {
+    const root = document.body.appendChild(Object.assign(document.createElement("div"), { id: "root" }));
+    render(<App initial={seed} />, { container: root });
+    expect(root.getAttribute("data-mounted")).toBe("1");
+  });
+
+  it("starts from the content baked into the page, not the bundled seed", async () => {
+    const baked = structuredClone(seed);
+    baked.profile.role = { th: "บทบาทที่อบไว้", en: "Baked role" };
+    const script = Object.assign(document.createElement("script"), {
+      type: "application/json",
+      id: EMBEDDED_CONTENT_ID,
+      textContent: JSON.stringify(baked).replace(/</g, "\\u003c"),
+    });
+    document.body.appendChild(script);
+    try {
+      // main.tsx does exactly this before rendering
+      const initial = await initialContent();
+      const { container } = render(<App initial={initial} />);
+      expect(container.querySelector(".hero-role")?.textContent).toBe(t(baked.profile.role, lang));
+    } finally {
+      script.remove();
+    }
+  });
+
+  it("keeps the URL, canonical and og tags in step with the language", () => {
+    history.replaceState(null, "", "/#skills");
+    render(<App initial={seed} />);
+    const canonical = () => document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute("href");
+    const og = (p: string) => document.head.querySelector<HTMLMetaElement>(`meta[property="${p}"]`)?.content;
+    expect(canonical()).toBe(pageUrl(seed, "th"));
+    fireEvent.click(screen.getByRole("button", { name: "English" }));
+    expect(`${location.pathname}${location.search}${location.hash}`).toBe("/en/#skills");
+    expect(canonical()).toBe(pageUrl(seed, "en"));
+    expect(og("og:url")).toBe(pageUrl(seed, "en"));
+    expect(og("og:locale")).toBe("en_US");
+    expect(document.documentElement.lang).toBe("en");
+    fireEvent.click(screen.getByRole("button", { name: "ภาษาไทย" }));
+    expect(`${location.pathname}${location.hash}`).toBe("/#skills");
+    expect(canonical()).toBe(pageUrl(seed, "th"));
+    expect(og("og:locale")).toBe("th_TH");
+  });
+
+  it("returns focus to the opener when the dialog is closed from the backdrop", () => {
+    render(<App initial={seed} />);
+    const open = screen.getByRole("button", { name: "เปิดภาพ ▸" });
+    open.focus();
+    fireEvent.click(open);
+    const backdrop = document.querySelector(".modal-backdrop")!;
+    // a press that starts in the panel and ends on the backdrop (a drag) does not close it
+    fireEvent.mouseDown(screen.getByRole("dialog"));
+    fireEvent.click(backdrop);
+    expect(screen.queryByRole("dialog")).not.toBeNull();
+    // the backdrop press must not move focus itself (the browser would send it to <body>)
+    expect(fireEvent.mouseDown(backdrop)).toBe(false);
+    fireEvent.click(backdrop);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(open);
+  });
+
+  it("lets Up/PageUp/Home scroll the page at the first frame instead of swallowing them", () => {
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+    try {
+      const { container } = render(<App initial={seed} />);
+      const stage = container.querySelector<HTMLElement>(".film-stage")!;
+      stage.focus();
+      for (const key of ["ArrowUp", "PageUp", "Home"]) expect(fireEvent.keyDown(stage, { key }), key).toBe(true);
+      // browser shortcuts stay with the browser
+      expect(fireEvent.keyDown(stage, { key: "ArrowDown", altKey: true })).toBe(true);
+      expect(scrollTo).not.toHaveBeenCalled();
+      // inside the roll the keys move the film
+      expect(fireEvent.keyDown(stage, { key: "ArrowDown" })).toBe(false);
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("gives every picture its box before it loads (fixed-ratio box or width/height)", () => {
+    const { container } = render(<App initial={seed} />);
+    const imgs = [...container.querySelectorAll("img")];
+    expect(imgs.length).toBeGreaterThan(0);
+    for (const img of imgs) {
+      const sized = img.hasAttribute("width") && img.hasAttribute("height");
+      const boxed = !!img.closest(".imgbox, .logo-tile, .print-frame") || !!img.style.aspectRatio;
+      expect(sized || boxed, img.getAttribute("src") ?? "").toBe(true);
+    }
+    // Utotech covers keep their 16:10 box whatever the logo's shape
+    for (const cover of container.querySelectorAll(".cp-cover")) expect(cover.classList.contains("imgbox")).toBe(true);
+  });
+
+  it("passes a known image size on to the <img>", () => {
+    const logo = { url: "/logo.webp", alt: { th: "โลโก้", en: "Logo" }, width: 400, height: 200 };
+    const { container } = render(
+      <LangProvider defaultLang="th">
+        <Customers customers={[{ name: "ACME", url: "", logo }]} />
+        <CompanyProjects
+          projects={[{ ...seed.company.projects[0]!, published: true, cover: { ...logo, width: undefined, height: undefined } }]}
+        />
+      </LangProvider>,
+    );
+    const [tileImg, coverImg] = [...container.querySelectorAll("img")];
+    expect([tileImg!.getAttribute("width"), tileImg!.getAttribute("height")]).toEqual(["400", "200"]);
+    expect(coverImg!.hasAttribute("width")).toBe(false);
+    expect(coverImg!.closest(".imgbox")).not.toBeNull();
   });
 });

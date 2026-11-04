@@ -16,13 +16,15 @@ type Props = {
 /**
  * Modal dialog rendered while mounted: role=dialog + aria-modal, the page behind
  * is made inert, Tab is trapped, Escape and the backdrop close it, and focus
- * returns to where it was.
+ * returns to where it was (the opener) however it was closed.
  */
 export function Modal({ onClose, labelledBy, className = "", children }: Props) {
   const { lang } = useLang();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+  /** The press started on the backdrop (a drag out of the panel must not close it). */
+  const downOnBackdrop = useRef(false);
 
   useEffect(() => {
     const prev = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -66,7 +68,13 @@ export function Modal({ onClose, labelledBy, className = "", children }: Props) 
       document.removeEventListener("keydown", onKey);
       root?.removeAttribute("inert");
       html.style.overflow = prevOverflow;
-      prev?.focus({ preventScroll: true });
+      if (!prev) return;
+      prev.focus({ preventScroll: true });
+      // If something still moved focus away while the dialog was closing, put it back once.
+      requestAnimationFrame(() => {
+        const a = document.activeElement;
+        if (prev.isConnected && (!a || a === document.body)) prev.focus({ preventScroll: true });
+      });
     };
   }, []);
 
@@ -74,7 +82,13 @@ export function Modal({ onClose, labelledBy, className = "", children }: Props) 
     <div
       className="modal-backdrop"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        downOnBackdrop.current = e.target === e.currentTarget;
+        // The backdrop is not focusable: without this the press would move focus to <body>.
+        if (downOnBackdrop.current) e.preventDefault();
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && downOnBackdrop.current) onClose();
+        downOnBackdrop.current = false;
       }}
     >
       <div

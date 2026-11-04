@@ -4,22 +4,8 @@ import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
-import {
-  ALLOWED_UPLOAD_TYPES,
-  CONTENT_OBJECT,
-  MAX_UPLOAD_BYTES,
-  parseContent,
-  seed,
-  type ApiError,
-  type ContentResponse,
-  type HealthResponse,
-  type HistoryResponse,
-  type LoginResponse,
-  type MediaItem,
-  type MediaListResponse,
-  type MeResponse,
-  type SaveContentResponse,
-} from "@pho0m/content";
+import { ALLOWED_UPLOAD_TYPES, CONTENT_OBJECT, MAX_UPLOAD_BYTES, parseContent, publicProjection, type ApiError, type Content, type ContentResponse, type HealthResponse, type HistoryResponse, type LoginResponse, type MediaItem, type MediaListResponse, type MeResponse, type SaveContentResponse } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import type { Config } from "./config.ts";
 import {
   bearer,
@@ -31,9 +17,15 @@ import {
   passwordMatches,
   verifyToken,
 } from "./auth.ts";
+import { DecryptError, deriveContentKey, open, seal } from "./content-crypto.ts";
 import { FOLDER_RE, isDeletableMediaPath, mediaPath, sniffType } from "./media.ts";
 import type { Redeployer } from "./redeploy.ts";
-import { CONTENT_CACHE_CONTROL, MEDIA_CACHE_CONTROL } from "./storage/storage.ts";
+import {
+  CONTENT_CACHE_CONTROL,
+  MEDIA_CACHE_CONTROL,
+  PRIVATE_CONTENT_OBJECT,
+  PRIVATE_HISTORY_PREFIX,
+} from "./storage/storage.ts";
 import { ConflictError, PreconditionFailedError, type Storage } from "./storage/types.ts";
 
 export const JSON_BODY_LIMIT = 2 * 1024 * 1024;
@@ -41,8 +33,15 @@ export const HISTORY_KEEP = 50;
 export const HISTORY_LIST_MAX = 30;
 /** Multipart overhead allowance on top of the file size limit. */
 const UPLOAD_BODY_LIMIT = MAX_UPLOAD_BYTES + 1024 * 1024;
-const HISTORY_ITEM_RE = /^content\/history\/[A-Za-z0-9_-]{1,100}\.json$/;
+/** History paths are opaque to the admin; they are whatever GET /api/content/history listed. */
+const HISTORY_ITEM_RE = /^private\/history\/[A-Za-z0-9_-]{1,100}\.enc$/;
+/** Local file serving mirrors the public objects; private/ is never served. */
 const LOCAL_FILE_RE = /^(content|media)\/[A-Za-z0-9/_.-]+$/;
+/** GET /api/content when private/content.enc exists but cannot be decrypted (secret changed). */
+export const DECRYPT_WARNING = "drafts could not be decrypted; showing the published version";
+
+/** ContentResponse plus a warning the admin should show (see DECRYPT_WARNING). */
+export type ContentReadResponse = ContentResponse & { warning?: string };
 
 export type Logger = Pick<Console, "error" | "warn">;
 
@@ -52,7 +51,10 @@ export type AppDeps = {
   /** Injectable clock (tests). */
   now?: () => Date;
   logger?: Logger;
-  /** Told after every successful save (GitHub repository_dispatch → site rebuild). Optional. */
+  /**
+   * Awaited after every successful save (GitHub repository_dispatch → site rebuild); its status is
+   * returned as `redeploy`. Optional: none → "off".
+   */
   redeploy?: Redeployer | null;
 };
 
@@ -87,6 +89,11 @@ function clientIp(c: Context<Env>): string {
 /** Key of the limiter that counts failures from every address together. */
 const ALL_CLIENTS = "*";
 
+/** "application/json" with or without parameters (charset). */
+function isJsonContentType(header: string | undefined): boolean {
+  return (header ?? "").split(";")[0]!.trim().toLowerCase() === "application/json";
+}
+
 function zodIssues(err: z.ZodError): { path: string; message: string }[] {
   return err.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
 }
@@ -100,6 +107,16 @@ export function createApp(deps: AppDeps): Hono<Env> {
   const globalLimiter = new LoginLimiter(GLOBAL_LOGIN_MAX_FAILURES, LOGIN_WINDOW_MS);
   const app = new Hono<Env>();
   const contentUrl = storage.publicUrl(CONTENT_OBJECT);
+  /** AES-256-GCM key for private/ objects, derived from the server secret (HKDF). */
+  const contentKey = deriveContentKey(config.sessionSecret);
+
+  /** Saves run one at a time in this process, so the private and public copies are written in order. */
+  let saveQueue: Promise<unknown> = Promise.resolve();
+  function oneSaveAtATime<T>(fn: () => Promise<T>): Promise<T> {
+    const run = saveQueue.then(fn, fn);
+    saveQueue = run.catch(() => undefined);
+    return run;
+  }
 
   const tooLarge = (max: string) => (c: Context) => fail(c, 413, `request body is too large (max ${max})`);
 
@@ -163,18 +180,28 @@ export function createApp(deps: AppDeps): Hono<Env> {
     if (config.adminPassword === null) {
       return fail(c, 503, "login is disabled: ADMIN_PASSWORD is not set on the server");
     }
+    // Only the admin page logs in. A JSON body makes a cross-origin browser send a CORS preflight
+    // first (refused for unknown origins), and a foreign Origin header is refused outright, so a
+    // third-party page cannot make its visitors' browsers count failed logins. Neither counts.
+    if (!isJsonContentType(c.req.header("content-type"))) {
+      return fail(c, 415, "login needs Content-Type: application/json");
+    }
+    const origin = c.req.header("origin");
+    if (origin !== undefined && !config.allowedOrigins.includes(origin)) {
+      return fail(c, 403, "login is not allowed from this origin");
+    }
     const ip = clientIp(c);
     const nowMs = now().getTime();
     // Checked before the password, so a locked-out client learns nothing from more guesses.
-    const waitAll = globalLimiter.retryAfter(ALL_CLIENTS, nowMs);
-    if (waitAll > 0) {
-      c.header("Retry-After", String(waitAll));
-      return fail(c, 429, `login is paused after too many failed attempts; try again in ${waitAll} s`);
-    }
     const wait = limiter.retryAfter(ip, nowMs);
     if (wait > 0) {
       c.header("Retry-After", String(wait));
       return fail(c, 429, `too many failed logins; try again in ${wait} s`);
+    }
+    // Many failures from many addresses: refuse only addresses that failed recently, so a clean
+    // address (the owner) still gets in. No Retry-After: it would tell an attacker when to retry.
+    if (globalLimiter.retryAfter(ALL_CLIENTS, nowMs) > 0 && limiter.hasRecent(ip, nowMs)) {
+      return fail(c, 429, "login is paused after many failed attempts; try again later");
     }
     let body: unknown;
     try {
@@ -200,23 +227,70 @@ export function createApp(deps: AppDeps): Hono<Env> {
     c.json({ ok: true, expiresAt: new Date(c.get("tokenExp") * 1000).toISOString() } satisfies MeResponse),
   );
 
-  app.get("/api/content", async (c) => {
+  /** content/site.json parsed, or null when missing or broken (used only as a fallback). */
+  async function publishedContent(): Promise<Content | null> {
     const stored = await storage.readContent();
-    if (!stored) return c.json({ content: seed, generation: null, url: contentUrl } satisfies ContentResponse);
+    if (!stored?.json.ok) return null;
+    const parsed = parseContent(stored.json.value);
+    return parsed.ok ? parsed.content : null;
+  }
+
+  app.get("/api/content", async (c) => {
+    const priv = await storage.readPrivate();
+    if (priv) {
+      let text: string;
+      try {
+        text = open(contentKey, priv.text);
+      } catch (err) {
+        if (!(err instanceof DecryptError)) throw err;
+        // The secret changed (SESSION_SECRET rotated, or a random one after a restart). Show the
+        // published version; returning the private object's generation lets the next save replace it.
+        log.warn(`[api] ${PRIVATE_CONTENT_OBJECT}: ${err.message}; serving the published version`);
+        const content = (await publishedContent()) ?? seed;
+        return c.json({
+          content,
+          generation: priv.generation,
+          url: contentUrl,
+          warning: DECRYPT_WARNING,
+        } satisfies ContentReadResponse);
+      }
+      let json: unknown;
+      try {
+        json = JSON.parse(text);
+      } catch (err) {
+        return fail(c, 500, `${PRIVATE_CONTENT_OBJECT} is not valid JSON`, {
+          issues: [{ path: "", message: err instanceof Error ? err.message : String(err) }],
+          generation: priv.generation,
+        });
+      }
+      const parsed = parseContent(json);
+      if (!parsed.ok) {
+        return fail(c, 500, `${PRIVATE_CONTENT_OBJECT} does not match the content schema`, {
+          issues: parsed.issues,
+          generation: priv.generation,
+        });
+      }
+      return c.json({ content: parsed.content, generation: priv.generation, url: contentUrl } satisfies ContentReadResponse);
+    }
+
+    // Nothing encrypted yet: data saved before encryption existed lives in content/site.json as a
+    // full copy. Show it with generation null; the first save moves it into private/.
+    const stored = await storage.readContent();
+    if (!stored) return c.json({ content: seed, generation: null, url: contentUrl } satisfies ContentReadResponse);
     if (!stored.json.ok) {
       return fail(c, 500, `${CONTENT_OBJECT} is not valid JSON`, {
         issues: [{ path: "", message: stored.json.error }],
-        generation: stored.generation,
+        generation: null,
       });
     }
     const parsed = parseContent(stored.json.value);
     if (!parsed.ok) {
       return fail(c, 500, `${CONTENT_OBJECT} does not match the content schema`, {
         issues: parsed.issues,
-        generation: stored.generation,
+        generation: null,
       });
     }
-    return c.json({ content: parsed.content, generation: stored.generation, url: contentUrl } satisfies ContentResponse);
+    return c.json({ content: parsed.content, generation: null, url: contentUrl } satisfies ContentReadResponse);
   });
 
   app.put("/api/content", bodyLimit({ maxSize: JSON_BODY_LIMIT, onError: tooLarge("2 MB") }), async (c) => {
@@ -235,7 +309,9 @@ export function createApp(deps: AppDeps): Hono<Env> {
 
     const at = now();
     const updatedAt = at.toISOString();
-    const text = JSON.stringify({ ...parsed.content, updatedAt });
+    const full: Content = { ...parsed.content, updatedAt };
+    const fullText = JSON.stringify(full);
+    const publicText = JSON.stringify(publicProjection(full));
     const expected = req.data.generation;
 
     const conflict = (actual: string | null) =>
@@ -245,31 +321,75 @@ export function createApp(deps: AppDeps): Hono<Env> {
         generation: actual,
       });
 
-    const current = await storage.readContent();
-    const live = current?.generation ?? null;
-    if (live !== expected) return conflict(live);
+    type Outcome = { conflict: string | null } | { generation: string } | { publicFailed: string };
+    const outcome = await oneSaveAtATime(async (): Promise<Outcome> => {
+      const current = await storage.readPrivate();
+      const live = current?.generation ?? null;
+      if (live !== expected) return { conflict: live };
 
-    // Keep the version being replaced, then swap the live object only if nobody else did meanwhile.
-    if (current) await storage.writeHistory(current.text, at);
-    let written: { generation: string };
-    try {
-      written = await storage.writeContent(text, expected);
-    } catch (err) {
-      if (err instanceof ConflictError) return conflict(err.actual);
-      throw err;
+      // The version being replaced, for history: the stored envelope as is (still encrypted, even
+      // when it cannot be decrypted any more), or on the first save after the upgrade the full
+      // plaintext content/site.json, encrypted now.
+      let previous: string | null = current?.text ?? null;
+      if (!current) {
+        const legacy = await storage.readContent();
+        if (legacy) previous = seal(contentKey, legacy.text);
+      }
+
+      // (1) Full content, encrypted. The generation precondition here is the conflict check.
+      let written: { generation: string };
+      try {
+        written = await storage.writePrivate(seal(contentKey, fullText), expected);
+      } catch (err) {
+        if (err instanceof ConflictError) return { conflict: err.actual };
+        throw err;
+      }
+      // (2) What the site may show, as plain JSON.
+      try {
+        await storage.writeContent(publicText);
+      } catch (err) {
+        log.error(
+          `[api] saved ${PRIVATE_CONTENT_OBJECT} but could not update ${CONTENT_OBJECT}:`,
+          err instanceof Error ? err.message : err,
+        );
+        return { publicFailed: written.generation };
+      }
+      // (3) Previous version, encrypted. The save is already done, so problems here are only logged.
+      try {
+        if (previous !== null) await storage.writeHistory(previous, at);
+        await storage.pruneHistory(HISTORY_KEEP);
+        const moved = await storage.migrateLegacyHistory((text) => seal(contentKey, text));
+        if (moved) log.warn(`[api] moved ${moved} plaintext history file(s) to ${PRIVATE_HISTORY_PREFIX} (encrypted)`);
+      } catch (err) {
+        log.warn("[api] could not update history:", err instanceof Error ? err.message : err);
+      }
+      return { generation: written.generation };
+    });
+
+    if ("conflict" in outcome) return conflict(outcome.conflict);
+    if ("publicFailed" in outcome) {
+      return fail(c, 500, "the draft was saved but the public site was not updated; save again", {
+        generation: outcome.publicFailed,
+      });
     }
-    try {
-      await storage.pruneHistory(HISTORY_KEEP);
-    } catch (err) {
-      log.warn("[api] could not prune history:", err instanceof Error ? err.message : err);
+
+    // Part of the request on purpose: after the response Cloud Run throttles the CPU. The trigger
+    // gives up after a few seconds and never fails the save.
+    let rebuild: NonNullable<SaveContentResponse["redeploy"]> = "off";
+    if (redeploy) {
+      try {
+        rebuild = await redeploy.notify();
+      } catch (err) {
+        rebuild = "failed";
+        log.warn("[api] could not request a site rebuild:", err instanceof Error ? err.message : err);
+      }
     }
-    // Fire-and-forget: the rebuild request must never delay or fail the save.
-    try {
-      redeploy?.notify();
-    } catch (err) {
-      log.warn("[api] could not request a site rebuild:", err instanceof Error ? err.message : err);
-    }
-    return c.json({ generation: written.generation, updatedAt, url: contentUrl } satisfies SaveContentResponse);
+    return c.json({
+      generation: outcome.generation,
+      updatedAt,
+      url: contentUrl,
+      redeploy: rebuild,
+    } satisfies SaveContentResponse);
   });
 
   app.get("/api/content/history", async (c) => {
@@ -280,10 +400,17 @@ export function createApp(deps: AppDeps): Hono<Env> {
   app.get("/api/content/history/item", async (c) => {
     const path = c.req.query("path") ?? "";
     if (!HISTORY_ITEM_RE.test(path)) {
-      return fail(c, 400, "path must be a file directly inside content/history/ (e.g. content/history/<time>.json)");
+      return fail(c, 400, `path must be a version listed by /api/content/history (inside ${PRIVATE_HISTORY_PREFIX})`);
     }
-    const text = await storage.readHistory(path);
-    if (text === null) return fail(c, 404, `history version not found: ${path}`);
+    const stored = await storage.readHistory(path);
+    if (stored === null) return fail(c, 404, `history version not found: ${path}`);
+    let text: string;
+    try {
+      text = open(contentKey, stored);
+    } catch (err) {
+      if (!(err instanceof DecryptError)) throw err;
+      return fail(c, 500, `${path} could not be decrypted (saved with a different server secret)`);
+    }
     let json: unknown;
     try {
       json = JSON.parse(text);

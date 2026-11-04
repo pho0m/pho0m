@@ -1,6 +1,7 @@
 import {
   absoluteUrl,
   frameDateLong,
+  isSafeUrl,
   slugify,
   t,
   timelineFrames,
@@ -78,23 +79,40 @@ export function latestFrames(content: Content, count = 5): FilmFrame[] {
   }));
 }
 
+/** The company's short name ("Utotech"), for labels such as "Utotech projects". */
+export function companyLabel(content: Content): string {
+  return content.company.shortName.trim() || en(content.company.name) || "Company";
+}
+
+/**
+ * Hero chips in a fixed priority order: the company and content numbers first, GitHub numbers
+ * last. The card shows them in this order and leaves out whatever does not fit (see heroChips).
+ * Each number is labelled for what it counts:
+ *   "<Company> projects"  published company.projects (the company's own project list)
+ *   "Client projects"     published projects in the "client" group
+ *   "Customers", "Team"   the company's customers and team size
+ *   "Own projects"        every other published project (personal, school, teaching…)
+ */
 export function heroStats(content: Content, gh: GithubStats | null): Stat[] {
   const stats: Stat[] = [];
+  const company = companyLabel(content);
+  const companyWork = content.company.projects.filter((p) => p.published).length;
+  const client = clientProjects(content).length;
+  const customers = content.company.customers.length;
+  const teamSize = content.company.teamSize.trim();
+  const own = ownProjects(content).length;
+  const since = content.profile.codingSince;
+  if (companyWork) stats.push({ value: String(companyWork), label: `${company} projects`, alt: `${companyWork} ${company} projects` });
+  if (client) stats.push({ value: String(client), label: "Client projects", alt: `${client} client projects` });
+  if (customers) stats.push({ value: String(customers), label: "Customers", alt: `${customers} ${company} customers` });
+  if (teamSize) stats.push({ value: teamSize, label: "Team", alt: `a team of ${teamSize} at ${company}` });
+  if (own) stats.push({ value: String(own), label: "Own projects", alt: `${own} own projects` });
+  if (since) stats.push({ value: String(since), label: "Coding since", alt: `coding since ${since}` });
   if (gh) {
     stats.push({ value: String(gh.stars), label: "Stars", alt: `${gh.stars} GitHub stars` });
+    stats.push({ value: String(gh.followers), label: "Followers", alt: `${gh.followers} GitHub followers` });
     stats.push({ value: String(gh.publicRepos), label: "Repos", alt: `${gh.publicRepos} public repos` });
-    stats.push({ value: String(gh.followers), label: "Followers", alt: `${gh.followers} followers` });
   }
-  const own = ownProjects(content).length;
-  const client = content.company.projects.filter((p) => p.published).length + clientProjects(content).length;
-  const customers = content.company.customers.length;
-  const { teamSize } = content.company;
-  const since = content.profile.codingSince;
-  if (own) stats.push({ value: String(own), label: "Projects", alt: `${own} projects` });
-  if (client) stats.push({ value: String(client), label: "Client works", alt: `${client} client projects` });
-  if (customers) stats.push({ value: String(customers), label: "Customers", alt: `${customers} customers` });
-  if (teamSize) stats.push({ value: teamSize, label: "Team", alt: `a team of ${teamSize}` });
-  if (since) stats.push({ value: String(since), label: "Coding since", alt: `coding since ${since}` });
   return stats;
 }
 
@@ -118,12 +136,12 @@ export function profileButtons(content: Content): LinkItem[] {
   const seen = new Set<string>();
   const add = (label: string, url: string, kind: Link["kind"]) => {
     const key = url.replace(/\/+$/, "").toLowerCase();
-    if (!url || seen.has(key)) return;
+    if (!url || !isSafeUrl(url) || seen.has(key)) return;
     seen.add(key);
     const company = isCompanyUrl(content, url);
     items.push({ id: linkId("btn", label, used), label, url, kind, company });
   };
-  add("Portfolio", content.site.url, "website");
+  add("Portfolio", linkHref(content, content.site.url), "website");
   for (const l of content.profile.links) add(l.label || hostOf(l.url), linkHref(content, l.url), l.kind);
   const companySite = content.company.links.find((l) => l.kind === "website");
   if (companySite) add(content.company.shortName || en(content.company.name), linkHref(content, companySite.url), "website");
@@ -135,14 +153,17 @@ export function footerLinks(content: Content): LinkItem[] {
   const used = new Set<string>();
   const out: LinkItem[] = [];
   const { email, phone } = content.profile;
-  if (email.visible && email.value) out.push({ id: linkId("link", "email", used), label: email.value, url: `mailto:${email.value}`, kind: "email" });
-  if (phone.visible && phone.value) out.push({ id: linkId("link", "phone", used), label: phone.value, url: `tel:${phone.value.replace(/[^+\d]/g, "")}`, kind: "phone" });
-  out.push({ id: linkId("link", "site", used), label: hostOf(content.site.url), url: content.site.url, kind: "website" });
+  const push = (key: string, item: Omit<LinkItem, "id">) => {
+    if (isSafeUrl(item.url)) out.push({ id: linkId("link", key, used), ...item });
+  };
+  if (email.visible && email.value) push("email", { label: email.value, url: `mailto:${email.value.trim()}`, kind: "email" });
+  const tel = phone.value.replace(/[^+\d]/g, "");
+  if (phone.visible && phone.value && tel) push("phone", { label: phone.value, url: `tel:${tel}`, kind: "phone" });
+  const site = linkHref(content, content.site.url);
+  if (site) push("site", { label: hostOf(site), url: site, kind: "website" });
   const companySite = content.company.links.find((l) => l.kind === "website");
-  if (companySite) {
-    const url = linkHref(content, companySite.url);
-    out.push({ id: linkId("link", "company", used), label: hostOf(url), url, kind: "website", company: true });
-  }
+  const url = companySite ? linkHref(content, companySite.url) : "";
+  if (url) push("company", { label: hostOf(url), url, kind: "website", company: true });
   return out;
 }
 
@@ -175,7 +196,7 @@ export function companyRows(content: Content): TableRow[] {
     return {
       id: `utotech-${p.id}`,
       name: p.name,
-      url: p.url ? linkHref(content, p.url) : sectionUrl(content, "utotech"),
+      url: linkHref(content, p.url) || sectionUrl(content, "utotech"),
       about: en(p.summary),
       extras: [],
       badge: { segments, stars: null },
@@ -196,11 +217,10 @@ export function ownProjects(content: Content): Project[] {
 /** Rows for client projects from the projects list: text only, every badge says "Client". */
 export function clientProjectRows(content: Content): TableRow[] {
   return byFeatured(clientProjects(content)).map((p) => {
-    const link = p.url || p.repo;
     return {
       id: `client-${p.id}`,
       name: p.name,
-      url: link ? linkHref(content, link) : sectionUrl(content, "projects"),
+      url: linkHref(content, p.url) || linkHref(content, p.repo) || sectionUrl(content, "projects"),
       about: [en(p.description), p.tags.join(", ")].filter(Boolean).join(" · "),
       extras: [],
       badge: {
@@ -231,9 +251,9 @@ export function projectRows(content: Content, gh: GithubStats | null): TableRow[
   return sorted.map((p) => {
     const repo = repoName(p.repo, gh?.login);
     const stars = repo && gh ? (gh.repoStars[repo] ?? null) : null;
-    const main = p.repo || p.url ? linkHref(content, p.repo || p.url) : sectionUrl(content, "projects");
+    const main = linkHref(content, p.repo) || linkHref(content, p.url) || sectionUrl(content, "projects");
     const extras: TableRow["extras"] = [];
-    const demo = p.url ? linkHref(content, p.url) : "";
+    const demo = linkHref(content, p.url);
     if (demo && demo !== main) extras.push({ label: "demo", url: demo });
     return {
       id: `project-${p.id}`,
@@ -264,7 +284,14 @@ export function visibleDocuments(content: Content) {
   return content.documents.filter((d) => d.url.trim());
 }
 
-/** Content URLs may be site-relative (/media/…, /docs/…); links in the README must be absolute. */
+/**
+ * Content URLs may be site-relative (/media/…, /docs/…); links in the README must be absolute.
+ * Returns "" for anything that is not a safe link (javascript:, data:, protocol-relative…), both
+ * before and after making it absolute, so callers fall back to the site section or plain text.
+ */
 export function linkHref(content: Content, url: string): string {
-  return absoluteUrl(url.trim(), content.site.url);
+  const raw = url.trim();
+  if (!raw || !isSafeUrl(raw)) return "";
+  const abs = absoluteUrl(raw, content.site.url);
+  return isSafeUrl(abs) ? abs : "";
 }

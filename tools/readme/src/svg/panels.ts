@@ -4,6 +4,12 @@ import type { Theme } from "./theme.ts";
 import { svgDocument } from "./xml.ts";
 
 export const PANEL_W = 416;
+/**
+ * Transparent strip on the inner side of each panel (diary: right, docs: left). The README puts
+ * the two images edge to edge with no whitespace between them (so they can never wrap onto two
+ * lines), and these strips make the visible gap between the two frames.
+ */
+export const PANEL_GUTTER = 6;
 const PAD = 24;
 
 export type DiaryPanelData = {
@@ -69,14 +75,15 @@ function docsBody(d: DocsPanelData, t: Theme): Built {
   return { body: s, height: y + 18, title: d.title };
 }
 
-/** The two side-by-side panels, built together so they share one height. */
+/** The two side-by-side panels, built together so they share one size (PANEL_W + PANEL_GUTTER wide). */
 export function panelCards(diary: DiaryPanelData, docs: DocsPanelData, t: Theme): { diary: string; docs: string } {
   const a = diaryBody(diary, t);
   const b = docsBody(docs, t);
   const H = Math.max(a.height, b.height);
-  const wrapPanel = (built: Built, id: string) => {
+  const wrapPanel = (built: Built, id: string, offset: number) => {
     const frame = cardFrame(PANEL_W, H, t, id, { x: 0.1, y: 0 });
-    return svgDocument(PANEL_W, H, built.title, frame.body + built.body, frame.defs);
+    const body = frame.body + built.body;
+    return svgDocument(PANEL_W + PANEL_GUTTER, H, built.title, offset ? `<g transform="translate(${offset} 0)">${body}</g>` : body, frame.defs);
   };
-  return { diary: wrapPanel(a, "pd"), docs: wrapPanel(b, "pc") };
+  return { diary: wrapPanel(a, "pd", 0), docs: wrapPanel(b, "pc", PANEL_GUTTER) };
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ConfigError,
   DEFAULT_ALLOWED_ORIGINS,
+  MIN_SESSION_SECRET_LENGTH,
   deriveSecret,
   describeConfig,
   loadConfig,
@@ -98,7 +99,7 @@ describe("service account key", () => {
   it("uses Application Default Credentials when only the bucket is set", () => {
     const c = load({ SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content", ADMIN_PASSWORD: "pw" });
     expect(c.driver).toEqual({ kind: "gcs", bucket: "pho0m-content", credentials: null });
-    expect(c.sessionSecretSource).toBe("ADMIN_PASSWORD");
+    expect(c.sessionSecretSource).toBe("random");
   });
 
   it("refuses a key without a bucket", () => {
@@ -107,10 +108,28 @@ describe("service account key", () => {
 });
 
 describe("session secret", () => {
+  const SECRET = "0123456789abcdef0123456789abcdef-long-enough";
+
   it("prefers SESSION_SECRET", () => {
-    const c = load({ SESSION_SECRET: "s3cret", SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "b", ADMIN_PASSWORD: "pw" });
-    expect(c.sessionSecret).toBe("s3cret");
+    const c = load({ SESSION_SECRET: SECRET, SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "b", ADMIN_PASSWORD: "pw" });
+    expect(c.sessionSecret).toBe(SECRET);
     expect(c.sessionSecretSource).toBe("SESSION_SECRET");
+  });
+
+  it("rejects a SESSION_SECRET shorter than 32 characters without echoing it", () => {
+    expect(MIN_SESSION_SECRET_LENGTH).toBe(32);
+    const short = "x".repeat(31);
+    let err: unknown;
+    try {
+      load({ SESSION_SECRET: short, ADMIN_PASSWORD: "pw" });
+    } catch (e) {
+      err = e;
+    }
+    expect(err).toBeInstanceOf(ConfigError);
+    expect((err as Error).message).toContain("at least 32 characters");
+    expect((err as Error).message).toContain("openssl rand -hex 32");
+    expect((err as Error).message).not.toContain(short);
+    expect(load({ SESSION_SECRET: "x".repeat(32) }).sessionSecretSource).toBe("SESSION_SECRET");
   });
 
   it("derives a stable secret from the private key, never the key itself", () => {
@@ -123,11 +142,19 @@ describe("session secret", () => {
     expect(a.sessionSecret).not.toContain("PRIVATE KEY");
   });
 
-  it("derives from ADMIN_PASSWORD when there is no key", () => {
+  it("never derives the secret from ADMIN_PASSWORD: without a secret or key it is random per process", () => {
     const c = load({ ADMIN_PASSWORD: "pw" });
     expect(c.adminPassword).toBe("pw");
-    expect(c.sessionSecret).toBe(deriveSecret("pw"));
-    expect(c.sessionSecret).not.toBe("pw");
+    expect(c.sessionSecretSource).toBe("random");
+    expect(c.sessionSecret).toBe("rnd");
+    expect(c.sessionSecret).not.toBe(deriveSecret("pw"));
+    // The real generator: 64 hex characters, different every time.
+    const real = (env: Env) => loadConfig(env, { defaultDataDir: "/srv/api/.data" }).sessionSecret;
+    const one = real({ ADMIN_PASSWORD: "pw" });
+    expect(one).toMatch(/^[0-9a-f]{64}$/);
+    expect(real({ ADMIN_PASSWORD: "pw" })).not.toBe(one);
+    expect(one).not.toBe(deriveSecret("pw"));
+    expect(describeConfig(c)).toContain("session secret: random");
   });
 });
 

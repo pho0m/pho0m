@@ -7,9 +7,12 @@ import {
   createImageData,
   ditherPrint,
   iconScene,
+  naturalSize,
   negativeOf,
+  scratchContext,
   sourceToImageData,
   tonePrint,
+  type PixelImage,
 } from "./pixel.ts";
 
 /**
@@ -21,6 +24,9 @@ import {
  *
  * The effect stays (flash → dither develops → DEV/STOP/FIX/DRY) and the finished
  * print is clear instead of a coarse dither.
+ *
+ * Everything here is plain pixel maths on ImageData, so it also runs in the print
+ * worker (web/src/lib/print.worker.ts), which the site uses to keep it off the main thread.
  */
 
 export type Tone = { black: number; white: number };
@@ -34,32 +40,25 @@ export type PrintSource = {
   clearTone?: Tone;
 };
 
-const natural = (img: HTMLImageElement) => ({
-  w: img.naturalWidth || img.width || 1,
-  h: img.naturalHeight || img.height || 1,
-});
-
 /** True when the image has see-through corners (a cut-out logo). Throws on tainted (non-CORS) images. */
-export function hasTransparentEdges(img: HTMLImageElement): boolean {
-  const c = document.createElement("canvas");
-  c.width = 8;
-  c.height = 8;
-  const ctx = c.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return false;
+export function hasTransparentEdges(img: PixelImage): boolean {
+  let ctx: ReturnType<typeof scratchContext>;
+  try {
+    ctx = scratchContext(8, 8);
+  } catch {
+    return false;
+  }
   ctx.drawImage(img, 0, 0, 8, 8);
   const d = ctx.getImageData(0, 0, 8, 8).data;
   return [0, 7, 56, 63].some((p) => d[p * 4 + 3]! < 250);
 }
 
 /** Contain-fit a cut-out image on white paper with a small margin. */
-export function containOnPaper(img: HTMLImageElement, w: number, h: number): ImageData {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d", { willReadFrequently: true })!;
+export function containOnPaper(img: PixelImage, w: number, h: number): ImageData {
+  const ctx = scratchContext(w, h);
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
-  const { w: sw, h: sh } = natural(img);
+  const { w: sw, h: sh } = naturalSize(img);
   const scale = Math.min((w * 0.84) / sw, (h * 0.84) / sh);
   const dw = sw * scale;
   const dh = sh * scale;
@@ -127,7 +126,7 @@ export function downsample(src: ImageData, w: number, h: number): ImageData {
 }
 
 /** Photo (or cut-out logo) → print source. Throws when the canvas cannot be read (CORS). */
-export function photoSource(img: HTMLImageElement, w = PRINT_W, h = PRINT_H): PrintSource {
+export function photoSource(img: PixelImage, w = PRINT_W, h = PRINT_H): PrintSource {
   if (hasTransparentEdges(img)) {
     const data = containOnPaper(img, w, h);
     return { data, photo: true };
@@ -155,6 +154,26 @@ export function clearPrint(src: PrintSource, level = 1, out?: ImageData): ImageD
 /** Red safelight negative of the clear print. */
 export function negativePrint(src: PrintSource): ImageData {
   return negativeOf(clearPrint(src));
+}
+
+export type Size = { w: number; h: number };
+/** The finished pieces of a print: what the site paints, computed in one go (in the print worker). */
+export type PrintFinals = {
+  /** clearPrint(src) */
+  clear: ImageData;
+  /** negativeOf(clear), when asked for */
+  negative?: ImageData;
+  /** The source box-downsampled to `dev` size: input of the developing dither, when asked for. */
+  small?: ImageData;
+};
+
+/** Clear print, and optionally its negative and the downsampled dither input, of a source. */
+export function printFinals(src: PrintSource, opts: { negative?: boolean; dev?: Size } = {}): PrintFinals {
+  const clear = clearPrint(src);
+  const out: PrintFinals = { clear };
+  if (opts.negative) out.negative = negativeOf(clear);
+  if (opts.dev) out.small = downsample(src.data, opts.dev.w, opts.dev.h);
+  return out;
 }
 
 /** CSS image-rendering for a canvas showing this source's clear print. */

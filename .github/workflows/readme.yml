@@ -1,6 +1,11 @@
 # Regenerate the profile README (README.md + assets/readme/*.svg) from the live content and
 # commit it when something changed. The WakaTime block is copied over as-is; waka.yml keeps
 # updating it on its own schedule. Setup guide: docs/SETUP.md
+#
+# README_REQUIRE_LIVE_CONTENT=1: when the bucket is set but content/site.json cannot be read
+# (403, 5xx, timeout, invalid JSON, schema mismatch), the generator exits 1 and this run fails
+# instead of committing a README built from content/seed.json. A 404 (nothing saved from /admin
+# yet) and an unset bucket still use the seed, because then the seed is the live content.
 
 name: README
 
@@ -32,6 +37,9 @@ jobs:
     name: Update README
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Read by both "npm run readme" calls below (Generate and the retry in Commit and push).
+      README_REQUIRE_LIVE_CONTENT: "1"
     steps:
       - uses: actions/checkout@v5
 

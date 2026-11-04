@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseContent, type Content } from "@pho0m/content";
 import { errorMessage, isApiError, type AdminApi, type Issue } from "./api.ts";
 import { useToast } from "./context.tsx";
+import { readRedeploy, readWarning, redeployNotice } from "./notices.ts";
 import { clearDraft, loadDraft, storeDraft, type StoredDraft } from "./storage.ts";
 import { validateDraft } from "./validate.ts";
 
@@ -27,6 +28,8 @@ export function useDraft(api: AdminApi, authVersion: number) {
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  /** Warning from GET /api/content (drafts could not be decrypted); cleared by a successful save. */
+  const [warning, setWarning] = useState("");
 
   const draftJson = useMemo(() => (draft ? JSON.stringify(draft) : ""), [draft]);
   const dirty = !!draft && draftJson !== baseline;
@@ -50,6 +53,7 @@ export function useDraft(api: AdminApi, authVersion: number) {
         setBaseline(json);
         setGeneration(res.generation);
         setContentUrl(res.url);
+        setWarning(readWarning(res.warning));
         setIssues([]);
         if (offerRestore) {
           const stored = loadDraft();
@@ -142,17 +146,30 @@ export function useDraft(api: AdminApi, authVersion: number) {
         setConflict(false);
         setRestore(null);
         if (unchanged) clearDraft();
+        // the private copy was just written with the server's current key, so it reads again
+        setWarning("");
         const at = new Date();
         setLastSaved(at);
         const site = saved.site.url;
+        const rebuild = redeployNotice(readRedeploy(res.redeploy));
         toast.push({
           kind: "ok",
           text: `บันทึกแล้ว ${timeLabel(at)}`,
           detail: unchanged ? "เว็บจะแสดงเนื้อหาใหม่เมื่อรีเฟรช" : "มีการแก้ไขระหว่างบันทึก — ส่วนนั้นยังไม่ได้บันทึก",
+          note: rebuild && rebuild.tone !== "warn" ? { text: rebuild.text, tone: rebuild.tone } : undefined,
           link: site ? { href: site, label: "เปิดเว็บจริง" } : undefined,
         });
+        if (rebuild?.tone === "warn") toast.push({ kind: "warn", text: rebuild.text, detail: rebuild.detail });
       } catch (e) {
-        if (isApiError(e) && e.kind === "conflict") {
+        // A partly applied save (private copy written, public site not) carries the new generation.
+        if (isApiError(e) && e.generation) setGeneration(e.generation);
+        if (isApiError(e) && e.generation && e.status === 500) {
+          toast.push({
+            kind: "warn",
+            text: "บันทึกร่างแล้ว แต่หน้าเว็บยังไม่อัปเดต",
+            detail: "กด “บันทึก” อีกครั้งเพื่อเผยแพร่ การแก้ไขยังอยู่ครบ",
+          });
+        } else if (isApiError(e) && e.kind === "conflict") {
           setConflict(true);
         } else if (isApiError(e) && e.kind === "invalid" && e.issues.length) {
           setIssues(e.issues);
@@ -211,6 +228,7 @@ export function useDraft(api: AdminApi, authVersion: number) {
     dirty,
     generation,
     contentUrl,
+    warning,
     loadIssues,
     issues,
     saving,

@@ -13,7 +13,9 @@ import {
   frameVisible,
   frameWidthFor,
   initialStates,
+  framesAround,
   isDry,
+  keyTarget,
   positiveOpacity,
   posToScroll,
   scrollStep,
@@ -172,5 +174,42 @@ describe("helpers", () => {
     expect(initialStates(4)).toEqual(["developed", "unexposed", "unexposed", "unexposed"]);
     expect(initialStates(4, 2.4)).toEqual(["developed", "developed", "developed", "unexposed"]);
     expect(initialStates(0)).toEqual([]);
+  });
+});
+
+describe("keyTarget", () => {
+  it("steps and jumps between frames", () => {
+    expect(keyTarget("ArrowDown", 3, 10)).toBe(4);
+    expect(keyTarget("PageDown", 3, 10)).toBe(4);
+    expect(keyTarget("ArrowRight", 3, 10)).toBe(4);
+    expect(keyTarget("ArrowUp", 3, 10)).toBe(2);
+    expect(keyTarget("PageUp", 3, 10)).toBe(2);
+    expect(keyTarget("ArrowLeft", 3, 10)).toBe(2);
+    expect(keyTarget("Home", 3, 10)).toBe(0);
+    expect(keyTarget("End", 3, 10)).toBe(9);
+    expect(keyTarget("Enter", 3, 10)).toBeNull();
+    expect(keyTarget("a", 3, 10)).toBeNull();
+  });
+
+  it("leaves the keys to the page at the ends of the roll", () => {
+    for (const k of ["ArrowUp", "PageUp", "Home", "ArrowLeft"]) expect(keyTarget(k, 0, 10), k).toBeNull();
+    for (const k of ["ArrowDown", "PageDown", "End", "ArrowRight"]) expect(keyTarget(k, 9, 10), k).toBeNull();
+    expect(keyTarget("ArrowDown", 0, 10)).toBe(1);
+    expect(keyTarget("ArrowUp", 9, 10)).toBe(8);
+    // a single frame: every key goes to the page
+    for (const k of ["ArrowDown", "ArrowUp", "Home", "End"]) expect(keyTarget(k, 0, 1), k).toBeNull();
+  });
+});
+
+describe("framesAround", () => {
+  it("covers what the strip can show, nearest the gate first", () => {
+    expect(framesAround(0, 19)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect(framesAround(10, 19)).toEqual([10, 9, 11, 8, 12, 7, 13, 6, 14, 15, 16, 17]);
+    expect(framesAround(18, 19)).toEqual([18, 17, 16, 15, 14]);
+    // everything the strip shows at a position is in the list
+    for (let pos = 0; pos <= 18; pos += 0.5)
+      for (let i = 0; i < 19; i++) if (frameVisible(pos, i)) expect(framesAround(pos, 19), `${pos}/${i}`).toContain(i);
+    expect(framesAround(3, 0)).toEqual([]);
+    expect(framesAround(-2, 3)).toEqual([0, 1, 2]);
   });
 });

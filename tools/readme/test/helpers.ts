@@ -1,5 +1,6 @@
 import { join } from "node:path";
-import { seed, type Content } from "@pho0m/content";
+import { type Content } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import { generate, type GenerateInput, type Output } from "../src/generate.ts";
 import { createMediaLoader } from "../src/media.ts";
 import { repoRoot } from "../src/paths.ts";

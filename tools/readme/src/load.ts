@@ -1,4 +1,5 @@
-import { parseContent, seed, CONTENT_OBJECT, type Content } from "@pho0m/content";
+import { parseContent, CONTENT_OBJECT, type Content } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
 import type { GithubStats } from "./model.ts";
 
 type Env = Record<string, string | undefined>;
@@ -15,12 +16,36 @@ export function contentUrl(env: Env): string | null {
   return null;
 }
 
-/** Load and validate the live content; any failure falls back to the committed seed. */
+/**
+ * Thrown in strict mode (README_REQUIRE_LIVE_CONTENT=1) when the live content is configured but
+ * cannot be used. The CLI exits 1 and writes nothing, so CI never commits a README built from
+ * the seed while the live content exists but is unreadable.
+ */
+export class LiveContentError extends Error {
+  override name = "LiveContentError";
+}
+
+/** README_REQUIRE_LIVE_CONTENT=1: only a missing object (HTTP 404) or no configured source may use the seed. */
+export function requireLiveContent(env: Env): boolean {
+  return env.README_REQUIRE_LIVE_CONTENT?.trim() === "1";
+}
+
+/**
+ * Load and validate the live content. No source configured, or HTTP 404 (nothing saved from
+ * /admin yet) → the committed seed, which then is the live content. Any other failure (other
+ * HTTP status, network error, timeout, bad JSON, schema mismatch) falls back to the seed with a
+ * warning, or throws LiveContentError when README_REQUIRE_LIVE_CONTENT=1.
+ */
 export async function loadContent(env: Env, doFetch: Fetch = fetch, warn: Warn = console.warn): Promise<ContentSource> {
   const url = contentUrl(env);
   if (!url) return { content: seed, source: "seed" };
+  let problem: string;
   try {
     const res = await doFetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(20_000) });
+    if (res.status === 404) {
+      warn(`[readme] ${url} does not exist yet (HTTP 404: nothing saved from /admin). Using the seed.`);
+      return { content: seed, source: "seed" };
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const parsed = parseContent(await res.json());
     if (!parsed.ok) {
@@ -29,9 +54,13 @@ export async function loadContent(env: Env, doFetch: Fetch = fetch, warn: Warn =
     }
     return { content: parsed.content, source: url };
   } catch (err) {
-    warn(`[readme] could not use ${url}: ${(err as Error).message}. Falling back to the seed.`);
-    return { content: seed, source: "seed" };
+    problem = `could not use ${url}: ${(err as Error).message}`;
   }
+  if (requireLiveContent(env)) {
+    throw new LiveContentError(`${problem}. README_REQUIRE_LIVE_CONTENT=1, so the seed is not used and nothing is written.`);
+  }
+  warn(`[readme] ${problem}. Falling back to the seed.`);
+  return { content: seed, source: "seed" };
 }
 
 type GhUser = { login: string; public_repos: number; followers: number };

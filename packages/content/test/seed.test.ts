@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import seedJson from "../../../content/seed.json";
-import { Content, absoluteUrl, frameDateLabel, frameStamp, parseContent, seed, t, timelineFrames } from "../src/index.ts";
+import { Content, absoluteUrl, frameDateLabel, frameStamp, parseContent, t, timelineFrames } from "../src/index.ts";
+import { seed } from "../src/seed.ts";
 
 describe("content contract", () => {
   it("seed.json validates against the schema", () => {
@@ -87,14 +88,17 @@ describe("safe urls + public projection", async () => {
     const bad = { ...seedJson, profile: { ...seedJson.profile, links: [{ kind: "website", label: "x", url: "javascript:alert(1)" }] } };
     expect(m.parseContent(bad).ok).toBe(false);
   });
-  it("publicProjection drops drafts and hidden contact values, idempotently", () => {
-    const c = structuredClone(m.seed);
+  it("publicProjection drops drafts and hidden contact values, idempotently", async () => {
+    const { seed: s0 } = await import("../src/seed.ts");
+    const c = structuredClone(s0);
     c.timeline[0]!.published = false;
     c.projects[0]!.published = false;
     c.profile.phone = { value: "+66 81-PRIVATE", visible: false };
     const p = m.publicProjection(c);
-    expect(p.timeline).toHaveLength(c.timeline.length - 1);
-    expect(p.projects).toHaveLength(c.projects.length - 1);
+    // the seed itself may hold drafts (e.g. flutter-template), so count what stays published
+    expect(p.timeline).toHaveLength(c.timeline.filter((f) => f.published).length);
+    expect(p.projects).toHaveLength(c.projects.filter((x) => x.published).length);
+    expect(p.projects.every((x) => x.published)).toBe(true);
     expect(JSON.stringify(p)).not.toContain("PRIVATE");
     expect(p.documents.every((d) => d.url)).toBe(true);
     expect(m.publicProjection(p)).toEqual(p);

@@ -104,6 +104,19 @@ export function frameVisible(pos: number, i: number, left = 6, right = 3): boole
 }
 
 /**
+ * Frames whose pictures should be loaded with the film at `pos`: the ones the strip
+ * can show (frameVisible: up to 5 ahead, 2 behind) plus a little margin, nearest the
+ * gate first, so a deep link far down the roll does not fetch every photo.
+ */
+export function framesAround(pos: number, n: number, ahead = 7, behind = 4): number[] {
+  if (n <= 0) return [];
+  const at = Math.round(clamp(pos, 0, n - 1));
+  const out: number[] = [];
+  for (let i = Math.max(0, at - behind); i <= Math.min(n - 1, at + ahead); i++) out.push(i);
+  return out.sort((a, b) => Math.abs(a - at) - Math.abs(b - at) || a - b);
+}
+
+/**
  * Damped lerp toward `target` (frame-rate independent). Snaps when close so the
  * animation loop can stop.
  */
@@ -183,4 +196,37 @@ export type FrameState = "unexposed" | "developing" | "developed";
 export function initialStates(n: number, pos = 0): FrameState[] {
   const upTo = Math.round(clamp(pos, 0, Math.max(0, n - 1)));
   return Array.from({ length: n }, (_, i) => (i === 0 || i <= upTo ? "developed" : "unexposed"));
+}
+
+/**
+ * Frame a key press on the film moves to, or null when the key is left to the page.
+ * Right/Down/PageDown step forward, Left/Up/PageUp back, Home/End jump to the ends.
+ * At the first frame Up/PageUp/Home (and at the last Down/PageDown/End) have nowhere
+ * to go on the film, so they return null and the page scrolls on past it.
+ */
+export function keyTarget(key: string, current: number, n: number): number | null {
+  const last = Math.max(0, n - 1);
+  let next: number;
+  switch (key) {
+    case "ArrowRight":
+    case "ArrowDown":
+    case "PageDown":
+      next = current + 1;
+      break;
+    case "ArrowLeft":
+    case "ArrowUp":
+    case "PageUp":
+      next = current - 1;
+      break;
+    case "Home":
+      next = 0;
+      break;
+    case "End":
+      next = last;
+      break;
+    default:
+      return null;
+  }
+  const k = clamp(Math.round(next), 0, last);
+  return k === current ? null : k;
 }

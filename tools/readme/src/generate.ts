@@ -1,4 +1,5 @@
-import { timelineFrames, type Content, type IconName } from "@pho0m/content";
+import { isSafeUrl, publicProjection, timelineFrames, type Content, type IconName } from "@pho0m/content";
+import { subsetSvgFonts } from "./font/subset.ts";
 import { GIF_BUDGET, filmGif } from "./gif/film.ts";
 import { bitsDataUri, grayDataUri, portraitPrints } from "./image/print.ts";
 import type { MediaLoader } from "./media.ts";
@@ -7,6 +8,7 @@ import {
   capRows,
   clientProjectRows,
   clientProjects,
+  companyLabel,
   companyRows,
   en,
   footerLinks,
@@ -24,12 +26,12 @@ import {
   type TableRow,
 } from "./model.ts";
 import { filmPrint, frameSources, gifPrint } from "./prints.ts";
-import { WAKA_END, WAKA_START, cell, extractWaka, html, linkText, linkUrl, linked, picture } from "./readme.ts";
+import { WAKA_END, WAKA_START, cell, extractWaka, html, linkUrl, linked, mdLink, picture } from "./readme.ts";
 import { bandCard } from "./svg/band.ts";
 import { badgeCard, badgeLabel, BADGE_H } from "./svg/badge.ts";
 import { buttonCard, BUTTON_H } from "./svg/button.ts";
 import { filmCard } from "./svg/film.ts";
-import { bioWithoutEcho, heroCard, type AvatarImage } from "./svg/hero.ts";
+import { bioWithoutEcho, heroCard, heroChips, type AvatarImage } from "./svg/hero.ts";
 import { panelCards } from "./svg/panels.ts";
 import { rollEndCard } from "./svg/rollend.ts";
 import { skillsCard } from "./svg/skills.ts";
@@ -37,6 +39,7 @@ import { FILM, THEMES, type Theme } from "./svg/theme.ts";
 import { utotechCard } from "./svg/utotech.ts";
 
 export type GenerateInput = {
+  /** The content as stored; only its publicProjection() ever reaches the output. */
   content: Content;
   github: GithubStats | null;
   media: MediaLoader;
@@ -121,13 +124,13 @@ function bandText(content: Content) {
   const last = frames[frames.length - 1];
   const c = content.company;
   const own = ownProjects(content);
-  const client = c.projects.filter((p) => p.published).length;
-  const clientMore = clientProjects(content).length;
+  const companyWork = c.projects.filter((p) => p.published).length;
+  const client = clientProjects(content).length;
   const groups = [...new Set(own.map((p) => GROUP_LABEL[p.group].toLowerCase()))];
   const tiers = skillGroups(content)
     .filter((g, i, all) => all.findIndex((x) => x.level === g.level) === i)
     .map((g) => en(g.title));
-  const company = c.shortName || en(c.name);
+  const company = companyLabel(content);
   return {
     film:
       first && last
@@ -140,8 +143,8 @@ function bandText(content: Content) {
     projects:
       andList(
         [
-          client ? `${client} client projects at ${company}` : "",
-          clientMore ? `${clientMore} more client works` : "",
+          companyWork ? `${companyWork} ${company} projects` : "",
+          client ? `${client} client projects` : "",
           own.length ? `${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}` : "",
         ].filter(Boolean),
       ) + ".",
@@ -149,7 +152,9 @@ function bandText(content: Content) {
   };
 }
 
-export async function generate(input: GenerateInput): Promise<Output> {
+export async function generate(raw: GenerateInput): Promise<Output> {
+  // Drafts, hidden contact details and documents without a file never reach the README.
+  const input: GenerateInput = { ...raw, content: publicProjection(raw.content) };
   const { content, github } = input;
   const warn = input.warn ?? ((m: string) => console.warn(m));
   const maxRows = input.maxRows ?? MAX_TABLE_ROWS;
@@ -172,7 +177,11 @@ export async function generate(input: GenerateInput): Promise<Output> {
 
   // hero ------------------------------------------------------------------------------------
   const name = en(p.name) || p.nickname || p.handle;
-  const stats = heroStats(content, github);
+  const chips = heroChips(heroStats(content, github));
+  if (chips.dropped.length) {
+    warn(`[readme] the hero card has no room for: ${chips.dropped.map((s) => s.alt).join(", ")} (left out of the card and its alt text)`);
+  }
+  const stats = chips.shown;
   const heroData = {
     name,
     handle: p.handle,
@@ -269,8 +278,8 @@ export async function generate(input: GenerateInput): Promise<Output> {
   ]
     .filter(Boolean)
     .join(" ");
-  const companyLink = c.links.find((l) => l.kind === "website")?.url;
-  const companySite = companyLink ? linkHref(content, companyLink) : sectionUrl(content, "utotech");
+  const companyHref = linkHref(content, c.links.find((l) => l.kind === "website")?.url ?? "");
+  const companySite = companyHref || sectionUrl(content, "utotech");
   md.push(linked(companySite, picture({ ...render("utotech", (t) => utotechCard(utoData, t)), alt: utoAlt })));
 
   // projects ----------------------------------------------------------------------------------
@@ -280,8 +289,8 @@ export async function generate(input: GenerateInput): Promise<Output> {
   const table = (rows: TableRow[]) => {
     const lines = ["| Project | About |", "| :-- | :-- |"];
     for (const r of rows) {
-      const nameCell = `**[${linkText(r.name)}](${linkUrl(r.url)})**`;
-      const about = [cell(r.about), ...r.extras.map((e) => `[${linkText(e.label)}](${linkUrl(e.url)})`)].filter(Boolean).join(" · ");
+      const nameCell = `**${mdLink(r.name, r.url)}**`;
+      const about = [cell(r.about), ...r.extras.filter((e) => isSafeUrl(e.url)).map((e) => mdLink(e.label, e.url))].filter(Boolean).join(" · ");
       const badge = picture({ ...render(`badge-${r.id}`, (t) => badgeCard(r.badge, t)), alt: badgeLabel(r.badge), height: BADGE_H });
       lines.push(`| ${nameCell} | ${badge}<br>${about} |`);
     }
@@ -294,10 +303,12 @@ export async function generate(input: GenerateInput): Promise<Output> {
     if (more) out.push(`**+${more} more** ${noun} not listed here — [see all ${rows.length} on the site →](${linkUrl(sectionUrl(content, section))})`);
     return out;
   };
-  const companyClientRows = companyRows(content);
-  if (companyClientRows.length) md.push(`**Client work at ${html(companyShort)}**`, ...capped(companyClientRows, "client projects", "utotech"));
+  // The company's own project list, then work for clients, then my own: each counted and headed for what it is.
+  const companyProjectRows = companyRows(content);
+  const companyNoun = `${companyLabel(content)} projects`;
+  if (companyProjectRows.length) md.push(`**${cell(companyNoun)}**`, ...capped(companyProjectRows, cell(companyNoun), "utotech"));
   const clientRows = clientProjectRows(content);
-  if (clientRows.length) md.push("**Client projects** — work built for clients, described in text only.", ...capped(clientRows, "client projects", "projects"));
+  if (clientRows.length) md.push("**Client work** — built for clients, described in text only.", ...capped(clientRows, "client projects", "projects"));
   const ownRows = projectRows(content, github);
   if (ownRows.length) md.push("**My own projects**", ...capped(ownRows, "projects", "projects"));
 
@@ -310,17 +321,18 @@ export async function generate(input: GenerateInput): Promise<Output> {
 
   // panels ------------------------------------------------------------------------------------
   const d = content.diary;
+  const diarySite = linkHref(content, d.company.website);
   const diaryData = {
     title: en(d.title),
     intro: en(d.intro),
     entries: d.entries.map((e) => ({ month: en(e.month).slice(0, 3).toUpperCase(), title: en(e.title) })),
-    footer: [en(d.company.name), d.company.website ? hostOf(d.company.website) : ""].filter(Boolean).join(" · ").toUpperCase(),
+    footer: [en(d.company.name), diarySite ? hostOf(diarySite) : ""].filter(Boolean).join(" · ").toUpperCase(),
   };
   const contact: { label: string; value: string }[] = [];
   if (p.email.visible && p.email.value) contact.push({ label: "EMAIL", value: p.email.value });
   if (p.phone.visible && p.phone.value) contact.push({ label: "PHONE", value: p.phone.value });
   if (en(p.location)) contact.push({ label: "BASE", value: en(p.location) });
-  if (c.links.find((l) => l.kind === "website")) contact.push({ label: "WORK", value: hostOf(companySite) });
+  if (companyHref) contact.push({ label: "WORK", value: hostOf(companyHref) });
   contact.push({ label: "SITE", value: hostOf(site) });
   const docsData = {
     title: "Documents & contact",
@@ -332,11 +344,13 @@ export async function generate(input: GenerateInput): Promise<Output> {
   const docsRef = render("panel-docs", (t) => panels[t.name].docs);
   const diaryAlt = `${diaryData.title} — ${diaryData.intro} ${d.entries.map((e) => `${en(e.month)}: ${en(e.title)}`).join(" ")}`.trim();
   const docsAlt = `${docsData.title} — ${[...docsData.documents.map((x) => x.title), ...contact.map((x) => `${x.label.toLowerCase()} ${x.value}`)].join(", ")}`;
+  // Both links on one line with nothing between them: 2 × 49.5% always fits the column, so the
+  // panels stay side by side at any width (a space between them made them stack on phones).
+  // The visible gap comes from PANEL_GUTTER inside the SVGs.
   md.push(
     [
       "<p>",
-      `  ${linked(sectionUrl(content, "diary"), picture({ ...diaryRef, alt: diaryAlt, width: "49.5%" }))}`,
-      `  ${linked(sectionUrl(content, "documents"), picture({ ...docsRef, alt: docsAlt, width: "49.5%" }))}`,
+      `  ${linked(sectionUrl(content, "diary"), picture({ ...diaryRef, alt: diaryAlt, width: "49.5%" }))}${linked(sectionUrl(content, "documents"), picture({ ...docsRef, alt: docsAlt, width: "49.5%" }))}`,
       "</p>",
     ].join("\n"),
   );
@@ -354,5 +368,7 @@ export async function generate(input: GenerateInput): Promise<Output> {
 
   const readme = md.join("\n\n") + "\n";
   if (!readme.includes(WAKA_START) || !readme.includes(WAKA_END)) throw new Error("WakaTime markers were lost");
+  // Each card embeds only the glyphs it draws (cards are built with whole fonts, then subset).
+  for (const [name, svg] of files) files.set(name, await subsetSvgFonts(svg));
   return { files, binaries, readme };
 }

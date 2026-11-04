@@ -136,16 +136,29 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
     },
     [e],
   );
-  /** Swap the dither for the clear print: a short opacity crossfade at DRY, instant otherwise. */
+  /**
+   * Swap the dither for the clear print: a short opacity crossfade at DRY, instant
+   * otherwise. Called from the animation loop, so it never paints there: when the
+   * finals are not on their canvases yet they are painted in the next idle slot and
+   * the dither stays up until then.
+   */
   const showClear = useCallback(
     (i: number, animate: boolean) => {
       const s = slots.current[i];
       if (e.dry[i] || !s?.clear || !e.src[i]) return;
-      paintFinals(i);
       e.dry[i] = true;
-      s.clear.style.opacity = "1";
-      if (animate && typeof s.clear.animate === "function")
-        s.clear.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: "ease-out" });
+      const clear = s.clear;
+      const reveal = () => {
+        clear.style.opacity = "1";
+        if (animate && typeof clear.animate === "function")
+          clear.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: "ease-out" });
+      };
+      if (e.finals[i]) reveal();
+      else
+        whenIdle(() => {
+          paintFinals(i);
+          if (e.finals[i]) reveal();
+        });
     },
     [e, paintFinals],
   );
@@ -241,6 +254,8 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
       const prev = e.pos;
       e.pos = reducedRef.current ? e.target : M.damp(e.pos, e.target, dt);
       if (e.goal !== null && e.pos === e.target && Math.round(e.target) === e.goal) e.goal = null;
+      loadAround(e.pos);
+      loadAround(e.target);
 
       for (let i = 0; i < n; i++) {
         if (e.states[i] === "unexposed" && M.crossedGate(prev, e.pos, i)) {
@@ -303,19 +318,33 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
     let ioVisible: IntersectionObserver | null = null;
     let ioNear: IntersectionObserver | null = null;
     let alive = true;
-    const loadSources = () =>
-      frames.forEach((f, i) => {
-        void frameSource(f, i, n).then((source) => {
-          if (!alive) return;
-          e.src[i] = source;
-          if (e.states[i] === "developed") showClear(i, false);
-          else if (e.states[i] === "developing") schedule();
-          // Clear print + negative are computed while the browser is idle, not in the scroll loop.
-          whenIdle(() => {
-            if (alive) paintFinals(i);
-          });
+    // Pictures are only fetched for the frames on, or about to come onto, the strip (M.framesAround).
+    let near = false;
+    const requested: boolean[] = Array.from({ length: n }, () => false);
+    const requestSource = (i: number) => {
+      requested[i] = true;
+      // Resolves with the clear print, negative and dither input already computed (print worker).
+      void frameSource(frames[i]!, i, n).then((source) => {
+        if (!alive) return;
+        e.src[i] = source;
+        if (e.states[i] === "developed") showClear(i, false);
+        else if (e.states[i] === "developing") schedule();
+        // Copying them onto the canvases happens while the browser is idle, not in the scroll loop.
+        whenIdle(() => {
+          if (alive) paintFinals(i);
         });
       });
+    };
+    /** Request the frames around position `p` that are not requested yet, nearest the gate first. */
+    function loadAround(p: number) {
+      if (!near) return;
+      for (const i of M.framesAround(p, n)) if (!requested[i]) requestSource(i);
+    }
+    const loadSources = () => {
+      near = true;
+      measure();
+      loadAround(e.target);
+    };
     const sec = sectionRef.current;
     if (sec && typeof IntersectionObserver !== "undefined") {
       ioVisible = new IntersectionObserver((entries) => {
@@ -401,17 +430,15 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
   const base = () => e.goal ?? index;
 
   const onKeyDown = (ev: KeyboardEvent<HTMLDivElement>) => {
-    if (ev.target !== ev.currentTarget) return;
-    let next: number | null = null;
-    if (ev.key === "ArrowRight" || ev.key === "ArrowDown" || ev.key === "PageDown") next = base() + 1;
-    else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp" || ev.key === "PageUp") next = base() - 1;
-    else if (ev.key === "Home") next = 0;
-    else if (ev.key === "End") next = n - 1;
-    else if (ev.key === "Enter") {
+    // Keys with modifiers stay with the browser (Alt+← is "back").
+    if (ev.target !== ev.currentTarget || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    if (ev.key === "Enter") {
       ev.preventDefault();
       setPrintOpen(true);
       return;
     }
+    // null at the ends (Up on the first frame, Down on the last): the page scrolls on.
+    const next = M.keyTarget(ev.key, base(), n);
     if (next === null) return;
     ev.preventDefault();
     goTo(next);

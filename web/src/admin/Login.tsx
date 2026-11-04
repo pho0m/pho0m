@@ -97,7 +97,10 @@ export function Login({
       onLoggedIn({ token: res.token, expiresAt: res.expiresAt });
     } catch (err) {
       const apiErr: AdminApiError | null = isApiError(err) ? err : null;
-      setError({ text: errorMessage(err), detail: apiErr?.detail && apiErr.detail !== apiErr.message ? apiErr.detail : undefined });
+      const server = apiErr?.detail && apiErr.detail !== apiErr.message ? apiErr.detail : "";
+      // 403: the API does not list this page's origin; show it so the owner can add it.
+      const origin = apiErr?.kind === "forbidden" ? `โดเมนนี้: ${window.location.origin}` : "";
+      setError({ text: errorMessage(err), detail: [origin, server].filter(Boolean).join(" · ") || undefined });
       if (apiErr?.kind === "rate-limited") setWait(apiErr.retryAfter ?? 30);
       inputRef.current?.select();
     } finally {

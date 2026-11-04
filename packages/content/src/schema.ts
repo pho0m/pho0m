@@ -288,8 +288,8 @@ export const Diary = z.object({
   }),
   duties: z.array(z.object({ title: Localized, description: Localized })).default([]),
   entries: z.array(DiaryEntry).default([]),
-  sheetUrl: z.string().default(""),
-  slidesUrl: z.string().default(""),
+  sheetUrl: OptionalUrl,
+  slidesUrl: OptionalUrl,
 });
 export type Diary = z.infer<typeof Diary>;
 

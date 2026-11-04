@@ -16,6 +16,8 @@ import { SkillsSection } from "./sections/SkillsSection.tsx";
 import { TimelineSection } from "./sections/TimelineSection.tsx";
 import { timeLabel, useDraft, type DraftStore } from "./useDraft.ts";
 import { thaiMessage } from "./validate.ts";
+import { warningCopy } from "./notices.ts";
+import { acceptedUrl } from "./urls.ts";
 import { Splash } from "./Splash.tsx";
 
 function sectionFromHash(): SectionId {
@@ -84,6 +86,25 @@ function IssuesPanel({ issues, onJump }: { issues: Issue[]; onJump: (path: strin
       </ul>
       {count > 40 ? <p className="small muted">…และอีก {count - 40} จุด</p> : null}
     </section>
+  );
+}
+
+/** GET /api/content answered with a warning (e.g. the drafts could not be decrypted). */
+export function ContentWarningBanner({ warning }: { warning: string }) {
+  if (!warning) return null;
+  const copy = warningCopy(warning);
+  return (
+    <div className="banner banner-error px" role="alert">
+      <strong>⚠ {copy.title}</strong>
+      {copy.lines.map((line) => (
+        <p key={line} className="small">
+          {line}
+        </p>
+      ))}
+      <p className="small muted">
+        <code>{warning}</code>
+      </p>
+    </div>
   );
 }
 
@@ -220,7 +241,8 @@ export function Editor({
     (v: Content[K]) =>
       d.setDraft((c) => (c ? { ...c, [key]: v } : c));
   const canSave = (d.dirty || d.generation === null) && !d.saving;
-  const siteUrl = draft.site.url;
+  // the draft may hold a half-typed address; only link to one the schema accepts
+  const siteUrl = acceptedUrl(draft.site.url, "https") ? draft.site.url : "";
   const current = SECTIONS.find((s) => s.id === section)!;
 
   const renderSection = () => {
@@ -337,6 +359,7 @@ export function Editor({
           </nav>
 
           <main className="adm-main" id="main" ref={mainRef} tabIndex={-1} aria-label={current.th}>
+            <ContentWarningBanner warning={d.warning} />
             {d.restore ? (
               <div className="banner banner-warn px" role="status">
                 <strong>พบฉบับร่างที่ยังไม่ได้บันทึก</strong>

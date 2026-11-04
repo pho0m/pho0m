@@ -11,6 +11,7 @@ import { useJump } from "../context.tsx";
 import { dateOrder, insertItem, removeItem, replaceItem } from "../list.ts";
 import { FRAME_ASPECT } from "../darkroom.ts";
 import { autoId } from "../validate.ts";
+import { DRAFT_HINT, UPLOADS_PUBLIC } from "../notices.ts";
 import { ConfirmButton, Grid, IdField, LocalizedField, TagsField, TextField, Toggle, bind } from "../fields/basic.tsx";
 import { PrintCanvas, PrintControls, SpriteIcon, useDarkroomPrint } from "../fields/canvas.tsx";
 import { ImagesField } from "../fields/ImageField.tsx";
@@ -148,7 +149,7 @@ function FrameEditor({
             <TextField label="ป้ายวันที่ (แทนวันที่)" placeholder="เช่น ~2020 หรือ NOW" hint="เว้นว่าง = ใช้วันที่" {...f("dateLabel")} />
           </Grid>
           <IdField auto={autoId(frame.title.en, "frame")} {...f("id")} />
-          <Toggle label="เผยแพร่บนเว็บ" hint="ปิด = ร่าง ไม่แสดงบนฟิล์ม" {...f("published")} />
+          <Toggle label="เผยแพร่บนเว็บ" hint={DRAFT_HINT} {...f("published")} />
         </div>
         <FramePreview frame={frame} t={t} seed={index * 7 + 3} />
       </div>
@@ -208,7 +209,7 @@ export function TimelineSection({ value, onChange }: { value: Frame[]; onChange:
   return (
     <>
       <SectionHead title="ฟิล์ม Timeline" en="Film frames">
-        แต่ละเฟรมคือหนึ่งช่วงชีวิต เรียงตามวันที่อัตโนมัติ · เฟรมที่ปิดเผยแพร่จะไม่แสดงบนเว็บ
+        แต่ละเฟรมคือหนึ่งช่วงชีวิต เรียงตามวันที่อัตโนมัติ · เฟรมร่างไม่แสดงบนเว็บ และไม่อยู่ในไฟล์สาธารณะ {UPLOADS_PUBLIC}
       </SectionHead>
       <div className="tl">
         <nav className="tl-list px" aria-label="รายการเฟรม">

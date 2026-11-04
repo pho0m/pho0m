@@ -1,6 +1,7 @@
 import type { Company, CompanyProject, CompanyService, Customer } from "@pho0m/content";
 import { autoId } from "../validate.ts";
-import { Grid, Group, IdField, LocalizedField, TextField, Toggle, bind } from "../fields/basic.tsx";
+import { Grid, Group, IdField, LocalizedField, TextField, Toggle, UrlField, bind } from "../fields/basic.tsx";
+import { HIDDEN_HINT } from "../notices.ts";
 import { ImageField, ImagesField } from "../fields/ImageField.tsx";
 import { LinksEditor } from "../fields/LinksEditor.tsx";
 import { ListEditor } from "../fields/ListEditor.tsx";
@@ -40,10 +41,10 @@ function ProjectEditor({
       </Grid>
       <Grid>
         <IdField auto={autoId(value.name, "project")} {...f("id")} />
-        <TextField label="ลิงก์เว็บไซต์" type="url" mono placeholder="https://…" {...f("url")} />
+        <UrlField label="ลิงก์เว็บไซต์" placeholder="https://…" {...f("url")} />
       </Grid>
       <div className="toggles">
-        <Toggle label="แสดงบนเว็บ" {...f("published")} />
+        <Toggle label="แสดงบนเว็บ" hint={HIDDEN_HINT} {...f("published")} />
         <Toggle label="โปรเจกต์เด่น (featured)" {...f("featured")} />
       </div>
       <LocalizedField label="สรุปสั้น" required {...f("summary")} />
@@ -84,7 +85,7 @@ function CustomerEditor({ value, onChange }: { value: Customer; onChange: (v: Cu
     <>
       <Grid>
         <TextField label="ชื่อลูกค้า" required error={value.name.trim() ? undefined : "ต้องกรอกชื่อ"} {...f("name")} />
-        <TextField label="เว็บไซต์" type="url" mono placeholder="https://…" {...f("url")} />
+        <UrlField label="เว็บไซต์" placeholder="https://…" {...f("url")} />
       </Grid>
       <ImageField label="โลโก้" folder="utotech" {...f("logo")} />
     </>

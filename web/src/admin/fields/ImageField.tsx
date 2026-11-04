@@ -1,8 +1,8 @@
 import { useId, useRef, useState, type DragEvent } from "react";
-import type { ImageRef, MediaItem } from "@pho0m/content";
+import { isSafeUrl, type ImageRef, type MediaItem } from "@pho0m/content";
 import type { UploadResult } from "../context.tsx";
 import { fileNameOf, isPdfUrl } from "../image.ts";
-import { LocalizedField, TextField } from "./basic.tsx";
+import { LocalizedField, UrlField } from "./basic.tsx";
 import { PrintPreview } from "./canvas.tsx";
 import { ListEditor } from "./ListEditor.tsx";
 import { MediaPicker } from "./MediaPicker.tsx";
@@ -113,10 +113,9 @@ export function ImageField({
           {url && !isPdfUrl(url) ? <PrintPreview url={url} aspect={aspect} label={`ภาพพิมพ์ห้องมืดของ ${label}`} /> : null}
         </div>
         <div className="imgf-ctl">
-          <TextField
+          <UrlField
             label="URL รูป"
-            type="url"
-            mono
+            kind="image"
             value={url}
             placeholder="/media/… หรือ https://…"
             hint={value?.width && value.height ? `${value.width}×${value.height}px · ${fileNameOf(url)}` : hint}
@@ -275,7 +274,7 @@ export function FileUrlField({
   const [picking, setPicking] = useState(false);
   return (
     <div className="filef">
-      <TextField label={label} type="url" mono value={value} onChange={onChange} hint={hint} placeholder="https://… หรืออัปโหลด PDF" />
+      <UrlField label={label} value={value} onChange={onChange} hint={hint} placeholder="https://… หรืออัปโหลด PDF" />
       <div className="btnrow">
         <UploadButton
           label="อัปโหลด PDF"
@@ -286,7 +285,7 @@ export function FileUrlField({
         <button type="button" className="btn btn-sm" onClick={() => setPicking(true)}>
           เลือกจากคลัง
         </button>
-        {value ? (
+        {value && isSafeUrl(value) ? (
           <a className="btn btn-ghost btn-sm" href={value} target="_blank" rel="noreferrer">
             เปิดไฟล์ ↗
           </a>

@@ -1,4 +1,18 @@
-import type { Lang, Link } from "@pho0m/content";
+import type { ImageRef, Lang, Link } from "@pho0m/content";
+
+/**
+ * width/height attributes for an <img> when the content records the image's size, so
+ * the browser reserves its box before it loads. Images without a size are put in a
+ * fixed-ratio box instead (the .imgbox class, or an aspect-ratio style).
+ */
+export function imgSize(image: Pick<ImageRef, "width" | "height">): { width?: number; height?: number } {
+  return image.width && image.height ? { width: image.width, height: image.height } : {};
+}
+
+/** CSS aspect ratio of an image whose size the content records, else `fallback`. */
+export function imgRatio(image: Pick<ImageRef, "width" | "height">, fallback: string): string {
+  return image.width && image.height ? `${image.width} / ${image.height}` : fallback;
+}
 
 /** Split a body text into paragraphs (blank lines or single newlines). */
 export function paragraphs(text: string): string[] {
@@ -12,11 +26,20 @@ export function paragraphs(text: string): string[] {
  * Two-letter pixel monogram for a skill chip: initials of the first two words
  * ("Node.js" → "NJ", "Google Cloud" → "GC"), the capitals of a camel-cased word
  * ("TypeScript" → "TS"), else the first two letters ("React" → "Re").
+ * A qualifier in brackets is not part of the name, and brackets or other punctuation
+ * never show: "Figma (advanced)" → "Fi", the same as "Figma" ("C#" keeps its "#").
  */
 export function monogram(name: string): string {
-  const words = name.split(/[\s./_-]+/).filter((w) => /[\p{L}\p{N}]/u.test(w));
-  if (words.length >= 2) return (words[0]![0]! + words[1]![0]!).toUpperCase();
-  const w = words[0] ?? name;
+  const wordsOf = (s: string) =>
+    s
+      .split(/[\s./_-]+/)
+      .map((w) => w.replace(/[^\p{L}\p{M}\p{N}#+]/gu, ""))
+      .filter((w) => /[\p{L}\p{N}]/u.test(w));
+  const bare = wordsOf(name.replace(/\([^)]*\)?|\[[^\]]*\]?/g, " "));
+  const words = bare.length ? bare : wordsOf(name);
+  const initial = (w: string) => w.match(/[\p{L}\p{N}]/u)![0];
+  if (words.length >= 2) return (initial(words[0]!) + initial(words[1]!)).toUpperCase();
+  const w = words[0] ?? "";
   const caps = w.match(/\p{Lu}/gu) ?? [];
   if (caps.length >= 2) return caps[0]! + caps[1]!;
   const chars = [...w];

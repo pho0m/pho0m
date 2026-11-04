@@ -4,8 +4,9 @@ import { dirname, join } from "node:path";
 import { readWoff2Metrics, type FontMetrics } from "./woff2.ts";
 
 /**
- * The three darkroom typefaces, embedded into each SVG as base64 @font-face (latin subset)
- * and measured from the same files so layouts line up with what GitHub renders.
+ * The three darkroom typefaces, embedded into each SVG as base64 @font-face and measured from
+ * the same files so layouts line up with what GitHub renders. fontCss() embeds the whole latin
+ * file; generate() then cuts each embedded font down to the glyphs that card draws (subset.ts).
  *   led  VT323               — LED / LCD labels and numbers
  *   px7  Pixelify Sans 700   — pixel display headings
  *   b4/b6 Chakra Petch 400/600 — body text and labels
@@ -21,7 +22,7 @@ const DEFS: Record<FontKey, { pkg: string; file: string; family: string; weight:
 };
 export const FONT_KEYS = Object.keys(DEFS) as FontKey[];
 
-type Loaded = { base64: string; metrics: FontMetrics };
+type Loaded = { bytes: Buffer; base64: string; metrics: FontMetrics };
 const cache = new Map<FontKey, Loaded>();
 const require = createRequire(import.meta.url);
 
@@ -31,9 +32,15 @@ function load(key: FontKey): Loaded {
   const def = DEFS[key];
   const dir = dirname(require.resolve(`${def.pkg}/package.json`));
   const bytes = readFileSync(join(dir, "files", def.file));
-  const loaded = { base64: bytes.toString("base64"), metrics: readWoff2Metrics(bytes) };
+  const loaded = { bytes, base64: bytes.toString("base64"), metrics: readWoff2Metrics(bytes) };
   cache.set(key, loaded);
   return loaded;
+}
+
+/** The whole WOFF2 file for `key`, and its base64 exactly as fontCss() embeds it. */
+export function fontFile(key: FontKey): { bytes: Buffer; base64: string } {
+  const { bytes, base64 } = load(key);
+  return { bytes, base64 };
 }
 
 /** Width of a code point the font lacks (the browser falls back to a system font). */

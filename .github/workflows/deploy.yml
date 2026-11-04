@@ -10,8 +10,9 @@
 # Content refresh (repository_dispatch "content-updated" sent by the admin API after a save,
 # and a daily schedule): rebuild the static site so the baked SEO/AI files (index.html snapshot,
 # JSON-LD, sitemap.xml, llms.txt, llms-full.txt) follow the live content in the bucket.
-#   check    install + build only (the daily run stops here when the live site already has
-#            the latest saved content)
+#   check    install + build only (the daily run stops here when there is nothing new to bake:
+#            no bucket, nothing saved from /admin yet, or the live site already has the latest
+#            saved content)
 #   api      not redeployed: only looks up the live Cloud Run URL for VITE_API_URL
 #   web      build with the live content and deploy to Firebase Hosting
 #   release  skipped
@@ -32,7 +33,8 @@ on:
       - ".github/workflows/waka.yml"
       - ".github/workflows/firebase-hosting-pull-request.yml"
   workflow_dispatch:
-  # Sent by the admin API (api/src/redeploy.ts) after a save, at most once per 5 minutes.
+  # Sent by the admin API (api/src/redeploy.ts) as part of a save, at most once per 2 minutes
+  # (a save inside that window is queued and goes out with the next save; the daily run catches up).
   repository_dispatch:
     types: [content-updated]
   # Daily safety net for saves whose dispatch was lost: 02:41 UTC (09:41 in Bangkok).
@@ -64,31 +66,56 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
-      # "false" only for a scheduled run when the live site already has the latest content.
+      # "false" only for a scheduled run that has nothing new to bake (see the first step).
       needed: ${{ steps.stale.outputs.needed || 'true' }}
     steps:
-      # The daily run is a safety net: skip it when the content saved in the bucket is the one
-      # the live site was built with (llms-full.txt carries "Last updated: <updatedAt>").
+      # The daily run is a safety net for saves whose dispatch was lost. It skips the rebuild when:
+      #   - no bucket is configured: the site only has content/seed.json, and changing that is a
+      #     push to main, which runs a full deploy;
+      #   - content/site.json is 404: nothing has been saved from /admin yet (same as above);
+      #   - the live site was built from the content saved in the bucket (llms-full.txt carries
+      #     "Last updated: <updatedAt>").
+      # Any other answer from the bucket rebuilds, and the build then fails loudly if the bucket
+      # still cannot be read (SEO_REQUIRE_LIVE_CONTENT in the web job).
       - name: Is the live site behind the content?
         id: stale
         if: github.event_name == 'schedule'
         env:
           BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
         run: |
+          skip() {
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Nothing to refresh::$1"
+            exit 0
+          }
+          if [ -z "$BUCKET" ]; then
+            skip "SERVICE_ACCOUNT_BUCKET_NAME is not set, so the site only has the built-in content, and a push to main deploys that."
+          fi
+
+          body="$(mktemp "${RUNNER_TEMP}/site.XXXXXX.json")"
+          # No -f: the status code decides. A network error gives 000.
+          status="$(curl -sS --max-time 20 -o "$body" -w '%{http_code}' "https://storage.googleapis.com/${BUCKET}/content/site.json" || true)"
+          current=""
+          case "$status" in
+            404)
+              skip "Nothing has been saved from /admin yet (content/site.json does not exist), so the live site already has the built-in content."
+              ;;
+            200)
+              current="$(jq -r '.updatedAt // empty' "$body" 2>/dev/null || true)"
+              ;;
+            *)
+              echo "::warning title=Could not read the content::content/site.json answered HTTP ${status:-000}. Rebuilding; the build fails if the bucket still cannot be read."
+              ;;
+          esac
+
           site="https://${FIREBASE_PROJECT}.web.app"
           live="$(curl -fsS --max-time 20 "$site/llms-full.txt" | sed -n 's/.*Last updated: \([^ ]*\) .*/\1/p' | head -n 1 || true)"
-          current=""
-          if [ -n "$BUCKET" ]; then
-            current="$(curl -fsS --max-time 20 "https://storage.googleapis.com/${BUCKET}/content/site.json" | jq -r '.updatedAt // empty' || true)"
-          fi
           echo "Live site built with content from: ${live:-unknown}"
           echo "Content in the bucket saved at:   ${current:-unknown}"
-          if [ -n "$live" ] && [ "$live" = "$current" ]; then
-            echo "needed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Already up to date::The live site already has the content saved at $current, so there is nothing to rebuild."
-          else
-            echo "needed=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$current" ] && [ "$live" = "$current" ]; then
+            skip "The live site already has the content saved at $current."
           fi
+          echo "needed=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v5
         if: steps.stale.outputs.needed != 'false'
@@ -244,10 +271,43 @@ jobs:
           BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          CREDENTIALS_FILE: ${{ steps.auth.outputs.credentials_file_path }}
           # GitHub does not allow secret names that start with GITHUB_, so the secret is
           # DISPATCH_TOKEN and becomes GITHUB_DISPATCH_TOKEN on the service.
           DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
         run: |
+          # SESSION_SECRET signs admin sessions and is the key for the encrypted drafts and history
+          # in the bucket (private/), so the service always gets one, and the same one on every
+          # deploy. The key file is not passed to the container, so the API cannot derive it itself.
+          #   - the SESSION_SECRET secret when it is set (at least 32 characters, like the API checks);
+          #   - otherwise HMAC-SHA256 of the service-account key's private_key with the message
+          #     "pho0m-admin-session-v1": the value the API derives itself from SERVICE_ACCOUNT_KEY
+          #     (deriveSecret in api/src/config.ts). It changes only when the key is replaced.
+          # The value is never printed.
+          if [ -n "$SESSION_SECRET" ]; then
+            if [ "${#SESSION_SECRET}" -lt 32 ]; then
+              echo "::error title=SESSION_SECRET is too short::Use at least 32 characters (openssl rand -hex 32), or delete the secret to use one derived from the service-account key."
+              exit 1
+            fi
+            echo "SESSION_SECRET: from the SESSION_SECRET secret."
+          else
+            SESSION_SECRET="$(python3 - "$CREDENTIALS_FILE" <<'PY'
+          import hashlib, hmac, json, sys
+          key = json.load(open(sys.argv[1], encoding="utf-8")).get("private_key") or ""
+          if "\\n" in key:
+              key = key.replace("\\n", "\n")  # same clean-up as parseServiceAccountKey
+          if key:
+              print(hmac.new(key.encode("utf-8"), b"pho0m-admin-session-v1", hashlib.sha256).hexdigest(), end="")
+          PY
+            )"
+            if [ -z "$SESSION_SECRET" ]; then
+              echo "::error title=No SESSION_SECRET::The service-account key has no private_key to derive SESSION_SECRET from. Paste the whole JSON key file into SERVICE_ACCOUNT_KEY, or set the SESSION_SECRET secret."
+              exit 1
+            fi
+            echo "::add-mask::$SESSION_SECRET"
+            echo "SESSION_SECRET: derived from the service-account key (no SESSION_SECRET secret)."
+          fi
+
           # Env vars go through a file so commas, quotes or '=' in the password are safe.
           # jq writes JSON, which is valid YAML, with every value quoted and escaped.
           # The file replaces all env vars on the service, so removed secrets really go away.
@@ -261,9 +321,8 @@ jobs:
             --arg session "$SESSION_SECRET" \
             --arg dispatch "$DISPATCH_TOKEN" \
             --arg repository "$GITHUB_REPOSITORY" \
-            '{SERVICE_ACCOUNT_BUCKET_NAME: $bucket, ALLOWED_ORIGINS: $origins}
+            '{SERVICE_ACCOUNT_BUCKET_NAME: $bucket, ALLOWED_ORIGINS: $origins, SESSION_SECRET: $session}
              + (if $password != "" then {ADMIN_PASSWORD: $password} else {} end)
-             + (if $session != "" then {SESSION_SECRET: $session} else {} end)
              + (if $dispatch != "" then {GITHUB_DISPATCH_TOKEN: $dispatch, GITHUB_REPOSITORY: $repository} else {} end)' > "$env_file"
 
           # The runtime identity is the same service account, so the API reaches the bucket

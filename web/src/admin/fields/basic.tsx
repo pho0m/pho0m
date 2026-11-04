@@ -1,5 +1,7 @@
 import { useId, useRef, useState, type ReactNode, type KeyboardEvent } from "react";
 import type { Localized } from "@pho0m/content";
+import { HIDDEN_HINT } from "../notices.ts";
+import { urlError, type UrlKind } from "../urls.ts";
 
 /* ---------- helpers ---------- */
 
@@ -110,6 +112,28 @@ export function TextField(p: TextProps) {
       )}
       <Help id={id} hint={p.hint} error={p.error} />
     </div>
+  );
+}
+
+/**
+ * A link or image address, checked as the owner types against what the content schema accepts
+ * (https://, mailto:, tel:, a site path /… or #anchor; images: https:// or /…).
+ */
+export function UrlField({
+  kind = "link",
+  required,
+  error,
+  ...p
+}: Omit<TextProps, "type" | "mono" | "multiline" | "rows" | "inputMode"> & { kind?: UrlKind }) {
+  return (
+    <TextField
+      {...p}
+      type="url"
+      mono
+      inputMode="url"
+      required={required}
+      error={error ?? urlError(p.value, { kind, required })}
+    />
   );
 }
 
@@ -401,6 +425,7 @@ export function ContactField({
       <TextField label={label} type={type} value={value.value} onChange={(v) => onChange({ ...value, value: v })} />
       <Toggle
         label="แสดงบนเว็บ"
+        hint={HIDDEN_HINT}
         value={value.visible}
         onChange={(visible) => onChange({ ...value, visible })}
       />

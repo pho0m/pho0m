@@ -25,9 +25,11 @@ export function useApi(): AdminApi {
 
 export type Toast = {
   id: number;
-  kind: "ok" | "error" | "info";
+  kind: "ok" | "error" | "warn" | "info";
   text: string;
   detail?: string;
+  /** A second, quieter line (e.g. the SEO/README rebuild status after a save). */
+  note?: { text: string; tone: "ok" | "muted" };
   link?: { href: string; label: string };
 };
 type ToastApi = { push: (t: Omit<Toast, "id">) => void; dismiss: (id: number) => void };
@@ -42,7 +44,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       const id = nextId.current++;
       // a success makes every earlier message stale; otherwise keep at most 3 on screen
       setToasts((ts) => [...(t.kind === "ok" ? [] : ts.slice(-2)), { ...t, id }]);
-      window.setTimeout(() => dismiss(id), t.kind === "error" ? 15000 : t.link ? 9000 : 5000);
+      window.setTimeout(() => dismiss(id), t.kind === "error" || t.kind === "warn" ? 15000 : t.link ? 9000 : 5000);
     },
     [dismiss],
   );
@@ -56,6 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div className="toast-body">
               <span>{t.text}</span>
               {t.detail ? <small className="muted">{t.detail}</small> : null}
+              {t.note ? <small className={`toast-note toast-note-${t.note.tone}`}>{t.note.text}</small> : null}
               {t.link ? (
                 <a href={t.link.href} target="_blank" rel="noreferrer">
                   {t.link.label} ↗

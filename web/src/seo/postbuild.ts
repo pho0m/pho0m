@@ -1,16 +1,21 @@
 /**
- * Runs after `vite build` (see web/package.json "build"): writes SEO + AI-crawler files into web/dist.
+ * Runs after `vite build` (see web/package.json "build"): writes SEO + AI-crawler files into web/dist:
+ * index.html (Thai first, "/") and en/index.html (English first, "/en/") with head tags, the static
+ * snapshot and the content as JSON, plus robots.txt, sitemap.xml, llms.txt and llms-full.txt.
  * Content source: VITE_CONTENT_URL (the live JSON the admin publishes) when reachable and valid,
- * otherwise content/seed.json — so CI builds bake in the latest edits.
+ * otherwise content/seed.json — so CI builds bake in the latest edits. Only the public projection
+ * of that content is baked (buildSiteFiles applies publicProjection).
  *
  * SEO_REQUIRE_LIVE_CONTENT=1 (set by deploy.yml for content refreshes) turns "could not read the
  * live content" into a failed build instead of quietly baking the seed. A 404 is not a failure:
  * nothing has been saved from /admin yet, so the seed is the live content.
  */
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseContent, seed, type Content } from "@pho0m/content";
-import { buildLlmsFull, buildLlmsTxt, buildRobots, buildSitemap, injectIntoHtml } from "./build.ts";
+import { parseContent, type Content } from "@pho0m/content";
+import { seed } from "@pho0m/content/seed";
+import { buildSiteFiles } from "./build.ts";
 
 const dist = fileURLToPath(new URL("../../dist/", import.meta.url));
 const FETCH_TIMEOUT_MS = 20_000;
@@ -52,14 +57,15 @@ if (problem) {
   console.warn(`[seo] ${problem}; using the seed`);
 }
 
-const indexPath = `${dist}index.html`;
-const html = await readFile(indexPath, "utf8");
-await writeFile(indexPath, injectIntoHtml(html, content));
-await writeFile(`${dist}robots.txt`, buildRobots(content));
-await writeFile(`${dist}sitemap.xml`, buildSitemap(content));
-await writeFile(`${dist}llms.txt`, buildLlmsTxt(content));
-await writeFile(`${dist}llms-full.txt`, buildLlmsFull(content));
+// The app shell Vite wrote (or an earlier run's output: injecting is repeatable).
+const html = await readFile(`${dist}index.html`, "utf8");
+const files = buildSiteFiles(html, content);
+for (const [path, text] of Object.entries(files)) {
+  const target = `${dist}${path}`;
+  await mkdir(dirname(target), { recursive: true });
+  await writeFile(target, text);
+}
 // For the CI run summary only; dot files are not deployed (firebase.json "ignore": "**/.*").
 const note = `${source}, content updatedAt ${content.updatedAt || "unknown"}`;
 await writeFile(`${dist}.seo-source`, `${note}\n`);
-console.log(`[seo] wrote index.html snapshot, robots.txt, sitemap.xml, llms.txt, llms-full.txt (content: ${note})`);
+console.log(`[seo] wrote ${Object.keys(files).join(", ")} (content: ${note})`);

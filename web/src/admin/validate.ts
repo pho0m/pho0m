@@ -1,5 +1,6 @@
-import { parseContent, slugify, type Content } from "@pho0m/content";
+import { isSafeUrl, parseContent, slugify, type Content } from "@pho0m/content";
 import type { Issue } from "./api.ts";
+import { HTTPS_ERROR, IMAGE_URL_ERROR, URL_ERROR } from "./urls.ts";
 
 /**
  * Local checks run before every save: auto ids, schema validation (parseContent)
@@ -67,14 +68,41 @@ export function duplicateIdIssues(c: Content): Issue[] {
   ];
 }
 
+/** The schema's message for a rejected link (packages/content schema.ts URL_MSG). */
+export const UNSAFE_URL_MESSAGE = "use https://…, mailto:, tel:, a site path (/…) or #anchor";
+
+/**
+ * Links the schema stores as plain strings but the site still renders as links
+ * (diary.sheetUrl, diary.slidesUrl): held to the same rule as every other URL field.
+ */
+export function extraUrlIssues(c: Content): Issue[] {
+  const out: Issue[] = [];
+  for (const key of ["sheetUrl", "slidesUrl"] as const) {
+    const v = c.diary?.[key];
+    if (typeof v === "string" && v !== "" && !isSafeUrl(v)) out.push({ path: `diary.${key}`, message: UNSAFE_URL_MESSAGE });
+  }
+  return out;
+}
+
+function uniqueIssues(issues: Issue[]): Issue[] {
+  const seen = new Set<string>();
+  return issues.filter((i) => {
+    const k = `${i.path}\n${i.message}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 export type DraftCheck = { ok: true; content: Content } | { ok: false; issues: Issue[] };
 
 export function validateDraft(draft: Content): DraftCheck {
   const filled = fillAutoIds(draft);
   const parsed = parseContent(filled);
-  const dup = parsed.ok ? duplicateIdIssues(parsed.content) : duplicateIdIssues(filled);
-  if (!parsed.ok) return { ok: false, issues: [...parsed.issues, ...dup] };
-  if (dup.length) return { ok: false, issues: dup };
+  const checked = parsed.ok ? parsed.content : filled;
+  const extra = [...duplicateIdIssues(checked), ...extraUrlIssues(checked)];
+  if (!parsed.ok) return { ok: false, issues: uniqueIssues([...parsed.issues, ...extra]) };
+  if (extra.length) return { ok: false, issues: extra };
   return { ok: true, content: parsed.content };
 }
 
@@ -85,6 +113,9 @@ export function thaiMessage(message: string): string {
   if (m.includes("use yyyy or yyyy-mm")) return "วันที่ต้องเป็น YYYY หรือ YYYY-MM เช่น 2023 หรือ 2023-05";
   if (m.includes("lowercase letters, numbers and dashes")) return "id ใช้ได้เฉพาะ a-z, 0-9 และ - (ขึ้นต้นด้วยตัวอักษรหรือตัวเลข)";
   if (m.startsWith("duplicate id")) return "id ซ้ำกับรายการอื่นในหมวดเดียวกัน";
+  if (m.includes("mailto:") && m.includes("#anchor")) return URL_ERROR;
+  if (m.includes("site path (/media")) return IMAGE_URL_ERROR;
+  if (m === "use https://…" || m === "use https://...") return HTTPS_ERROR;
   if (/at least 1 character/.test(m) || /too_small/.test(m)) return "ห้ามเว้นว่าง";
   if (/at most \d+ character/.test(m)) return "ยาวเกินไป";
   if (m.includes("expected number")) return "ต้องเป็นตัวเลข";

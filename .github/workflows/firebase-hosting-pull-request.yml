@@ -1,24 +1,25 @@
-# Pull requests from branches of this repository: check, build and deploy a Firebase Hosting
-# preview channel (the action comments the preview URL on the PR). Forks have no access to
-# the secrets, so they are skipped. Setup guide: docs/SETUP.md
+# Pull requests.
+#   check    typecheck, test, build the site and the API bundle. Runs for every pull request,
+#            forks included: it uses no secrets and only a read-only token.
+#   preview  deploy the site to a Firebase Hosting preview channel (the action comments the
+#            preview URL on the PR). Only for branches of this repository, because forks have
+#            no access to the secrets.
+# Setup guide: docs/SETUP.md
 
-name: Preview (pull request)
+name: Pull request
 
 on: pull_request
 
 concurrency:
-  group: preview-${{ github.event.pull_request.number }}
+  group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
 jobs:
-  build_and_preview:
-    name: Check and deploy preview
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  check:
+    name: Check
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,6 +41,31 @@ jobs:
 
       - name: Build API bundle
         run: npm run build:api
+
+      # Built-in content (content/seed.json): the same code path as production, without secrets.
+      - name: Build site
+        run: npm run build
+
+  preview:
+    name: Deploy preview
+    needs: check
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
 
       # Same content source as production, so the preview shows the live content.
       # The admin page on a preview URL is not in the API's ALLOWED_ORIGINS, so its calls are blocked.

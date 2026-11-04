@@ -1,5 +1,4 @@
 import { Content, type Frame, type Lang, type Localized } from "./schema.ts";
-import seedJson from "../../../content/seed.json";
 
 export * from "./schema.ts";
 export * from "./sprites.ts";
@@ -19,17 +18,6 @@ export function parseContent(input: unknown): ParseResult {
     issues: r.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
   };
 }
-
-/** The content committed in content/seed.json, validated. Throws if the seed is invalid. */
-export const seed: Content = (() => {
-  const r = parseContent(seedJson);
-  if (!r.ok) {
-    throw new Error(
-      "content/seed.json is invalid:\n" + r.issues.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
-    );
-  }
-  return r.content;
-})();
 
 /** Pick a language with fallback to the other one. */
 export function t(value: Localized | undefined, lang: Lang): string {

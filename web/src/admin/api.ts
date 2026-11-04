@@ -22,6 +22,12 @@ import { formatBytes } from "./image.ts";
 
 export type Issue = { path: string; message: string };
 
+/**
+ * GET /api/content. `warning` is set when the API could not open the private (encrypted) copy and
+ * answered with the published version instead (api/src/app.ts DECRYPT_WARNING).
+ */
+export type ContentReadResponse = ContentResponse & { warning?: string };
+
 export type ErrorKind =
   | "network"
   | "aborted"
@@ -47,10 +53,15 @@ export class AdminApiError extends Error {
   readonly issues: Issue[];
   /** Seconds to wait (from Retry-After) for 429 responses. */
   readonly retryAfter: number | null;
+  /**
+   * New storage generation sent with some errors: a save whose private copy was written but whose
+   * public site.json was not (500). The next save must use it, otherwise it gets a false 409.
+   */
+  readonly generation: string | null;
   constructor(
     kind: ErrorKind,
     message: string,
-    init: { status?: number; detail?: string; issues?: Issue[]; retryAfter?: number | null } = {},
+    init: { status?: number; detail?: string; issues?: Issue[]; retryAfter?: number | null; generation?: string | null } = {},
   ) {
     super(message);
     this.kind = kind;
@@ -58,6 +69,7 @@ export class AdminApiError extends Error {
     this.detail = init.detail ?? "";
     this.issues = init.issues ?? [];
     this.retryAfter = init.retryAfter ?? null;
+    this.generation = init.generation ?? null;
   }
 }
 
@@ -101,7 +113,8 @@ export function errorFromResponse(
   const api = asApiError(body);
   const detail = api?.error ?? (typeof body === "string" ? body.slice(0, 200) : "");
   const issues = api?.issues ?? [];
-  const init = { status, detail, issues };
+  const gen = body && typeof body === "object" ? (body as { generation?: unknown }).generation : undefined;
+  const init = { status, detail, issues, generation: typeof gen === "string" && gen ? gen : null };
   const isLogin = ctx.route === "/auth/login";
 
   switch (status) {
@@ -116,7 +129,13 @@ export function errorFromResponse(
         ? new AdminApiError("wrong-password", "รหัสผ่านไม่ถูกต้อง", init)
         : new AdminApiError("unauthorized", "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง", init);
     case 403:
-      return new AdminApiError("forbidden", "ไม่มีสิทธิ์ทำรายการนี้", init);
+      return isLogin
+        ? new AdminApiError(
+            "forbidden",
+            "เซิร์ฟเวอร์ไม่รับการเข้าสู่ระบบจากเว็บนี้ — ต้องเพิ่มโดเมนนี้ใน ALLOWED_ORIGINS ของ API",
+            init,
+          )
+        : new AdminApiError("forbidden", "ไม่มีสิทธิ์ทำรายการนี้", init);
     case 404:
       return new AdminApiError("not-found", "ไม่พบข้อมูลที่ขอ (อาจถูกลบไปแล้ว)", init);
     case 409:
@@ -132,11 +151,17 @@ export function errorFromResponse(
         init,
       );
     case 415:
-      return new AdminApiError(
-        "unsupported",
-        "ไม่รองรับไฟล์ชนิดนี้ — ใช้ได้เฉพาะ JPG, PNG, WebP, GIF, AVIF หรือ PDF",
-        init,
-      );
+      return isLogin
+        ? new AdminApiError(
+            "unsupported",
+            "เซิร์ฟเวอร์ไม่รับคำขอเข้าสู่ระบบรูปแบบนี้ — โหลดหน้านี้ใหม่แล้วลองอีกครั้ง",
+            init,
+          )
+        : new AdminApiError(
+            "unsupported",
+            "ไม่รองรับไฟล์ชนิดนี้ — ใช้ได้เฉพาะ JPG, PNG, WebP, GIF, AVIF หรือ PDF",
+            init,
+          );
     case 429: {
       const retryAfter = parseRetryAfter(ctx.retryAfter);
       const wait = retryAfter ? ` รออีกประมาณ ${retryAfter} วินาที` : " รอสักครู่";
@@ -298,10 +323,11 @@ export function createAdminApi(opts: AdminApiOptions) {
 
   return {
     health: (signal?: AbortSignal) => request<HealthResponse>("GET", "/health", { auth: false, signal }),
+    /** JSON body on purpose: the API refuses other content types (415) and foreign origins (403). */
     login: (password: string) =>
       request<LoginResponse>("POST", "/auth/login", { auth: false, body: { password } }),
     me: () => request<MeResponse>("GET", "/auth/me"),
-    getContent: () => request<ContentResponse>("GET", "/content"),
+    getContent: () => request<ContentReadResponse>("GET", "/content"),
     saveContent: (req: SaveContentRequest) => request<SaveContentResponse>("PUT", "/content", { body: req }),
     history: () => request<HistoryResponse>("GET", "/content/history"),
     historyItem: (path: string) =>

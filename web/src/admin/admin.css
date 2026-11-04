@@ -500,6 +500,10 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
 .toast-ok { border-left: 4px solid var(--ok); }
 .toast-error { border-left: 4px solid var(--red); }
 .toast-info { border-left: 4px solid var(--warn); }
+.toast-warn { border-left: 4px solid var(--warn); background: #21160a; }
+.toast-note { font-size: 12px; }
+.toast-note-ok { color: var(--ok); }
+.toast-note-muted { color: var(--muted); }
 
 /* ---------- banners & issues ---------- */
 

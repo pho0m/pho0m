@@ -48,13 +48,16 @@ export class PreconditionFailedError extends Error {
   }
 }
 
-/** The stored live content. `json` is a result because a hand-edited object may not be JSON. */
+/** The stored public content. `json` is a result because a hand-edited object may not be JSON. */
 export type StoredContent = {
   generation: string;
-  /** Raw text, so history copies keep the previous version byte-for-byte. */
+  /** Raw text, so a legacy full copy can be moved into history byte-for-byte. */
   text: string;
   json: { ok: true; value: unknown } | { ok: false; error: string };
 };
+
+/** A private object as stored: the raw (encrypted envelope) text and its generation. */
+export type StoredText = { generation: string; text: string };
 
 export class ConflictError extends Error {
   override readonly name = "ConflictError";
@@ -71,17 +74,31 @@ export class ConflictError extends Error {
 export type HistoryEntry = { path: string; updated: string; size: number };
 export type MediaObject = { path: string; size: number; contentType: string; updated: string };
 
+/**
+ * Object layout (the bucket is publicly readable, so private data is only ever stored encrypted;
+ * encryption itself happens in the app, see content-crypto.ts):
+ *   private/content.enc            full content incl. drafts and hidden items (encrypted envelope).
+ *                                  Its generation is the one the admin sees and the conflict check uses.
+ *   private/history/<stamp>.enc    previous full versions (encrypted envelopes), newest 50 kept
+ *   content/site.json              public projection only (plain JSON, what the site reads)
+ *   content/history/<stamp>.json   legacy plaintext history from before encryption; moved by
+ *                                  migrateLegacyHistory() and never written any more
+ */
 export interface Storage {
   readonly kind: "gcs" | "local";
   readonly bucket: string | null;
-  /** null when content/site.json does not exist yet. */
-  readContent(): Promise<StoredContent | null>;
+  /** private/content.enc as stored (envelope text), or null when it does not exist yet. */
+  readPrivate(): Promise<StoredText | null>;
   /**
-   * Write content/site.json only if its generation is still `ifGeneration`
+   * Write private/content.enc only if its generation is still `ifGeneration`
    * (null → it must not exist). Throws ConflictError otherwise.
    */
-  writeContent(json: string, ifGeneration: string | null): Promise<{ generation: string; updated: string }>;
-  /** Store a copy of a previous live version under content/history/. Returns its path. */
+  writePrivate(text: string, ifGeneration: string | null): Promise<{ generation: string; updated: string }>;
+  /** content/site.json, or null when it does not exist yet. */
+  readContent(): Promise<StoredContent | null>;
+  /** Replace content/site.json (public projection; no precondition, the private write is the check). */
+  writeContent(json: string): Promise<{ generation: string; updated: string }>;
+  /** Store an (encrypted) previous version under private/history/. Returns its path. */
   writeHistory(text: string, at: Date): Promise<string>;
   /** Newest first. */
   listHistory(): Promise<HistoryEntry[]>;
@@ -89,6 +106,11 @@ export interface Storage {
   readHistory(path: string): Promise<string | null>;
   /** Keep the newest `keep` history objects, delete the rest. Returns how many were deleted. */
   pruneHistory(keep: number): Promise<number>;
+  /**
+   * Move legacy plaintext history (content/history/*.json) to private/history/<same stamp>.enc,
+   * passing each through `seal`, then delete the plaintext. Returns how many were moved.
+   */
+  migrateLegacyHistory(seal: (text: string) => string): Promise<number>;
   /** Must not overwrite: the path is new (random suffix). */
   uploadMedia(path: string, bytes: Uint8Array, contentType: string): Promise<MediaObject>;
   /** Newest first. */

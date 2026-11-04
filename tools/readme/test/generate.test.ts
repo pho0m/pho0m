@@ -6,11 +6,16 @@ import { XMLValidator } from "fast-xml-parser";
 import { spritePixels, timelineFrames, type IconName } from "@pho0m/content";
 import { beforeAll, describe, expect, it } from "vitest";
 import { FILM_CARD_FRAMES, FILM_GIF_FRAMES, GENERATED_FILE, MAX_TABLE_ROWS, SVG_BUDGET, type Output } from "../src/generate.ts";
+import { heroStats, type GithubStats } from "../src/model.ts";
+import { heroChips } from "../src/svg/hero.ts";
+import { PANEL_GUTTER, PANEL_W } from "../src/svg/panels.ts";
 import { GIF_BUDGET, GIF_H, GIF_W, gifTimeline } from "../src/gif/film.ts";
 import { WAKA_END, WAKA_START } from "../src/readme.ts";
 import { MOTION_QUERY } from "../src/svg/motion.ts";
 import { apply } from "../src/write.ts";
 import { README_SAMPLE, WAKA_SAMPLE, clone, outsideMotionQuery, parseGif, referencedAssets, run, styleOf } from "./helpers.ts";
+
+const GH: GithubStats = { login: "pho0m", publicRepos: 42, followers: 37, stars: 43, repoStars: {} };
 
 let out: Output;
 beforeAll(async () => {
@@ -153,14 +158,35 @@ describe("README.md", () => {
     const c = clone();
     const client = c.projects.filter((x) => x.published && x.group === "client");
     if (!client.length) return;
-    expect(out.readme).toContain("**Client projects**");
-    const section = out.readme.slice(out.readme.indexOf("**Client projects**"), out.readme.indexOf("**My own projects**"));
+    expect(out.readme).toContain("**Client work** — built for clients, described in text only.");
+    const section = out.readme.slice(out.readme.indexOf("**Client work**"), out.readme.indexOf("**My own projects**"));
     expect(section).toContain(`[${client[0]!.name}]`);
     expect(section).not.toMatch(/\.(png|jpe?g|webp)/i);
-    expect(out.readme).toMatch(/client projects at [^,"]+, \d+ more client works, and \d+ of my own \([^)]*\)\./);
     const badge = out.files.get(`badge-client-${client[0]!.id}-dark.svg`)!;
     expect(badge).toBeTruthy();
     expect(badge).toMatch(/client/i);
+  });
+
+  it("counts the company's project list, client work and my own projects separately, each under its own name", () => {
+    const c = clone();
+    const company = c.company.shortName;
+    const companyWork = c.company.projects.filter((x) => x.published);
+    const client = c.projects.filter((x) => x.published && x.group === "client");
+    const own = c.projects.filter((x) => x.published && x.group !== "client");
+    // the company's list is headed as such, never as client work
+    expect(out.readme).toContain(`**${company} projects**\n\n| Project |`);
+    expect(out.readme).not.toMatch(/Client work at|client works|more client/i);
+    const companySection = out.readme.slice(out.readme.indexOf(`**${company} projects**`), out.readme.indexOf("**Client work**"));
+    for (const p of companyWork.slice(0, MAX_TABLE_ROWS)) expect(companySection).toContain(`[${p.name}]`);
+    // band text and hero chips: one number per kind, none of them a sum
+    expect(out.readme).toContain(`Projects — ${companyWork.length} ${company} projects, ${client.length} client projects, and ${own.length} of my own (`);
+    const hero = out.files.get("hero-light.svg")!;
+    expect(hero).toContain(`>${companyWork.length}</text>`);
+    expect(hero).toContain(`>${company.toUpperCase()} PROJECTS</text>`);
+    expect(hero).toContain(`>${client.length}</text>`);
+    expect(hero).toContain(">CLIENT PROJECTS</text>");
+    expect(hero).not.toContain(`>${companyWork.length + client.length}</text>`);
+    expect(hero).not.toContain("CLIENT WORKS");
   });
 
   it("references only assets that exist, and every generated asset is used", async () => {
@@ -195,6 +221,49 @@ describe("README.md", () => {
     expect(o.files.get("hero-dark.svg")).toContain(">99</text>");
     expect(o.files.get("hero-dark.svg")).toContain("STARS");
     expect(o.readme).toContain("5 GitHub stars");
+  });
+
+  it("draws the hero chips in a fixed order (company and content numbers before GitHub) and its alt lists exactly those", async () => {
+    const all = heroStats(clone(), GH);
+    expect(all.map((s) => s.label)).toEqual(["Utotech projects", "Client projects", "Customers", "Team", "Own projects", "Coding since", "Stars", "Followers", "Repos"]);
+    const altOf = (readme: string) => readme.match(/srcset="assets\/readme\/hero-dark\.svg"><img [^>]*alt="([^"]*)"/)![1]!;
+    const chipLabels = (svg: string) => [...svg.matchAll(/<text [^>]*font-size="16" fill="[^"]+" letter-spacing="1">([^<]+)<\/text>/g)].map((m) => m[1]!);
+    for (const github of [null, GH]) {
+      const warnings: string[] = [];
+      const o = await run({ github, warn: (m) => warnings.push(m) });
+      const { shown, dropped } = heroChips(heroStats(clone(), github));
+      const hero = o.files.get("hero-light.svg")!;
+      // the card draws `shown`, in order, and nothing else
+      expect(chipLabels(hero)).toEqual(shown.map((s) => s.label.toUpperCase()));
+      const alt = altOf(o.readme);
+      expect(alt.endsWith(` ${shown.map((s) => s.alt).join(", ")}.`), alt).toBe(true);
+      for (const s of dropped) expect(alt).not.toContain(s.alt);
+      // a fact that does not fit is never dropped silently
+      if (dropped.length) expect(warnings.join("\n")).toContain(dropped.map((s) => s.alt).join(", "));
+      else expect(warnings.join("\n")).not.toContain("no room");
+      // the company numbers always make it, GitHub ones only after them
+      expect(shown.slice(0, 4).map((s) => s.label)).toEqual(["Utotech projects", "Client projects", "Customers", "Team"]);
+    }
+    // without GitHub every content fact fits (two rows), including "coding since"
+    expect(heroChips(heroStats(clone(), null)).dropped).toEqual([]);
+  });
+
+  it("puts the diary and documents panels edge to edge so they never wrap, with the gap drawn inside the SVGs", () => {
+    const line = out.readme.split("\n").find((l) => l.includes("panel-diary-"))!;
+    expect(line).toContain("panel-docs-");
+    // nothing (not even a space) between the two links, and 2 × 49.5% always fits the column
+    expect(line).toMatch(/^ {2}<a href="[^"]+\/#diary"><picture>.*<\/picture><\/a><a href="[^"]+\/#documents"><picture>.*<\/picture><\/a>$/);
+    expect(line.match(/width="49\.5%"/g)).toHaveLength(2);
+    const size = (svg: string) => svg.match(/^<svg [^>]*width="([\d.]+)" height="([\d.]+)"/)!.slice(1).map(Number);
+    for (const theme of ["dark", "light"]) {
+      const diary = out.files.get(`panel-diary-${theme}.svg`)!;
+      const docs = out.files.get(`panel-docs-${theme}.svg`)!;
+      // same size, so they scale alike and line up; the docs frame sits right of its gutter
+      expect(size(diary)).toEqual(size(docs));
+      expect(size(diary)[0]).toBe(PANEL_W + PANEL_GUTTER);
+      expect(docs).toContain(`<g transform="translate(${PANEL_GUTTER} 0)">`);
+      expect(diary).not.toContain("<g transform=");
+    }
   });
 });
 

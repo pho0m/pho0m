@@ -6,6 +6,7 @@ import { ui, useLang } from "../../lib/i18n.tsx";
 import { useNearViewport, useReducedMotion } from "../hooks.ts";
 import { developLevel, isDry } from "../film/math.ts";
 import { clearOf, clearSize, developingAt, loadCached, naturalHeight, photoPrintSource, whenIdle } from "./images.ts";
+import { imgSize } from "../util.ts";
 
 type Props = {
   image: ImageRef;
@@ -53,6 +54,7 @@ export function Print({ image, width, aspect, reveal = false, develop = false, f
     let cancelled = false;
     let raf = 0;
     let io: IntersectionObserver | null = null;
+    const developing = develop && !reduced;
     void (async () => {
       let src: PrintSource;
       let r: number;
@@ -60,7 +62,9 @@ export function Print({ image, width, aspect, reveal = false, develop = false, f
         const img = await loadCached(image.url);
         r = aspect ?? width / naturalHeight(img, width);
         const size = clearSize(img, width, r);
-        src = await photoPrintSource(image.url, size.w, size.h);
+        // The print worker reads the photo and computes the clear print (and the dither input) off the main thread.
+        const dev = developing ? { w: width, h: Math.max(1, Math.round(width / r)) } : undefined;
+        src = await photoPrintSource(image.url, size.w, size.h, { dev });
       } catch {
         if (!cancelled) setMode("fallback");
         return;
@@ -134,7 +138,15 @@ export function Print({ image, width, aspect, reveal = false, develop = false, f
   if (mode === "fallback") {
     return (
       <div ref={boxRef} className={cls}>
-        <img src={image.url} alt={alt} loading="lazy" decoding="async" />
+        {/* keeps the print's box: the fallback photo is cropped to it, not laid out at its own size */}
+        <img
+          src={image.url}
+          alt={alt}
+          {...imgSize(image)}
+          style={{ aspectRatio: ratio }}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
     );
   }
@@ -177,6 +189,7 @@ export function Print({ image, width, aspect, reveal = false, develop = false, f
             className={`print-real${fit === "contain" ? " print-real--contain" : ""}`}
             src={image.url}
             alt=""
+            {...imgSize(image)}
             crossOrigin="anonymous"
             loading="lazy"
             decoding="async"

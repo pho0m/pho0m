@@ -7,8 +7,10 @@ import { sign, verify } from "hono/jwt";
 export const LOGIN_MAX_FAILURES = 5;
 export const LOGIN_WINDOW_MS = 10 * 60 * 1000;
 /**
- * Across all IPs: 30 failed logins per 10 minutes. Backstop for attackers that rotate or
- * spoof addresses; while it is hit, every login answers 429 (also for the owner).
+ * Across all IPs: 30 failed logins per 10 minutes. Backstop for attackers that rotate
+ * addresses: while it is hit, every address with a failed login in the last 10 minutes is
+ * refused (429). Clean addresses (normally the owner) can still log in, and each new address
+ * gets one guess before it is refused too.
  */
 export const GLOBAL_LOGIN_MAX_FAILURES = 30;
 const MAX_TRACKED_IPS = 10_000;
@@ -97,6 +99,11 @@ export class LoginLimiter {
     if (list.length < this.max) return 0;
     const oldest = list[list.length - this.max] ?? nowMs;
     return Math.max(1, Math.ceil((oldest + this.windowMs - nowMs) / 1000));
+  }
+
+  /** True when this key has at least one failure inside the window. */
+  hasRecent(ip: string, nowMs: number): boolean {
+    return this.recent(ip, nowMs).length > 0;
   }
 
   fail(ip: string, nowMs: number): void {

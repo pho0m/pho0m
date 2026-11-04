@@ -137,21 +137,62 @@ function avatarPrint(d: HeroData, x: number, y: number, t: Theme): { svg: string
   return { svg: s, stages };
 }
 
-function statChips(stats: Stat[], x: number, y: number, maxW: number, t: Theme): string {
-  let cx = x;
-  let s = "";
-  for (const st of stats) {
-    const label = st.label.toUpperCase();
-    const vw = measure(st.value, "led", 30);
-    const lw = measure(label, "led", 16, 1);
-    const w = Math.ceil(12 + vw + 8 + lw + 12);
-    if (cx + w > x + maxW) break;
-    s += pxBox(cx, y, w, 38, { fill: t.panel, stroke: t.line, border: 2, step: 3 });
-    s += text(cx + 12, y + 28, st.value, { font: "led", size: 30, fill: t.led });
-    s += text(cx + 12 + vw + 8, y + 26, label, { font: "led", size: 16, fill: t.muted, spacing: 1 });
-    cx += w + 8;
+/** Left edge and width of the hero's text column (everything right of the avatar print). */
+export const HERO_TEXT_X = 266;
+export const HERO_TEXT_W = CARD_W - HERO_TEXT_X - 34;
+const CHIP_H = 38;
+const CHIP_GAP = 8;
+/** The stat chips wrap onto at most this many rows. */
+export const CHIP_ROWS = 2;
+
+function chipWidth(st: Stat): number {
+  return Math.ceil(12 + measure(st.value, "led", 30) + 8 + measure(st.label.toUpperCase(), "led", 16, 1) + 12);
+}
+
+type PlacedChip = { stat: Stat; x: number; row: number; w: number };
+
+/**
+ * Lay the chips out in the given (priority) order, wrapping onto up to CHIP_ROWS rows. The first
+ * chip that does not fit ends the layout: it and every chip after it are `dropped`, so a later,
+ * lower-priority fact never takes the place of an earlier one.
+ */
+export function layoutChips(stats: Stat[], maxW = HERO_TEXT_W, maxRows = CHIP_ROWS): { placed: PlacedChip[]; dropped: Stat[]; rows: number } {
+  const placed: PlacedChip[] = [];
+  let row = 0;
+  let cx = 0;
+  let i = 0;
+  for (; i < stats.length; i++) {
+    const st = stats[i]!;
+    const w = chipWidth(st);
+    if (w > maxW) break;
+    if (cx > 0 && cx + w > maxW) {
+      row++;
+      cx = 0;
+    }
+    if (row >= maxRows) break;
+    placed.push({ stat: st, x: cx, row, w });
+    cx += w + CHIP_GAP;
   }
-  return s;
+  return { placed, dropped: stats.slice(i), rows: placed.length ? placed[placed.length - 1]!.row + 1 : 0 };
+}
+
+/** Which stats the hero card draws and which it has no room for (the alt text must match `shown`). */
+export function heroChips(stats: Stat[]): { shown: Stat[]; dropped: Stat[] } {
+  const { placed, dropped } = layoutChips(stats);
+  return { shown: placed.map((p) => p.stat), dropped };
+}
+
+function statChips(stats: Stat[], x: number, y: number, t: Theme): { svg: string; height: number } {
+  const { placed, rows } = layoutChips(stats);
+  let s = "";
+  for (const { stat: st, x: dx, row, w } of placed) {
+    const cx = x + dx;
+    const cy = y + row * (CHIP_H + CHIP_GAP);
+    s += pxBox(cx, cy, w, CHIP_H, { fill: t.panel, stroke: t.line, border: 2, step: 3 });
+    s += text(cx + 12, cy + 28, st.value, { font: "led", size: 30, fill: t.led });
+    s += text(cx + 12 + measure(st.value, "led", 30) + 8, cy + 26, st.label.toUpperCase(), { font: "led", size: 16, fill: t.muted, spacing: 1 });
+  }
+  return { svg: s, height: rows ? rows * CHIP_H + (rows - 1) * CHIP_GAP : 0 };
 }
 
 const words = (s: string) => s.toLowerCase().match(/[\p{L}\p{N}+#]+/gu) ?? [];
@@ -171,8 +212,8 @@ export function heroCard(d: HeroData, t: Theme): string {
   const avatar = avatarPrint(d, 34, 34, t);
   let body = avatar.svg;
 
-  const x = 266;
-  const maxW = CARD_W - x - 34;
+  const x = HERO_TEXT_X;
+  const maxW = HERO_TEXT_W;
   body += devTimer(x, 30, t).svg;
 
   // the name, then a blinking LED cursor
@@ -201,8 +242,9 @@ export function heroCard(d: HeroData, t: Theme): string {
     y += 19;
   }
   const chipsY = Math.max(236, y + 6);
-  body += statChips(d.stats, x, chipsY, maxW, t);
-  const H = Math.max(310, chipsY + 38 + 28);
+  const chips = statChips(d.stats, x, chipsY, t);
+  body += chips.svg;
+  const H = Math.max(310, chipsY + Math.max(chips.height, CHIP_H) + 28);
   const frame = cardFrame(CARD_W, H, t, "hero", { x: 0.1, y: 0.05 });
   body = frame.body + body;
 
