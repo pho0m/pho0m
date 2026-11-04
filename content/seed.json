@@ -15,7 +15,7 @@
   },
   "profile": {
     "name": {
-      "th": "",
+      "th": "เกียรติภูมิ พูลเขตร์กิจ",
       "en": "Kiattiphoom Poonketkit"
     },
     "nickname": "Phoom",
@@ -25,12 +25,12 @@
       "en": "CEO, Utotech Co., Ltd."
     },
     "headline": {
-      "th": "นักพัฒนาที่เริ่มจากเด็กฝึกงาน จนวันนี้นำทีมซอฟต์แวร์เฮาส์ของตัวเอง",
-      "en": "From co-op intern to running a software house."
+      "th": "Backend developer สาย Go มากกว่า 4 ปี เริ่มจากเด็กฝึกงาน จนวันนี้นำทีมซอฟต์แวร์เฮาส์ของตัวเอง",
+      "en": "Backend developer (Go) with 4+ years of experience. From co-op intern to running a software house."
     },
     "bio": {
-      "th": "สวัสดีครับ ผม pho0m ชอบฟังเพลง เล่นเกม และทุกอย่างที่เกี่ยวกับเทคโนโลยีและนวัตกรรม งานอดิเรกที่ชอบที่สุดคือเขียนโค้ด เริ่มทำงานจริงตั้งแต่ฝึกงานที่ Studio Twist เรียนที่ KMUTNB (TCT-R31) และตอนนี้เป็น CEO ของ Utotech",
-      "en": "Hello, I'm pho0m. My hobbies are listening to music, playing games, and everything about technology and innovation. My favourite hobby is coding: it makes me happy, and everything about technology makes me excited to learn and do new things. I started working at Studio Twist as a co-op intern, studied at KMUTNB (TCT-R31), and today I am CEO of Utotech."
+      "th": "ผมเป็น backend developer ประสบการณ์มากกว่า 4 ปี เริ่มต้นจากการฝึกงานที่ Studio Twist ซอฟต์แวร์เฮาส์เล็ก ๆ ที่จุดไฟให้ผมรักการเขียนโค้ด ถนัด backend เป็นหลัก ทำ frontend, mobile, IoT และ AI ได้ (ยังเรียนรู้อยู่เรื่อย ๆ) และเคยทำ CI/CD บน GCP และ AWS เรียนรู้ไว ทำงานเป็นทีมได้ ยืดหยุ่นสุด ๆ ทำงานมาแล้วทั้ง WFH 100%, hybrid และเข้าออฟฟิศเต็มเวลา ชอบฟังเพลง เล่นเกม และทุกอย่างที่เกี่ยวกับเทคโนโลยี 50% charming, 50% trouble. 100% worth it.",
+      "en": "I'm a backend developer with 4+ years of experience. I started my dev journey as an intern at Studio Twist Co., Ltd, a small software house that sparked my passion for coding. I'm strong in backend, familiar with frontend, mobile, IoT and AI (still learning!), and have done some CI/CD on GCP and AWS. I'm a fast learner, a team player and flexible as heck, and I've worked 100% WFH, hybrid and full-on WFO. Outside work: music, games and anything tech. 50% charming, 50% trouble. 100% worth it."
     },
     "dream": {
       "th": "หลังฝึกงานผมเริ่มคิดว่า \"อยากเป็นผู้ประกอบการแบบพี่ ๆ\" และอยากเห็นซอฟต์แวร์ของบริษัทตัวเองเป็นยูนิคอร์นของไทย",
@@ -84,25 +84,52 @@
           "en": "King Mongkut's University of Technology North Bangkok (KMUTNB)"
         },
         "program": {
-          "th": "TCT-R31",
-          "en": "TCT-R31"
+          "th": "ครุศาสตร์อุตสาหกรรมบัณฑิต สาขาเทคโนโลยีคอมพิวเตอร์ (TCT) เกียรตินิยมอันดับ 1 เกรดเฉลี่ย 3.63",
+          "en": "Bachelor's degree, Faculty of Technical Education, Computer Technology (TCT) · First Class Honors · GPA 3.63"
         },
-        "period": ""
+        "period": "2021 – 2023"
       }
-    ]
+    ],
+    "codingSince": 2020
   },
   "timeline": [
     {
-      "id": "studio-twist-intern",
-      "date": "2020",
-      "dateLabel": "~2020",
+      "id": "getsoundlight",
+      "date": "2016",
+      "dateLabel": "2016 – 2020",
       "title": {
-        "th": "Studio Twist · งานแรก",
-        "en": "Studio Twist · first job"
+        "th": "Getsoundlight · ไอทีซัพพอร์ตและวิศวกรเสียง",
+        "en": "Getsoundlight · IT support & sound engineering"
       },
       "summary": {
-        "th": "เริ่มฝึกงานสหกิจ 1 ปีที่ Studio Twist ระหว่างเรียน ปวส. แล้วได้รับชวนให้ทำ part-time ต่อยาวกว่า 3 ปี",
-        "en": "Started a one-year co-op internship at Studio Twist while studying for a vocational diploma, then stayed on as a part-time developer for more than three years."
+        "th": "ฟรีแลนซ์กับทีม Getsoundlight ดูแลงานอีเวนต์ งานแต่ง และงานประชุมหลายสถานที่ รวมถึงสำนักงานใหญ่ SCB คุมระบบเสียง ไฟ และจอภาพ",
+        "en": "Freelance with the Getsoundlight team: weddings and conferences at venues including the SCB head office, running audio, lighting control and visual displays."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "note",
+      "tags": [
+        "Freelance",
+        "Audio",
+        "Events"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "studio-twist-intern",
+      "date": "2020",
+      "dateLabel": "2020 – 2023",
+      "title": {
+        "th": "Studio Twist · Backend developer",
+        "en": "Studio Twist · Backend developer"
+      },
+      "summary": {
+        "th": "เริ่มจากฝึกงานระหว่างเรียน ปวส. แล้วทำต่อเป็น backend developer ร่วมพัฒนามากกว่า 10 โปรเจกต์ (3 โปรเจกต์ด้วย Go) เขียน integration และ unit test เกือบทุกโปรเจกต์ และได้เข้าประชุมกับลูกค้า",
+        "en": "Started as an intern during my vocational diploma and stayed on as a backend developer: 10+ projects (three in Go), integration and unit tests for nearly every project, and client meetings."
       },
       "body": {
         "th": "",
@@ -129,6 +156,31 @@
           "url": "https://www.madebytwist.com/"
         }
       ],
+      "published": true
+    },
+    {
+      "id": "kmutnb",
+      "date": "2021",
+      "dateLabel": "2021 – 2023",
+      "title": {
+        "th": "KMUTNB · เทคโนโลยีคอมพิวเตอร์",
+        "en": "KMUTNB · Computer Technology"
+      },
+      "summary": {
+        "th": "ปริญญาตรี สาขาเทคโนโลยีคอมพิวเตอร์ คณะครุศาสตร์อุตสาหกรรม จบเกียรตินิยมอันดับ 1 เกรดเฉลี่ย 3.63",
+        "en": "Bachelor's degree in Computer Technology, Faculty of Technical Education. Graduated with First Class Honors, GPA 3.63."
+      },
+      "body": {
+        "th": "ปริญญานิพนธ์: ระบบตรวจสอบคอมพิวเตอร์ที่ทำงานเมื่อไม่มีคนอยู่ในห้องเรียน ผ่านกล้อง IP ด้วย Faster R-CNN (SEYES) งานวิจัยสหกิจ: ระบบจัดการคิวด้วยสถาปัตยกรรม microservices และได้ใบรับรองภาษาอังกฤษ CEFR ระดับ A2 (มกราคม 2023)",
+        "en": "Thesis: a computer-monitoring system that turns on when nobody is in the classroom, using IP cameras and Faster R-CNN (SEYES). Co-op research project: a queue management system built on a microservices architecture. Also earned an English CEFR A2 certificate (January 2023)."
+      },
+      "icon": "cap",
+      "tags": [
+        "KMUTNB",
+        "First Class Honors"
+      ],
+      "images": [],
+      "links": [],
       "published": true
     },
     {
@@ -164,38 +216,6 @@
           "kind": "demo",
           "label": "The Timmy Story",
           "url": "https://pho0m.github.io/the-timmy-story/"
-        }
-      ],
-      "published": true
-    },
-    {
-      "id": "thap-and-friends",
-      "date": "2022-03",
-      "dateLabel": "",
-      "title": {
-        "th": "Thap และโปรเจกต์ในมหาลัย",
-        "en": "Thap & school projects"
-      },
-      "summary": {
-        "th": "Thap แอปวัฒนธรรมไทยด้วย Flutter พร้อม Bangkok History, Kiat-Tune (iTunes API), Commu App และบอทเพลง Tweed Play",
-        "en": "Thap, a Thai traditional app in Flutter, plus Bangkok History, Kiat-Tune (iTunes API), Commu App and the Tweed Play Discord bot."
-      },
-      "body": {
-        "th": "",
-        "en": ""
-      },
-      "icon": "chedi",
-      "tags": [
-        "Flutter",
-        "Dart",
-        "Node.js"
-      ],
-      "images": [],
-      "links": [
-        {
-          "kind": "github",
-          "label": "thap",
-          "url": "https://github.com/pho0m/thap"
         }
       ],
       "published": true
@@ -240,6 +260,115 @@
       "published": true
     },
     {
+      "id": "thap-and-friends",
+      "date": "2022-03",
+      "dateLabel": "",
+      "title": {
+        "th": "Thap และโปรเจกต์ในมหาลัย",
+        "en": "Thap & school projects"
+      },
+      "summary": {
+        "th": "Thap แอปวัฒนธรรมไทยด้วย Flutter พร้อม Bangkok History, Kiat-Tune (iTunes API), Commu App และบอทเพลง Tweed Play",
+        "en": "Thap, a Thai traditional app in Flutter, plus Bangkok History, Kiat-Tune (iTunes API), Commu App and the Tweed Play Discord bot."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "chedi",
+      "tags": [
+        "Flutter",
+        "Dart",
+        "Node.js"
+      ],
+      "images": [],
+      "links": [
+        {
+          "kind": "github",
+          "label": "thap",
+          "url": "https://github.com/pho0m/thap"
+        }
+      ],
+      "published": true
+    },
+    {
+      "id": "cyber-top-talent-2022",
+      "date": "2022-10",
+      "dateLabel": "",
+      "title": {
+        "th": "Thailand Cyber Top Talent 2022",
+        "en": "Thailand Cyber Top Talent 2022"
+      },
+      "summary": {
+        "th": "แข่งในนามทีม Tweed จาก KMUTNB ได้อันดับ 38 จาก 110 ทีม (1,030 คะแนน) และแก้โจทย์ Reverse Engineering ได้เร็วที่สุดเป็นอันดับ 1",
+        "en": "Competed with team Tweed from KMUTNB: ranked 38th of 110 teams with 1,030 points, and first to solve a Reverse Engineering challenge."
+      },
+      "body": {
+        "th": "จัดโดยสำนักงานคณะกรรมการการรักษาความมั่นคงปลอดภัยไซเบอร์แห่งชาติ (สกมช.) ร่วมกับ Huawei ได้รับเกียรติบัตรวันที่ 22 ตุลาคม 2022",
+        "en": "Organised by the National Cyber Security Agency (NCSA) with Huawei; certificate of participation presented on 22 October 2022."
+      },
+      "icon": "flag",
+      "tags": [
+        "CTF",
+        "Security",
+        "Reverse Engineering"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "satit-pim-speaker",
+      "date": "2022-11",
+      "dateLabel": "",
+      "title": {
+        "th": "วิทยากร · Create and design web with HTML",
+        "en": "Speaker · Create and design web with HTML"
+      },
+      "summary": {
+        "th": "เป็นวิทยากรสอนน้อง ๆ มัธยมทำเว็บด้วย HTML ที่โรงเรียนสาธิตสถาบันการจัดการปัญญาภิวัฒน์ (สาธิตพีไอเอ็ม) 16–17 พฤศจิกายน 2022",
+        "en": "Taught high-school students to build websites with HTML at Satit PIM (Panyapiwat Institute of Management Demonstration School), 16–17 November 2022."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "board",
+      "tags": [
+        "Speaker",
+        "HTML",
+        "Teaching"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "kmutnb-live",
+      "date": "2022-12",
+      "dateLabel": "",
+      "title": {
+        "th": "พิธีกรและระบบหลังบ้าน live",
+        "en": "MC & live-stream backend"
+      },
+      "summary": {
+        "th": "เป็นพิธีกรและดูแลระบบหลังบ้านให้งาน live streaming ถ่ายภาพหมู่บัณฑิต มจพ. ประจำปีการศึกษา 2563–2564",
+        "en": "MC and back-end operator for the university's live stream of the 2020–2021 graduation group-photo days."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "bubble",
+      "tags": [
+        "Live streaming",
+        "MC"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
       "id": "seyes",
       "date": "2023-04",
       "dateLabel": "",
@@ -248,12 +377,12 @@
         "en": "SEYES · smart classroom AI"
       },
       "summary": {
-        "th": "ระบบตรวจการใช้ห้องเรียนด้วย AI object detection: core เซิร์ฟเวอร์ (Go), detection (Python), แอป (TypeScript) และเซิร์ฟเวอร์กล้อง",
-        "en": "Classroom usage detection with object-detection AI: a Go core server, Python detection, a TypeScript app and a camera server."
+        "th": "ปริญญานิพนธ์: ระบบตรวจการใช้ห้องเรียนผ่านกล้องวงจรปิดด้วย object detection (Faster R-CNN) จับคอมพิวเตอร์ที่เปิดทิ้งไว้และหัวคนในระยะ แล้วแจ้งเตือนผ่าน LINE Notify",
+        "en": "My thesis: classroom monitoring through CCTV with object detection (Faster R-CNN). It spots computers left on and people in range, then alerts through LINE Notify."
       },
       "body": {
-        "th": "",
-        "en": ""
+        "th": "มีแดชบอร์ดแสดงผลจาก AI และจัดการผู้ใช้ทั้งระบบ และเซิร์ฟเวอร์กล้องที่ส่งแจ้งเตือนแบบเรียลไทม์ แยกเป็น core (Go), detection (Python), app (TypeScript) และ cam",
+        "en": "A dashboard shows the AI results and manages users for the whole system, and a camera server sends real-time alerts. Split into core (Go), detection (Python), app (TypeScript) and cam services."
       },
       "icon": "eye",
       "tags": [
@@ -299,8 +428,8 @@
         "en": "Six months of co-op: Go integration and unit tests across projects, an IoT pump system for BMA EXPO 2023, then taking over an ERP system."
       },
       "body": {
-        "th": "",
-        "en": ""
+        "th": "งานวิจัยสหกิจ: ระบบจัดการคิวด้วยสถาปัตยกรรม microservices และได้นำเสนอผลงานบริษัทที่งาน BMA EXPO 2023",
+        "en": "Co-op research project: a queue management system using a microservices architecture. I also presented the company’s work at BMA EXPO 2023."
       },
       "icon": "check",
       "tags": [
@@ -327,8 +456,8 @@
         "en": "LINE Playground"
       },
       "summary": {
-        "th": "API และแอป LIFF สำหรับ LINE playground บน Firebase",
-        "en": "APIs and LIFF apps for a LINE playground on Firebase."
+        "th": "API และแอป LIFF สำหรับ LINE playground บน Firebase และเป็นวิทยากรสอนเรื่อง API กับ LINE developer ให้นักศึกษาปริญญาโท",
+        "en": "APIs and LIFF apps for a LINE playground on Firebase, and a talk on APIs and LINE developer tools for master’s students."
       },
       "body": {
         "th": "",
@@ -337,7 +466,8 @@
       "icon": "bubble",
       "tags": [
         "LINE API",
-        "Firebase"
+        "Firebase",
+        "Speaker"
       ],
       "images": [],
       "links": [
@@ -370,6 +500,58 @@
         "IoT",
         "Arduino",
         "NB-IoT"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "tcc-technology",
+      "date": "2024",
+      "dateLabel": "2023 – 2024",
+      "title": {
+        "th": "TCC Technology · Application Development",
+        "en": "TCC Technology · Application Development"
+      },
+      "summary": {
+        "th": "ทำงาน 8 เดือนในทีม Solution Development พัฒนาระบบ DMS จัดการร้านค้าส่งและค้าปลีก พร้อมรายงานสรุปผลด้วย Go และประชุมกับลูกค้าเรื่องแคมเปญ แบบสำรวจยอดขาย และดีลการค้า",
+        "en": "Eight months on Solution Development: a DMS for managing wholesale and retail stores with performance reports, written in Go, plus client meetings on campaigns, sales surveys and trade deals."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "code",
+      "tags": [
+        "Go",
+        "DMS",
+        "Enterprise"
+      ],
+      "images": [],
+      "links": [],
+      "published": true
+    },
+    {
+      "id": "kbtg",
+      "date": "2025",
+      "dateLabel": "2025",
+      "title": {
+        "th": "KBTG · Software Developer (Go)",
+        "en": "KBTG · Software Developer (Go)"
+      },
+      "summary": {
+        "th": "Outsource ให้ KASIKORN Business-Technology Group ทำ payment module บน payment hub ระบบ legacy และส่งมอบ API ที่ใช้ในช่องทางของ K-Bank",
+        "en": "Outsourced to KASIKORN Business-Technology Group: worked on the payment module of a legacy payment hub and delivered APIs used by K-Bank channels."
+      },
+      "body": {
+        "th": "",
+        "en": ""
+      },
+      "icon": "brief",
+      "tags": [
+        "Go",
+        "Payments",
+        "Banking"
       ],
       "images": [],
       "links": [],
@@ -452,8 +634,8 @@
         "en": "CEO · Utotech Co., Ltd."
       },
       "summary": {
-        "th": "นำทีมซอฟต์แวร์เฮาส์กว่า 20 คน: เว็บและแอปมือถือ, ERP และอีคอมเมิร์ซ, IoT และ AI, ออกแบบและมีเดีย",
-        "en": "Leading a 20+ person software house: web and mobile apps, ERP and e-commerce, IoT and AI, design and media."
+        "th": "นำทีมซอฟต์แวร์เฮาส์กว่า 20 คน: เว็บและแอปมือถือ, ERP และอีคอมเมิร์ซ, IoT และ AI, ออกแบบและมีเดีย พร้อมผลิตภัณฑ์อย่าง UtoEyes และ Checkal",
+        "en": "Leading a 20+ person software house: web and mobile apps, ERP and e-commerce, IoT and AI, design and media, plus products such as UtoEyes and Checkal."
       },
       "body": {
         "th": "",
@@ -2274,10 +2456,6 @@
           "slug": "cloudflare"
         },
         {
-          "name": "AWS",
-          "slug": ""
-        },
-        {
           "name": "DigitalOcean",
           "slug": "digitalocean"
         },
@@ -2304,6 +2482,14 @@
         {
           "name": "Linux",
           "slug": "linux"
+        },
+        {
+          "name": "Object detection (Faster R-CNN)",
+          "slug": ""
+        },
+        {
+          "name": "AWS CI/CD",
+          "slug": ""
         }
       ]
     },
@@ -2350,6 +2536,10 @@
         {
           "name": "VMware",
           "slug": "vmware"
+        },
+        {
+          "name": "Spring Boot",
+          "slug": "springboot"
         }
       ]
     },
@@ -2366,7 +2556,7 @@
       },
       "items": [
         {
-          "name": "Figma",
+          "name": "Figma (advanced)",
           "slug": "figma"
         },
         {
@@ -2416,6 +2606,30 @@
         {
           "name": "Duolingo",
           "slug": "duolingo"
+        },
+        {
+          "name": "FigJam",
+          "slug": ""
+        },
+        {
+          "name": "Miro",
+          "slug": "miro"
+        },
+        {
+          "name": "draw.io",
+          "slug": "diagramsdotnet"
+        },
+        {
+          "name": "Jira",
+          "slug": "jira"
+        },
+        {
+          "name": "ClickUp",
+          "slug": "clickup"
+        },
+        {
+          "name": "GitHub",
+          "slug": "github"
         }
       ]
     }
