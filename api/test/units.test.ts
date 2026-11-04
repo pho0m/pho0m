@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LoginLimiter, bearer, issueToken, passwordMatches, verifyToken } from "../src/auth.ts";
+import { LoginLimiter, bearer, clientKey, issueToken, passwordMatches, verifyToken } from "../src/auth.ts";
 import { baseSlug, isDeletableMediaPath, mediaPath, sniffType } from "../src/media.ts";
 import {
   DESIRED_CORS,
@@ -106,6 +106,27 @@ describe("auth helpers", () => {
     expect(l.retryAfter("a", 1000)).toBe(0); // the failure at t=0 has expired
     l.reset("a");
     expect(l.retryAfter("a", 1001)).toBe(0);
+  });
+
+  it("keeps only the newest failures per key and still times them out correctly", () => {
+    const l = new LoginLimiter(3, 1000);
+    for (let t = 0; t < 1000; t += 10) l.fail("*", t);
+    // 100 failures recorded, but only the last 3 (t=970, 980, 990) are kept and matter.
+    const kept = (l as unknown as { failures: Map<string, number[]> }).failures.get("*");
+    expect(kept).toEqual([970, 980, 990]);
+    expect(l.retryAfter("*", 1000)).toBe(1);
+    expect(l.retryAfter("*", 1970)).toBe(0);
+  });
+
+  it("takes the right-most X-Forwarded-For entry as the client", () => {
+    expect(clientKey("198.51.100.1", undefined)).toBe("198.51.100.1");
+    expect(clientKey("6.6.6.6, 198.51.100.1", "10.0.0.2")).toBe("198.51.100.1");
+    expect(clientKey("spoof, also-spoof,  2001:db8::1  ", undefined)).toBe("2001:db8::1");
+    expect(clientKey("6.6.6.6, ,", "10.0.0.2")).toBe("6.6.6.6");
+    expect(clientKey("", "10.0.0.2")).toBe("10.0.0.2");
+    expect(clientKey(undefined, "10.0.0.2")).toBe("10.0.0.2");
+    expect(clientKey(undefined, undefined)).toBe("unknown");
+    expect(clientKey(`a, ${"x".repeat(5000)}`, undefined)).toHaveLength(64);
   });
 });
 

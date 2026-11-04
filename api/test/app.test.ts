@@ -16,10 +16,11 @@ import {
 
 type Body = Record<string, unknown>;
 
-function loginReq(password: string, ip = "198.51.100.1"): RequestInit {
+/** Like Cloud Run: the client's own (spoofable) X-Forwarded-For first, the address Google saw last. */
+function loginReq(password: string, ip = "198.51.100.1", spoofed = "10.0.0.1"): RequestInit {
   return {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Forwarded-For": `${ip}, 10.0.0.1` },
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": `${spoofed}, ${ip}` },
     body: JSON.stringify({ password }),
   };
 }
@@ -114,16 +115,51 @@ describe("login", () => {
     expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "198.51.100.9"))).status).toBe(200);
   });
 
-  it("uses the first X-Forwarded-For entry as the client IP", async () => {
+  it("keys on the right-most X-Forwarded-For entry, so a spoofed header cannot dodge the limit", async () => {
     const h = makeHarness();
     for (let i = 0; i < 5; i++) {
-      await h.app.request("/api/auth/login", loginReq("wrong", "192.0.2.5"));
+      // A different forged address every time; Google's front end still appends the real one.
+      const res = await h.app.request("/api/auth/login", loginReq("wrong", "192.0.2.5", `203.0.113.${i}`));
+      expect(res.status).toBe(401);
     }
     const res = await h.app.request("/api/auth/login", {
       ...loginReq(PASSWORD),
       headers: { "Content-Type": "application/json", "X-Forwarded-For": "192.0.2.5" },
     });
     expect(res.status).toBe(429);
+
+    // Forging the real client's address on the left does not lock that client out either.
+    const other = await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.77", "192.0.2.5"));
+    expect(other.status).toBe(200);
+  });
+
+  it("pauses all logins after 30 failures in 10 minutes from any mix of addresses", async () => {
+    const h = makeHarness();
+    // 30 addresses, one failure each: none reaches the per-IP limit of 5.
+    for (let i = 0; i < 30; i++) {
+      const res = await h.app.request("/api/auth/login", loginReq("guess", `198.51.100.${100 + i}`));
+      expect(res.status, `attempt ${i}`).toBe(401);
+      h.clock.advance(1000);
+    }
+    const blocked = await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.200"));
+    expect(blocked.status).toBe(429);
+    expect(String((await json(blocked)).error)).toContain("too many failed attempts");
+    const retry = Number(blocked.headers.get("retry-after"));
+    // The oldest failure was 30 s ago, so the window frees up in 570 s.
+    expect(retry).toBe(570);
+
+    // While paused even the right password is refused, and nothing more is counted.
+    h.clock.advance((retry - 1) * 1000);
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.201"))).status).toBe(429);
+    h.clock.advance(1000);
+    expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, "192.0.2.201"))).status).toBe(200);
+  });
+
+  it("successful logins do not count towards the global limit", async () => {
+    const h = makeHarness();
+    for (let i = 0; i < 40; i++) {
+      expect((await h.app.request("/api/auth/login", loginReq(PASSWORD, `198.51.100.${i}`))).status).toBe(200);
+    }
   });
 });
 
@@ -556,6 +592,47 @@ describe("CORS", () => {
     expect(ok.headers.get("access-control-allow-origin")).toBe("https://admin.example.com");
     const old = await h.app.request("/api/health", { headers: { Origin: "http://localhost:5173" } });
     expect(old.headers.get("access-control-allow-origin")).toBeNull();
+  });
+});
+
+describe("redeploy on save", () => {
+  function spy(opts: { throws?: boolean } = {}) {
+    const calls: number[] = [];
+    return {
+      calls,
+      notify() {
+        calls.push(1);
+        if (opts.throws) throw new Error("dispatch exploded");
+      },
+    };
+  }
+
+  it("asks for a rebuild after each successful save only", async () => {
+    const redeploy = spy();
+    const h = makeHarness(undefined, { redeploy });
+    const token = await login(h);
+
+    const first = await save(h, token, seed, null);
+    expect(first.res.status).toBe(200);
+    expect(redeploy.calls).toHaveLength(1);
+
+    // Rejected saves (stale generation, invalid content) do not trigger anything.
+    expect((await save(h, token, seed, null)).res.status).toBe(409);
+    expect((await save(h, token, { ...seed, schemaVersion: 2 }, first.body.generation as string)).res.status).toBe(400);
+    expect(redeploy.calls).toHaveLength(1);
+
+    expect((await save(h, token, seed, first.body.generation as string)).res.status).toBe(200);
+    expect(redeploy.calls).toHaveLength(2);
+  });
+
+  it("still saves when the trigger throws, and logs it", async () => {
+    const h = makeHarness(undefined, { redeploy: spy({ throws: true }) });
+    const token = await login(h);
+    const { res, body } = await save(h, token, seed, null);
+    expect(res.status).toBe(200);
+    expect(body.generation).toMatch(/^\d+$/);
+    expect(h.store.peek(CONTENT_OBJECT)).toBeDefined();
+    expect(h.logs.map((l) => String(l[0]))).toContain("[api] could not request a site rebuild:");
   });
 });
 

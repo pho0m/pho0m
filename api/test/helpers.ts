@@ -3,6 +3,7 @@ import { createApp } from "../src/app.ts";
 import { createStorage } from "../src/storage/storage.ts";
 import { createMemoryStore, type MemoryStore } from "../src/storage/memory.ts";
 import type { Storage } from "../src/storage/types.ts";
+import type { Redeployer } from "../src/redeploy.ts";
 
 export const PASSWORD = "film-gate-35mm";
 
@@ -35,7 +36,10 @@ export type Harness = {
   logs: unknown[][];
 };
 
-export function makeHarness(env: Env = { ADMIN_PASSWORD: PASSWORD, SESSION_SECRET: "test-secret" }): Harness {
+export function makeHarness(
+  env: Env = { ADMIN_PASSWORD: PASSWORD, SESSION_SECRET: "test-secret" },
+  extra: { redeploy?: Redeployer } = {},
+): Harness {
   const clock = {
     now: new Date("2026-11-04T09:00:00.000Z"),
     advance(ms: number) {
@@ -48,7 +52,7 @@ export function makeHarness(env: Env = { ADMIN_PASSWORD: PASSWORD, SESSION_SECRE
   const storage = createStorage(store);
   const logs: unknown[][] = [];
   const logger = { error: (...a: unknown[]) => logs.push(a), warn: (...a: unknown[]) => logs.push(a) };
-  const app = createApp({ config, storage, now, logger });
+  const app = createApp({ config, storage, now, logger, redeploy: extra.redeploy ?? null });
   return { app, storage, store, config, clock, logs };
 }
 

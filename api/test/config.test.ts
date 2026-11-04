@@ -131,14 +131,56 @@ describe("session secret", () => {
   });
 });
 
+describe("redeploy dispatch", () => {
+  const TOKEN = "github_pat_11ABCDEFG0123456789_secretpart";
+
+  it("is off without GITHUB_DISPATCH_TOKEN", () => {
+    expect(load({}).dispatch).toBeNull();
+    expect(load({ GITHUB_REPOSITORY: "pho0m/pho0m", GITHUB_DISPATCH_TOKEN: "  " }).dispatch).toBeNull();
+    expect(describeConfig(load({}))).toContain("redeploy on save: off");
+  });
+
+  it("reads the token and repository (default pho0m/pho0m)", () => {
+    expect(load({ GITHUB_DISPATCH_TOKEN: ` ${TOKEN}\n` }).dispatch).toEqual({ token: TOKEN, repository: "pho0m/pho0m" });
+    expect(load({ GITHUB_DISPATCH_TOKEN: TOKEN, GITHUB_REPOSITORY: "someone/site" }).dispatch).toEqual({
+      token: TOKEN,
+      repository: "someone/site",
+    });
+  });
+
+  it("rejects a malformed repository or token without echoing the token", () => {
+    for (const env of [
+      { GITHUB_DISPATCH_TOKEN: TOKEN, GITHUB_REPOSITORY: "https://github.com/pho0m/pho0m" },
+      { GITHUB_DISPATCH_TOKEN: `${TOKEN} extra` },
+    ]) {
+      let err: unknown;
+      try {
+        load(env);
+      } catch (e) {
+        err = e;
+      }
+      expect(err).toBeInstanceOf(ConfigError);
+      expect((err as Error).message).not.toContain(TOKEN);
+    }
+  });
+});
+
 describe("describeConfig", () => {
   it("never prints secrets", () => {
-    const c = load({ SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content", ADMIN_PASSWORD: "hunter2-pw" });
+    const c = load({
+      SERVICE_ACCOUNT_KEY: RAW,
+      SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content",
+      ADMIN_PASSWORD: "hunter2-pw",
+      GITHUB_DISPATCH_TOKEN: "github_pat_never_print_me",
+      GITHUB_REPOSITORY: "pho0m/pho0m",
+    });
     const line = describeConfig(c);
     expect(line).toContain("pho0m-content");
     expect(line).toContain(KEY.client_email);
+    expect(line).toContain("redeploy on save: on (pho0m/pho0m)");
     expect(line).not.toContain("PRIVATE KEY");
     expect(line).not.toContain("hunter2-pw");
+    expect(line).not.toContain("github_pat_never_print_me");
     expect(line).not.toContain(c.sessionSecret);
   });
 });

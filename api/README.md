@@ -38,6 +38,8 @@ ADMIN_PASSWORD=test npm run start -w api
 | `PORT` | `8787` | Cloud Run sets `8080`. |
 | `PUBLIC_BASE_URL` | `http://localhost:PORT` | Base of local-driver file URLs. |
 | `DATA_DIR` | `api/.data` | Local driver folder. |
+| `GITHUB_DISPATCH_TOKEN` | — | Optional. Fine-grained GitHub token for this repo with **Contents: read and write** (what `repository_dispatch` requires). Set → each successful save asks GitHub to rebuild the site (see below). Never logged. `deploy.yml` fills it from the repository secret `DISPATCH_TOKEN` (GitHub secret names cannot start with `GITHUB_`). |
+| `GITHUB_REPOSITORY` | `pho0m/pho0m` | `owner/repo` that receives the dispatch. Only used with the token; `deploy.yml` sets it to the repository it runs in. |
 
 ## Endpoints
 
@@ -47,10 +49,10 @@ Everything except health and login needs `Authorization: Bearer <token>`.
 | Method | Path | Result |
 | --- | --- | --- |
 | GET | `/api/health` | driver, bucket, public content URL, whether login is configured |
-| POST | `/api/auth/login` `{ password }` | `{ token, expiresAt }` (12 h). 401 wrong, 429 after 5 failures per IP in 10 min, 503 not configured |
+| POST | `/api/auth/login` `{ password }` | `{ token, expiresAt }` (12 h). 401 wrong, 429 (+ `Retry-After`) after 5 failures per IP or 30 failures from all IPs together in 10 min, 503 not configured |
 | GET | `/api/auth/me` | `{ ok, expiresAt }` |
 | GET | `/api/content` | `{ content, generation, url }` — the seed with `generation: null` until the first save |
-| PUT | `/api/content` `{ content, generation }` | validates (400 + issues), copies the previous version to `content/history/`, writes only if `generation` still matches (409 otherwise) |
+| PUT | `/api/content` `{ content, generation }` | validates (400 + issues), copies the previous version to `content/history/`, writes only if `generation` still matches (409 otherwise), then requests a site rebuild when `GITHUB_DISPATCH_TOKEN` is set |
 | GET | `/api/content/history` | newest 30 previous versions (50 are kept) |
 | GET | `/api/content/history/item?path=content/history/….json` | `{ content }` of one old version |
 | GET | `/api/media` | uploads, newest first |
@@ -60,6 +62,42 @@ Everything except health and login needs `Authorization: Bearer <token>`.
 
 Bucket layout: `content/site.json` (`Cache-Control: no-cache`), `content/history/<time>.json`,
 `media/<yyyy>/<mm>/<folder?>/<name>-<random>.<ext>` (`public, max-age=31536000, immutable`).
+
+## Rebuild the site after a save / สั่ง build เว็บใหม่หลังบันทึก
+
+The site reads `content/site.json` live, but the files for search engines and AI crawlers
+(the static snapshot and JSON-LD in `index.html`, `sitemap.xml`, `llms.txt`, `llms-full.txt`)
+and the profile README are generated at build time. With `GITHUB_DISPATCH_TOKEN` set, a
+successful `PUT /api/content` sends
+
+```http
+POST https://api.github.com/repos/<GITHUB_REPOSITORY>/dispatches
+{"event_type": "content-updated"}
+```
+
+which runs `.github/workflows/deploy.yml` (site only: build with the live content, deploy to
+Firebase Hosting; no API deploy, no release) and `.github/workflows/readme.yml`.
+
+- **Throttled**: at most one call per 5 minutes. Saves made inside the window are folded into
+  one trailing call when the window ends, so a burst of edits costs two workflow runs at most.
+- **Fire-and-forget**: the save never waits for GitHub and never fails because of it. Errors are
+  logged as `[redeploy] dispatch to … failed (the save itself succeeded): HTTP 401 …` without
+  the token. On `SIGTERM` (Cloud Run stopping the instance) a waiting trailing call is sent first.
+- Cloud Run only gives an instance CPU while it handles requests, so a call can be delayed
+  until the next request reaches it, and an instance that is stopped without `SIGTERM` loses a
+  waiting trailing call. The daily scheduled deploy catches anything missed.
+- Token: GitHub → Settings → Developer settings → Fine-grained tokens → *Only select repositories*
+  `pho0m/pho0m` → Repository permissions → **Contents: Read and write** (Metadata: read is added
+  automatically). Give it an expiry date. Step-by-step (Thai): [docs/SETUP.md](../docs/SETUP.md).
+- Test a token by sending the event yourself: `204` means it worked and a *Deploy* run (event
+  `repository_dispatch`) appears under Actions; `401` = bad or expired token, `403`/`404` = no
+  access to the repository or missing *Contents: write*.
+
+  ```sh
+  curl -s -o /dev/null -w '%{http_code}\n' -X POST https://api.github.com/repos/pho0m/pho0m/dispatches \
+    -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+    -d '{"event_type":"content-updated"}'
+  ```
 
 ## Bucket setup / ตั้งค่า bucket
 
@@ -90,3 +128,8 @@ Cloud Run you can skip `SERVICE_ACCOUNT_KEY` and give the service account access
 Then build the site with `VITE_API_URL=<run url>` and `VITE_CONTENT_URL=https://storage.googleapis.com/<bucket>/content/site.json`.
 
 Login throttling is kept in memory per instance; keep `--max-instances` low (1 is plenty).
+The per-IP limit uses the **right-most** `X-Forwarded-For` entry, which Google's front end
+appends; entries to its left come from the client and are ignored. A second, global limit
+(30 failures in 10 minutes from all addresses together) stops brute force from many or forged
+addresses. While it is hit, every login answers 429, including the owner's; it clears by itself
+after at most 10 minutes (or when the instance restarts).

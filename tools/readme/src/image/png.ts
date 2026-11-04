@@ -1,7 +1,8 @@
 import { inflateSync } from "node:zlib";
+import { zlibDeflate } from "./deflate.ts";
 import type { Gray } from "./gray.ts";
 
-/** PNG decode (to luminance over white) and a tiny indexed-colour encoder for dithered prints. */
+/** PNG decode (to luminance over white) and small deterministic encoders for the prints. */
 
 const SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
@@ -25,7 +26,8 @@ export function isPng(buf: Uint8Array): boolean {
   return SIGNATURE.every((b, i) => buf[i] === b);
 }
 
-export function decodePngLuma(buf: Uint8Array): Gray {
+/** Luminance over white; `cutout` is true when a corner is see-through (a cut-out logo). */
+export function decodePngLuma(buf: Uint8Array): Gray & { cutout: boolean } {
   if (!isPng(buf)) throw new Error("not a PNG");
   const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   let pos = 8;
@@ -95,6 +97,8 @@ export function decodePngLuma(buf: Uint8Array): Gray {
   };
   const scale = depth === 16 ? 1 : 255 / max;
   const data = new Float32Array(width * height);
+  let cutout = false;
+  const corner = (x: number, y: number) => (x === 0 || x === width - 1) && (y === 0 || y === height - 1);
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) {
       let r: number, g: number, b: number;
@@ -117,37 +121,9 @@ export function decodePngLuma(buf: Uint8Array): Gray {
       const lum = (r * 0.3 + g * 0.59 + b * 0.11) / 255;
       const alpha = a / 255;
       data[y * width + x] = lum * alpha + (1 - alpha);
+      if (a < 250 && corner(x, y)) cutout = true;
     }
-  return { width, height, data };
-}
-
-/**
- * zlib stream made of stored (uncompressed) deflate blocks. Real compression would be
- * smaller, but its bytes can change between zlib versions, and the README output must be
- * byte-for-byte reproducible on any Node for `--check` in CI.
- */
-function zlibStored(data: Uint8Array): Buffer {
-  const parts: Buffer[] = [Buffer.from([0x78, 0x01])];
-  const MAX = 0xffff;
-  for (let off = 0; off < data.length || off === 0; off += MAX) {
-    const block = data.subarray(off, Math.min(off + MAX, data.length));
-    const head = Buffer.alloc(5);
-    head[0] = off + MAX >= data.length ? 1 : 0;
-    head.writeUInt16LE(block.length, 1);
-    head.writeUInt16LE(~block.length & 0xffff, 3);
-    parts.push(head, Buffer.from(block));
-    if (!data.length) break;
-  }
-  let a = 1;
-  let b = 0;
-  for (const byte of data) {
-    a = (a + byte) % 65521;
-    b = (b + a) % 65521;
-  }
-  const adler = Buffer.alloc(4);
-  adler.writeUInt32BE(((b << 16) | a) >>> 0);
-  parts.push(adler);
-  return Buffer.concat(parts);
+  return { width, height, data, cutout };
 }
 
 function chunk(type: string, data: Uint8Array): Buffer {
@@ -159,36 +135,107 @@ function chunk(type: string, data: Uint8Array): Buffer {
   return out;
 }
 
+const hexRgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+
+/** Paeth predictor (PNG filter type 4). */
+function paeth(a: number, b: number, c: number): number {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+}
+
 /**
- * Encode a 1-bit image (true = ink) as a 2-colour palette PNG, each source pixel
- * scaled up to `scale` x `scale` so it stays crisp even when the browser smooths it.
+ * Filter scanlines. 8-bit greyscale rows get the filter with the smallest sum of absolute
+ * residuals (the usual heuristic); palette and sub-byte images use filter 0 as the spec advises.
  */
-export function encodeTwoTonePng(bits: Uint8Array, width: number, height: number, scale: number, paper: string, ink: string): Buffer {
-  const W = width * scale;
-  const H = height * scale;
-  const stride = Math.ceil(W / 8);
-  const raw = Buffer.alloc((stride + 1) * H);
-  for (let y = 0; y < H; y++) {
-    const row = y * (stride + 1);
-    raw[row] = 0;
-    const sy = Math.floor(y / scale);
-    for (let x = 0; x < W; x++) {
-      const k = row + 1 + (x >> 3);
-      if (bits[sy * width + Math.floor(x / scale)]) raw[k] = raw[k]! | (0x80 >> (x & 7));
-    }
+function filterRows(rows: Uint8Array, stride: number, height: number, adaptive: boolean): Uint8Array {
+  const out = new Uint8Array((stride + 1) * height);
+  const zero = new Uint8Array(stride);
+  const cand = Array.from({ length: 5 }, () => new Uint8Array(stride));
+  for (let y = 0; y < height; y++) {
+    const cur = rows.subarray(y * stride, (y + 1) * stride);
+    const prev = y ? rows.subarray((y - 1) * stride, y * stride) : zero;
+    let best = 0;
+    if (adaptive) {
+      let bestSum = Infinity;
+      for (let f = 0; f < 5; f++) {
+        const line = cand[f]!;
+        let sum = 0;
+        for (let i = 0; i < stride; i++) {
+          const a = i ? cur[i - 1]! : 0;
+          const b = prev[i]!;
+          const c = i ? prev[i - 1]! : 0;
+          const x = cur[i]!;
+          const v = (f === 0 ? x : f === 1 ? x - a : f === 2 ? x - b : f === 3 ? x - ((a + b) >> 1) : x - paeth(a, b, c)) & 0xff;
+          line[i] = v;
+          sum += v < 128 ? v : 256 - v;
+        }
+        if (sum < bestSum) {
+          bestSum = sum;
+          best = f;
+        }
+      }
+    } else cand[0]!.set(cur);
+    out[y * (stride + 1)] = best;
+    out.set(cand[best]!, y * (stride + 1) + 1);
   }
+  return out;
+}
+
+function pngFile(width: number, height: number, depth: number, colorType: number, filtered: Uint8Array, plte?: Uint8Array): Buffer {
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(W, 0);
-  ihdr.writeUInt32BE(H, 4);
-  ihdr[8] = 1; // bit depth
-  ihdr[9] = 3; // indexed colour
-  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const plte = Uint8Array.from([...hex(paper), ...hex(ink)]);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = depth;
+  ihdr[9] = colorType;
   return Buffer.concat([
     Buffer.from(SIGNATURE),
     chunk("IHDR", ihdr),
-    chunk("PLTE", plte),
-    chunk("IDAT", zlibStored(raw)),
+    ...(plte ? [chunk("PLTE", plte)] : []),
+    chunk("IDAT", zlibDeflate(filtered)),
     chunk("IEND", new Uint8Array(0)),
   ]);
+}
+
+/**
+ * Palette PNG from colour indices (0..palette.length-1), each pixel scaled up to
+ * `scale` x `scale` (nearest) so pixel art stays crisp even where the browser smooths images.
+ */
+export function encodeIndexedPng(indices: Uint8Array, width: number, height: number, palette: readonly string[], scale = 1): Buffer {
+  if (palette.length < 1 || palette.length > 256) throw new Error("PNG: palette needs 1..256 colours");
+  const depth = palette.length <= 2 ? 1 : palette.length <= 4 ? 2 : palette.length <= 16 ? 4 : 8;
+  const W = width * scale;
+  const H = height * scale;
+  const stride = Math.ceil((W * depth) / 8);
+  const rows = new Uint8Array(stride * H);
+  const perByte = 8 / depth;
+  for (let y = 0; y < H; y++) {
+    const sy = Math.floor(y / scale);
+    for (let x = 0; x < W; x++) {
+      const v = indices[sy * width + Math.floor(x / scale)]! & ((1 << depth) - 1);
+      const k = y * stride + Math.floor(x / perByte);
+      rows[k] = rows[k]! | (v << (8 - depth - (x % perByte) * depth));
+    }
+  }
+  const plte = Uint8Array.from(palette.flatMap(hexRgb));
+  return pngFile(W, H, depth, 3, filterRows(rows, stride, H, false), plte);
+}
+
+/** 8-bit greyscale PNG (0 = black … 255 = white), scaled up `scale` x `scale` (nearest). */
+export function encodeGrayPng(levels: Uint8Array, width: number, height: number, scale = 1): Buffer {
+  const W = width * scale;
+  const H = height * scale;
+  const rows = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) {
+    const sy = Math.floor(y / scale);
+    for (let x = 0; x < W; x++) rows[y * W + x] = levels[sy * width + Math.floor(x / scale)]!;
+  }
+  return pngFile(W, H, 8, 0, filterRows(rows, W, H, true));
+}
+
+/** A 1-bit image (1 = ink) as a two-colour palette PNG, each pixel scaled up to `scale` x `scale`. */
+export function encodeTwoTonePng(bits: Uint8Array, width: number, height: number, scale: number, paper: string, ink: string): Buffer {
+  return encodeIndexedPng(bits, width, height, [paper, ink], scale);
 }
