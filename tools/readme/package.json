@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "generate": "tsx src/cli.ts",
+    "check": "tsx src/cli.ts --check",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },

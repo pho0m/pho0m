@@ -58,13 +58,6 @@ export function hasGlyphs(text: string, font: FontKey): boolean {
   return true;
 }
 
-/** Ascender height in px, for vertical centring. */
-export function capHeight(font: FontKey, size: number): number {
-  const m = load(font).metrics;
-  // Cap height is not in hhea; ~0.7 of the ascender is close for all three faces.
-  return (m.ascender / m.unitsPerEm) * size * 0.72;
-}
-
 function ellipsis(font: FontKey): string {
   return hasGlyphs("…", font) ? "…" : "...";
 }

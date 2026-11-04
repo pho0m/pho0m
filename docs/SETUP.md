@@ -270,10 +270,11 @@ gh run watch --repo pho0m/pho0m
 4. **Release** — เพิ่มเลขเวอร์ชัน สร้าง tag และ GitHub release
 5. **Notify** — ส่งสถานะไป Discord (ถ้ามี `DISCORD_WEBHOOK`)
 
-URL ของ API อยู่ในหน้า Summary ของ run นั้น ตรวจได้ด้วย:
+URL ของ API (เช่น `https://pho0m-api-xxxxxxxxxx-as.a.run.app`) อยู่ในหน้า Summary ของ run นั้น
+แทน `<API_URL>` ด้านล่างด้วย URL นี้ แล้วตรวจได้ด้วย:
 
 ```bash
-curl -s https://<API_URL>/api/health
+curl -s "<API_URL>/api/health"
 ```
 
 ควรเห็น `"driver":"gcs"` และ `"authConfigured":true`
@@ -281,7 +282,7 @@ curl -s https://<API_URL>/api/health
 ถ้าอยากให้ preview ของ PR และ run ที่ข้าม API ใช้ URL เดียวกัน ให้ตั้ง variable:
 
 ```bash
-gh variable set API_URL --repo pho0m/pho0m --body "https://<API_URL>"
+gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 ```
 
 จากนั้นเข้า `https://kiattiphoom-pho0m.web.app/admin` แล้วกด “บันทึก” หนึ่งครั้ง เพื่อสร้าง `content/site.json` ใน bucket
@@ -297,6 +298,9 @@ gh variable set API_URL --repo pho0m/pho0m --body "https://<API_URL>"
   การแก้ไขเก็บเป็นฉบับร่างในเบราว์เซอร์ก่อน กด **บันทึก** (หรือ `Ctrl+S`) เพื่อขึ้นเว็บจริง
   ถ้ามีช่องที่ต้องแก้ ระบบจะบอกจำนวนจุดและไม่ยอมบันทึกจนกว่าจะแก้ครบ
   บันทึกแล้วเว็บแสดงเนื้อหาใหม่ทันทีที่มีคนเปิดหน้า ไม่ต้อง deploy ใหม่
+  ยกเว้นไฟล์สำหรับ search engine และ AI (`sitemap.xml`, `llms.txt`, ข้อความใน `index.html`)
+  ที่สร้างตอน deploy จากเนื้อหาใน bucket ถ้าแก้เนื้อหาเยอะ ให้สั่ง Deploy อีกครั้ง
+  (`gh workflow run deploy.yml --repo pho0m/pho0m --ref main`)
 - **อัปโหลด** — รูป JPEG, PNG, WebP, GIF, AVIF และ PDF ขนาดไม่เกิน 15 MB
   ไฟล์ไปอยู่ที่ `media/<ปี>/<เดือน>/…` ใน bucket ทุกไฟล์ที่อัปโหลด**ทุกคนเปิดดูได้** อย่าอัปโหลดเอกสารส่วนตัว
 - **ประวัติ** — ทุกครั้งที่บันทึก เวอร์ชันก่อนหน้าจะถูกเก็บไว้ (แสดง 30 เวอร์ชันล่าสุด)

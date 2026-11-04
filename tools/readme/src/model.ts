@@ -123,9 +123,9 @@ export function profileButtons(content: Content): LinkItem[] {
     items.push({ id: linkId("btn", label, used), label, url, kind, company });
   };
   add("Portfolio", content.site.url, "website");
-  for (const l of content.profile.links) add(l.label || hostOf(l.url), l.url, l.kind);
+  for (const l of content.profile.links) add(l.label || hostOf(l.url), linkHref(content, l.url), l.kind);
   const companySite = content.company.links.find((l) => l.kind === "website");
-  if (companySite) add(content.company.shortName || en(content.company.name), companySite.url, "website");
+  if (companySite) add(content.company.shortName || en(content.company.name), linkHref(content, companySite.url), "website");
   return items;
 }
 
@@ -138,7 +138,10 @@ export function footerLinks(content: Content): LinkItem[] {
   if (phone.visible && phone.value) out.push({ id: linkId("link", "phone", used), label: phone.value, url: `tel:${phone.value.replace(/[^+\d]/g, "")}`, kind: "phone" });
   out.push({ id: linkId("link", "site", used), label: hostOf(content.site.url), url: content.site.url, kind: "website" });
   const companySite = content.company.links.find((l) => l.kind === "website");
-  if (companySite) out.push({ id: linkId("link", "company", used), label: hostOf(companySite.url), url: companySite.url, kind: "website", company: true });
+  if (companySite) {
+    const url = linkHref(content, companySite.url);
+    out.push({ id: linkId("link", "company", used), label: hostOf(url), url, kind: "website", company: true });
+  }
   return out;
 }
 
@@ -171,7 +174,7 @@ export function companyRows(content: Content): TableRow[] {
     return {
       id: `utotech-${p.id}`,
       name: p.name,
-      url: p.url || sectionUrl(content, "utotech"),
+      url: p.url ? linkHref(content, p.url) : sectionUrl(content, "utotech"),
       about: en(p.summary),
       extras: [],
       badge: { segments, stars: null },
@@ -193,9 +196,10 @@ export function projectRows(content: Content, gh: GithubStats | null): TableRow[
   return sorted.map((p) => {
     const repo = repoName(p.repo, gh?.login);
     const stars = repo && gh ? (gh.repoStars[repo] ?? null) : null;
-    const main = p.repo || p.url || sectionUrl(content, "projects");
+    const main = p.repo || p.url ? linkHref(content, p.repo || p.url) : sectionUrl(content, "projects");
     const extras: TableRow["extras"] = [];
-    if (p.url && p.url !== main) extras.push({ label: "demo", url: p.url });
+    const demo = p.url ? linkHref(content, p.url) : "";
+    if (demo && demo !== main) extras.push({ label: "demo", url: demo });
     return {
       id: `project-${p.id}`,
       name: p.name,
@@ -225,6 +229,7 @@ export function visibleDocuments(content: Content) {
   return content.documents.filter((d) => d.url.trim());
 }
 
-export function mediaUrl(content: Content, url: string): string {
-  return absoluteUrl(url, content.site.url);
+/** Content URLs may be site-relative (/media/…, /docs/…); links in the README must be absolute. */
+export function linkHref(content: Content, url: string): string {
+  return absoluteUrl(url.trim(), content.site.url);
 }

@@ -9,6 +9,7 @@ import {
   heroStats,
   hostOf,
   latestFrames,
+  linkHref,
   profileButtons,
   projectRows,
   sectionUrl,
@@ -197,7 +198,8 @@ export async function generate(input: GenerateInput): Promise<Output> {
   ]
     .filter(Boolean)
     .join(" ");
-  const companySite = c.links.find((l) => l.kind === "website")?.url || sectionUrl(content, "utotech");
+  const companyLink = c.links.find((l) => l.kind === "website")?.url;
+  const companySite = companyLink ? linkHref(content, companyLink) : sectionUrl(content, "utotech");
   md.push(linked(companySite, picture({ ...render("utotech", (t) => utotechCard(utoData, t)), alt: utoAlt })));
 
   // projects ----------------------------------------------------------------------------------
