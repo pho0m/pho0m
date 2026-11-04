@@ -9,6 +9,9 @@ import { DARKROOM, SPRITES, SPRITE_PALETTE, type IconName } from "@pho0m/content
 
 export const FRAME_W = 128;
 export const FRAME_H = 88;
+/** Resolution of the clear, fully developed print made from a photo (same 16:11 aspect as FRAME_W/H). */
+export const PRINT_W = 512;
+export const PRINT_H = 352;
 
 type RGB = [number, number, number];
 const hex = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB;
@@ -250,4 +253,67 @@ export function paint(canvas: HTMLCanvasElement, data: ImageData): void {
   if (canvas.width !== data.width) canvas.width = data.width;
   if (canvas.height !== data.height) canvas.height = data.height;
   canvas.getContext("2d")!.putImageData(data, 0, 0);
+}
+
+export type ToneOptions = {
+  /** 0..1 development: 0 = blank paper, 1 = fully developed (shadows come up first). */
+  level?: number;
+  /** Contrast of the S-curve, 0 = flat, 1 = punchy. */
+  contrast?: number;
+  /** Subtle deterministic film grain, 0..0.1. */
+  grain?: number;
+  paper?: RGB;
+  ink?: RGB;
+};
+
+/**
+ * Clear darkroom print: continuous-tone duotone (ink → paper) instead of a dither,
+ * so photos stay sharp while keeping the toned-print look. `level` < 1 renders a
+ * partially developed print where the darkest tones appear first, like in the tray.
+ */
+export function tonePrint(src: ImageData, opts: ToneOptions = {}, out?: ImageData): ImageData {
+  const { level = 1, contrast = 0.35, grain = 0.03, paper = PAPER, ink = INK } = opts;
+  const W = src.width;
+  const H = src.height;
+  const o = out ?? createImageData(W, H);
+  const s = src.data;
+  const d = o.data;
+  const lv = Math.max(0, Math.min(1, level));
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const k = (y * W + x) * 4;
+      let lum = (s[k]! * 0.3 + s[k + 1]! * 0.59 + s[k + 2]! * 0.11) / 255;
+      // S-curve around mid grey for a crisp print
+      lum = lum + contrast * (lum - 0.5) * (1 - Math.abs(2 * lum - 1));
+      if (grain > 0) lum += (hash(x * 12.9898 + y * 78.233) - 0.5) * grain;
+      lum = Math.max(0, Math.min(1, lum));
+      // development: ink density grows with level; darker tones reach full density sooner
+      const density = (1 - lum) * Math.min(1, lv * (1 + (1 - lum)));
+      const t = 1 - density;
+      d[k] = Math.round(ink[0] + (paper[0] - ink[0]) * t);
+      d[k + 1] = Math.round(ink[1] + (paper[1] - ink[1]) * t);
+      d[k + 2] = Math.round(ink[2] + (paper[2] - ink[2]) * t);
+      d[k + 3] = 255;
+    }
+  return o;
+}
+
+/** Nearest-neighbour upscale (keeps pixel art crisp when a small scene is shown as a big print). */
+export function upscaleNearest(src: ImageData, w: number, h: number): ImageData {
+  const o = createImageData(w, h);
+  const sx = src.width / w;
+  const sy = src.height / h;
+  for (let y = 0; y < h; y++) {
+    const yy = Math.min(src.height - 1, Math.floor(y * sy));
+    for (let x = 0; x < w; x++) {
+      const xx = Math.min(src.width - 1, Math.floor(x * sx));
+      const si = (yy * src.width + xx) * 4;
+      const di = (y * w + x) * 4;
+      o.data[di] = src.data[si]!;
+      o.data[di + 1] = src.data[si + 1]!;
+      o.data[di + 2] = src.data[si + 2]!;
+      o.data[di + 3] = 255;
+    }
+  }
+  return o;
 }
