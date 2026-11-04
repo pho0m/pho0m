@@ -5,6 +5,16 @@ type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (v: Localized | undefine
 const LangContext = createContext<Ctx | null>(null);
 const KEY = "pho0m.lang";
 
+/** ?lang=en|th in the URL wins (shareable, used by hreflang links), then the stored choice. */
+function readUrl(): Lang | null {
+  try {
+    const v = new URLSearchParams(window.location.search).get("lang");
+    return v === "th" || v === "en" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 function readStored(): Lang | null {
   try {
     const v = localStorage.getItem(KEY);
@@ -15,7 +25,7 @@ function readStored(): Lang | null {
 }
 
 export function LangProvider({ children, defaultLang = "th" }: { children: ReactNode; defaultLang?: Lang }) {
-  const [lang, setLangState] = useState<Lang>(() => readStored() ?? defaultLang);
+  const [lang, setLangState] = useState<Lang>(() => readUrl() ?? readStored() ?? defaultLang);
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     try {
