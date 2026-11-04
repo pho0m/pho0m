@@ -6,18 +6,17 @@ import { readWoff2Metrics, type FontMetrics } from "./woff2.ts";
 /**
  * The three darkroom typefaces, embedded into each SVG as base64 @font-face (latin subset)
  * and measured from the same files so layouts line up with what GitHub renders.
- *   led  VT323          — LED / LCD labels and numbers
- *   px5/px7 Pixelify Sans — pixel display headings
- *   b4/b5/b6 Chakra Petch — body text
+ *   led  VT323               — LED / LCD labels and numbers
+ *   px7  Pixelify Sans 700   — pixel display headings
+ *   b4/b6 Chakra Petch 400/600 — body text and labels
+ * Only these four files are ever embedded, and each SVG gets just the ones it uses.
  */
-export type FontKey = "led" | "px5" | "px7" | "b4" | "b5" | "b6";
+export type FontKey = "led" | "px7" | "b4" | "b6";
 
 const DEFS: Record<FontKey, { pkg: string; file: string; family: string; weight: number; fallback: string }> = {
   led: { pkg: "@fontsource/vt323", file: "vt323-latin-400-normal.woff2", family: "PxLed", weight: 400, fallback: "monospace" },
-  px5: { pkg: "@fontsource/pixelify-sans", file: "pixelify-sans-latin-500-normal.woff2", family: "PxDisplay", weight: 500, fallback: "monospace" },
   px7: { pkg: "@fontsource/pixelify-sans", file: "pixelify-sans-latin-700-normal.woff2", family: "PxDisplay", weight: 700, fallback: "monospace" },
   b4: { pkg: "@fontsource/chakra-petch", file: "chakra-petch-latin-400-normal.woff2", family: "PxBody", weight: 400, fallback: "sans-serif" },
-  b5: { pkg: "@fontsource/chakra-petch", file: "chakra-petch-latin-500-normal.woff2", family: "PxBody", weight: 500, fallback: "sans-serif" },
   b6: { pkg: "@fontsource/chakra-petch", file: "chakra-petch-latin-600-normal.woff2", family: "PxBody", weight: 600, fallback: "sans-serif" },
 };
 export const FONT_KEYS = Object.keys(DEFS) as FontKey[];
@@ -120,15 +119,27 @@ export function wrap(text: string, font: FontKey, size: number, maxWidth: number
   return out;
 }
 
+/**
+ * Split prose into sentences. A boundary is . ! or ? followed by a space and a capital letter,
+ * digit or quote (or the end), so "Co., Ltd" and "4.5" stay inside their sentence.
+ */
+export function sentences(text: string): string[] {
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/(?<=[.!?]["')\]]?)\s+(?=["'(A-Z0-9])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /** Leading sentences of `text` that fit in `maxLines` lines without cutting a sentence. */
 export function sentencesThatFit(text: string, font: FontKey, size: number, maxWidth: number, maxLines: number): string {
-  const sentences = text.replace(/\s+/g, " ").trim().match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) ?? [];
   let picked = "";
-  for (const s of sentences) {
-    const next = (picked + s).trim();
+  for (const s of sentences(text)) {
+    const next = `${picked} ${s}`.trim();
     const lines = wrap(next, font, size, maxWidth, maxLines + 1);
     if (lines.length > maxLines) break;
-    picked = next + " ";
+    picked = next;
   }
   return picked.trim() || text;
 }

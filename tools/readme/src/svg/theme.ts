@@ -78,7 +78,7 @@ export const LIGHT: Theme = {
   muted: "#6b4f45",
   onAccent: DARKROOM.paper,
   glow: DARKROOM.red,
-  glowOpacity: 0.1,
+  glowOpacity: 0.07,
   shadow: DARKROOM.ink,
   shadowOpacity: 0.18,
   strip: "#e2d5bf",

@@ -1,4 +1,4 @@
-import { frameDateLabel, timelineFrames, type Content, type IconName } from "@pho0m/content";
+import { timelineFrames, type Content, type IconName } from "@pho0m/content";
 import { portraitPrint, printDataUri } from "./image/print.ts";
 import type { MediaLoader } from "./media.ts";
 import {
@@ -19,7 +19,7 @@ import {
 } from "./model.ts";
 import { WAKA_END, WAKA_START, cell, extractWaka, html, linkText, linkUrl, linked, picture } from "./readme.ts";
 import { bandCard } from "./svg/band.ts";
-import { badgeCard, BADGE_H } from "./svg/badge.ts";
+import { badgeCard, badgeLabel, BADGE_H } from "./svg/badge.ts";
 import { buttonCard, BUTTON_H } from "./svg/button.ts";
 import { filmCard } from "./svg/film.ts";
 import { heroCard, type AvatarImage } from "./svg/hero.ts";
@@ -93,7 +93,7 @@ function bandText(content: Content) {
   return {
     film:
       first && last
-        ? `${frames.length} frames on one roll, from ${frameDateLabel(first)} to ${frameDateLabel(last)}. On the site the film runs to the right as you scroll.`
+        ? `${frames.length} frames on one roll, from ${first.date.slice(0, 4)} to ${last.dateLabel.trim() || last.date.slice(0, 4)}. On the site the film runs to the right as you scroll.`
         : "The timeline, frame by frame.",
     utotech: [en(c.tagline) + (c.founded ? `, founded in ${c.founded}` : ""), en(c.role) ? `My role: ${en(c.role)}.` : ""]
       .filter(Boolean)
@@ -201,16 +201,15 @@ export async function generate(input: GenerateInput): Promise<Output> {
 
   // projects ----------------------------------------------------------------------------------
   md.push(band("projects", 3, "Projects", bands.projects, "code", "projects"));
+  // Two columns on purpose: GitHub tables shrink images in a narrow third column to nothing,
+  // so each badge sits on its own line at the top of the wide "About" cell.
   const table = (rows: TableRow[]) => {
-    const lines = ["| Project | About | |", "| :-- | :-- | :-- |"];
+    const lines = ["| Project | About |", "| :-- | :-- |"];
     for (const r of rows) {
       const nameCell = `**[${linkText(r.name)}](${linkUrl(r.url)})**`;
       const about = [cell(r.about), ...r.extras.map((e) => `[${linkText(e.label)}](${linkUrl(e.url)})`)].filter(Boolean).join(" · ");
-      const alt = [r.badge.year, r.badge.group, r.badge.featured ? "featured" : "", r.badge.stars !== null ? `${r.badge.stars} GitHub stars` : ""]
-        .filter(Boolean)
-        .join(" · ");
-      const badge = picture({ ...render(`badge-${r.id}`, (t) => badgeCard(r.badge, t)), alt, height: BADGE_H });
-      lines.push(`| ${nameCell} | ${about} | ${badge} |`);
+      const badge = picture({ ...render(`badge-${r.id}`, (t) => badgeCard(r.badge, t)), alt: badgeLabel(r.badge), height: BADGE_H });
+      lines.push(`| ${nameCell} | ${badge}<br>${about} |`);
     }
     return lines.join("\n");
   };

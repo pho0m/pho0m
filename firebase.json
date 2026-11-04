@@ -6,7 +6,7 @@
     "rewrites": [
       { "source": "/admin", "destination": "/admin.html" },
       { "source": "/admin/**", "destination": "/admin.html" },
-      { "source": "**", "destination": "/index.html" }
+      { "regex": "^/[^.]*$", "destination": "/index.html" }
     ],
     "headers": [
       {

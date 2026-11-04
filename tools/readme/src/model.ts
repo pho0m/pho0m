@@ -36,8 +36,9 @@ export type TableRow = {
   url: string;
   about: string;
   extras: { label: string; url: string }[];
-  badge: { year: string; group: string; stars: number | null; featured: boolean };
+  badge: { segments: BadgeSegment[]; stars: number | null };
 };
+export type BadgeSegment = { text: string; tone: "led" | "text" | "accent" };
 
 export const GROUP_LABEL: Record<Project["group"], string> = {
   utotech: "Utotech",
@@ -149,15 +150,29 @@ const byFeatured = <T extends { featured: boolean }>(list: T[]) =>
     .sort((a, b) => Number(b.item.featured) - Number(a.item.featured) || a.i - b.i)
     .map(({ item }) => item);
 
+/** "Platform / Web Application" → ["Platform", "Web app"] (badge text only; the table keeps the full words). */
+export function categoryParts(category: string): string[] {
+  return category
+    .split("/")
+    .map((part) => part.trim().replace(/\bapplications?\b/i, "app"))
+    .filter(Boolean);
+}
+
 export function companyRows(content: Content): TableRow[] {
-  return byFeatured(content.company.projects.filter((p: CompanyProject) => p.published)).map((p) => ({
-    id: `utotech-${p.id}`,
-    name: p.name,
-    url: p.url || sectionUrl(content, "utotech"),
-    about: [en(p.summary), p.category].filter(Boolean).join(" · "),
-    extras: [],
-    badge: { year: "", group: "Utotech", stars: null, featured: p.featured },
-  }));
+  return byFeatured(content.company.projects.filter((p: CompanyProject) => p.published)).map((p) => {
+    const segments: BadgeSegment[] = [];
+    if (p.featured) segments.push({ text: "Featured", tone: "accent" });
+    for (const part of categoryParts(p.category)) segments.push({ text: part, tone: "text" });
+    if (!segments.length) segments.push({ text: content.company.shortName || "Client", tone: "text" });
+    return {
+      id: `utotech-${p.id}`,
+      name: p.name,
+      url: p.url || sectionUrl(content, "utotech"),
+      about: en(p.summary),
+      extras: [],
+      badge: { segments, stars: null },
+    };
+  });
 }
 
 export function projectRows(content: Content, gh: GithubStats | null): TableRow[] {
@@ -183,7 +198,13 @@ export function projectRows(content: Content, gh: GithubStats | null): TableRow[
       url: main,
       about: [en(p.description), p.tags.join(", ")].filter(Boolean).join(" · "),
       extras,
-      badge: { year: p.year, group: GROUP_LABEL[p.group], stars, featured: p.featured },
+      badge: {
+        segments: [
+          ...(p.year ? [{ text: p.year, tone: "led" as const }] : []),
+          { text: GROUP_LABEL[p.group], tone: "text" as const },
+        ],
+        stars,
+      },
     };
   });
 }

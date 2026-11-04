@@ -1,7 +1,7 @@
 import { SPRITE_PALETTE, spritePixels, type IconName } from "@pho0m/content";
 import { measure, type FontKey } from "../font/fonts.ts";
 import { FILM, type Theme } from "./theme.ts";
-import { GLYPHS, monogramLetters, monogramRows, type GlyphName, type LinkIcon } from "./glyphs.ts";
+import { GLYPHS, dotMatrixRows, dotMatrixWidth, monogramLetters, monogramRows, type GlyphName, type LinkIcon } from "./glyphs.ts";
 import { el, esc, n } from "./xml.ts";
 
 /** Shared drawing primitives for the darkroom cards. */
@@ -111,6 +111,12 @@ export function pixelRowsPath(rows: readonly string[], x: number, y: number, sca
     }
   });
   return d;
+}
+
+/** Dot-matrix LED text (5x7 font, `scale` px per dot). Returns markup and width in px. */
+export function dotText(value: string, x: number, y: number, scale: number, fill: string): { svg: string; width: number } {
+  const d = pixelRowsPath(dotMatrixRows(value), x, y, scale);
+  return { svg: d ? `<path d="${d}" fill="${fill}" shape-rendering="crispEdges"/>` : "", width: dotMatrixWidth(value) * scale };
 }
 
 export function glyph(name: GlyphName, x: number, y: number, size: number, fill: string): string {

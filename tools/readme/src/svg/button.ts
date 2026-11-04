@@ -27,7 +27,7 @@ export function buttonCard(item: LinkItem, t: Theme, opts: { style: "pill" | "li
   let s = pxBox(0, 0, w, H, { fill: pill ? t.panel : t.bg, stroke: pill ? t.line2 : t.line, border: 2, step: 3 });
   const iy = (H - iconSize) / 2;
   if (item.company && opts.logo) {
-    s += pxBox(iconX - 2, iy - 2, iconSize + 4, iconSize + 4, { fill: FILM.paper, step: 1 });
+    s += pxBox(iconX - 2, iy - 2, iconSize + 4, iconSize + 4, { fill: FILM.paper, step: 1, stroke: t.name === "light" ? t.line : undefined, border: 1 });
     s += `<image x="${n(iconX)}" y="${n(iy)}" width="${iconSize}" height="${iconSize}" href="${esc(opts.logo)}"/>`;
   } else if (item.kind === "website" && !item.company && pill) {
     s += glyph("film", iconX, iy, iconSize, t.led);

@@ -1,0 +1,335 @@
+# Deploy everything from main:
+#   check    typecheck, test, build (site + API bundle)
+#   api      admin API → Cloud Run (only when the GCP secrets exist; otherwise skipped with a notice)
+#   web      site + /admin → Firebase Hosting (live)
+#   release  bump the version tag and publish a GitHub release
+#   notify   Discord status (only when DISCORD_WEBHOOK exists)
+# Setup guide: docs/SETUP.md
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FIREBASE_PROJECT: kiattiphoom-pho0m
+  GCP_REGION: asia-southeast1
+  AR_REPOSITORY: pho0m
+  API_SERVICE: pho0m-api
+  SITE_ORIGINS: https://kiattiphoom-pho0m.web.app,https://kiattiphoom-pho0m.firebaseapp.com
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build site
+        run: npm run build
+
+      - name: Build API bundle
+        run: npm run build:api
+
+  api:
+    name: Deploy API (Cloud Run)
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.gate.outputs.enabled != 'true' && 'skipped, no GCP secrets' || (steps.deploy.outputs.url != '' && 'deployed' || 'not deployed') }}
+    steps:
+      # Secrets cannot be used in a job-level `if`, so turn "is it set?" into a step output.
+      # Only true/false reaches the shell, never the secret itself.
+      - name: Check GCP secrets
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY != '' }}
+          HAS_BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME != '' }}
+          HAS_PASSWORD: ${{ secrets.ADMIN_PASSWORD != '' }}
+        run: |
+          if [ "$HAS_KEY" = "true" ] && [ "$HAS_BUCKET" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            if [ "$HAS_PASSWORD" != "true" ]; then
+              echo "::warning title=ADMIN_PASSWORD is not set::The API will deploy, but login on /admin answers 503 until you add the ADMIN_PASSWORD secret and run this workflow again."
+            fi
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=API deploy skipped::Add the SERVICE_ACCOUNT_KEY and SERVICE_ACCOUNT_BUCKET_NAME secrets to deploy the admin API to Cloud Run. See docs/SETUP.md."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.enabled == 'true'
+
+      # Build before authenticating, so the credentials file that auth writes into the
+      # workspace is never part of the Docker build context.
+      - name: Build image
+        if: steps.gate.outputs.enabled == 'true'
+        run: docker build -f api/Dockerfile -t "pho0m-api:${GITHUB_SHA}" .
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        if: steps.gate.outputs.enabled == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up gcloud
+        if: steps.gate.outputs.enabled == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Read project and service account from the key
+        id: gcp
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          CREDENTIALS_FILE: ${{ steps.auth.outputs.credentials_file_path }}
+        run: |
+          project_id="$(jq -r '.project_id // empty' "$CREDENTIALS_FILE")"
+          client_email="$(jq -r '.client_email // empty' "$CREDENTIALS_FILE")"
+          if [ -z "$project_id" ] || [ -z "$client_email" ]; then
+            echo "::error title=SERVICE_ACCOUNT_KEY::The key has no project_id or client_email. Paste the whole JSON key file into the secret."
+            exit 1
+          fi
+          {
+            echo "project_id=$project_id"
+            echo "client_email=$client_email"
+            echo "registry=${GCP_REGION}-docker.pkg.dev"
+            echo "image=${GCP_REGION}-docker.pkg.dev/${project_id}/${AR_REPOSITORY}/${API_SERVICE}:${GITHUB_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Enable Cloud Run and Artifact Registry
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+        run: |
+          # Safe to repeat. Needs serviceusage permission, which the deploy key may not have;
+          # docs/SETUP.md enables these APIs once by hand, so a failure here is only a warning.
+          if ! gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project "$PROJECT_ID" --quiet; then
+            echo "::warning title=Could not enable APIs::Continuing on the assumption that run.googleapis.com and artifactregistry.googleapis.com are already enabled (docs/SETUP.md, step 2)."
+          fi
+
+      - name: Create the Artifact Registry repository if missing
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+        run: |
+          if gcloud artifacts repositories describe "$AR_REPOSITORY" --location "$GCP_REGION" --project "$PROJECT_ID" >/dev/null 2>&1; then
+            echo "Repository $AR_REPOSITORY already exists in $GCP_REGION."
+          else
+            gcloud artifacts repositories create "$AR_REPOSITORY" \
+              --repository-format docker \
+              --location "$GCP_REGION" \
+              --project "$PROJECT_ID" \
+              --description "pho0m admin API images" \
+              --quiet
+          fi
+
+      - name: Push image
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          REGISTRY: ${{ steps.gcp.outputs.registry }}
+          IMAGE: ${{ steps.gcp.outputs.image }}
+        run: |
+          gcloud auth configure-docker "$REGISTRY" --quiet
+          docker tag "pho0m-api:${GITHUB_SHA}" "$IMAGE"
+          docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ steps.gcp.outputs.client_email }}
+          IMAGE: ${{ steps.gcp.outputs.image }}
+          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          # Env vars go through a file so commas, quotes or '=' in the password are safe.
+          # jq writes JSON, which is valid YAML, with every value quoted and escaped.
+          # The file replaces all env vars on the service, so removed secrets really go away.
+          env_file="$(mktemp "${RUNNER_TEMP}/api-env.XXXXXX.yaml")"
+          trap 'rm -f "$env_file"' EXIT
+          chmod 600 "$env_file"
+          jq -n \
+            --arg bucket "$BUCKET" \
+            --arg origins "$SITE_ORIGINS" \
+            --arg password "$ADMIN_PASSWORD" \
+            --arg session "$SESSION_SECRET" \
+            '{SERVICE_ACCOUNT_BUCKET_NAME: $bucket, ALLOWED_ORIGINS: $origins}
+             + (if $password != "" then {ADMIN_PASSWORD: $password} else {} end)
+             + (if $session != "" then {SESSION_SECRET: $session} else {} end)' > "$env_file"
+
+          # The runtime identity is the same service account, so the API reaches the bucket
+          # through Application Default Credentials; the key is not passed to the container.
+          gcloud run deploy "$API_SERVICE" \
+            --image "$IMAGE" \
+            --project "$PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --allow-unauthenticated \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --port 8080 \
+            --max-instances 1 \
+            --env-vars-file "$env_file" \
+            --quiet
+
+          url="$(gcloud run services describe "$API_SERVICE" --project "$PROJECT_ID" --region "$GCP_REGION" --format 'value(status.url)')"
+          if [ -z "$url" ]; then
+            echo "::error::Cloud Run did not report a URL for $API_SERVICE."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          API_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if body="$(curl -fsS --max-time 20 "$API_URL/api/health")"; then
+              echo "$body" | jq '{ok, driver, authConfigured}'
+              if [ "$(echo "$body" | jq -r '.driver')" != "gcs" ]; then
+                echo "::warning::The API is not using the bucket (driver is not gcs). Check SERVICE_ACCOUNT_BUCKET_NAME."
+              fi
+              {
+                echo "### Admin API"
+                echo ""
+                echo "- URL: $API_URL"
+                echo "- Health: \`$(echo "$body" | jq -c '{ok, driver, authConfigured}')\`"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed, waiting…"
+            sleep $((attempt * 5))
+          done
+          echo "::error::$API_URL/api/health did not answer."
+          exit 1
+
+  web:
+    name: Deploy site (Firebase Hosting)
+    needs: [check, api]
+    # Runs when the API job succeeded or deployed nothing (no GCP secrets yet).
+    # A failed API deploy stops here, so the site is never rebuilt without its API URL.
+    if: ${{ always() && needs.check.result == 'success' && (needs.api.result == 'success' || needs.api.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build site
+        env:
+          DEPLOYED_API_URL: ${{ needs.api.outputs.url }}
+          API_STATUS: ${{ needs.api.outputs.status }}
+          API_URL_VARIABLE: ${{ vars.API_URL }}
+          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+        run: |
+          if [ "$API_STATUS" = "deployed" ] && [ -z "$DEPLOYED_API_URL" ]; then
+            # GitHub drops a job output that contains a secret value, e.g. when the bucket name
+            # or the password is a substring of the Cloud Run URL.
+            echo "::warning title=API URL was dropped::The API deployed but its URL did not reach this job (it contains a secret value). Set the API_URL repository variable to the Cloud Run URL."
+          fi
+          VITE_API_URL="${DEPLOYED_API_URL:-$API_URL_VARIABLE}"
+          VITE_CONTENT_URL=""
+          if [ -n "$BUCKET" ]; then
+            VITE_CONTENT_URL="https://storage.googleapis.com/${BUCKET}/content/site.json"
+          fi
+          export VITE_API_URL VITE_CONTENT_URL
+
+          if [ -z "$VITE_API_URL" ]; then
+            echo "::warning title=No API URL::Building without VITE_API_URL, so /admin cannot reach an API. Deploy the API (GCP secrets) or set the API_URL repository variable."
+          fi
+          if [ -z "$VITE_CONTENT_URL" ]; then
+            echo "::notice title=Built-in content only::SERVICE_ACCOUNT_BUCKET_NAME is not set, so the site shows the content from content/seed.json."
+          fi
+          echo "VITE_API_URL=${VITE_API_URL:-<empty>}"
+          npm run build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KIATTIPHOOM_PHO0M }}
+          channelId: live
+          projectId: ${{ env.FIREBASE_PROJECT }}
+
+  release:
+    name: Release
+    needs: web
+    # Explicit condition: with the default one, a skipped job further up would skip this too.
+    if: ${{ always() && needs.web.result == 'success' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.new_tag }}
+    steps:
+      - name: Bump version and push tag
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        if: steps.tag.outputs.new_tag != ''
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag.outputs.new_tag }}
+          name: Release ${{ steps.tag.outputs.new_tag }}
+          body: ${{ steps.tag.outputs.changelog }}
+
+  notify:
+    name: Notify Discord
+    needs: [check, api, web, release]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check webhook
+        id: gate
+        env:
+          HAS_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK != '' }}
+        run: echo "enabled=$HAS_WEBHOOK" >> "$GITHUB_OUTPUT"
+
+      - uses: sarisia/actions-status-discord@v1
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ contains(needs.*.result, 'failure') && 'failure' || (contains(needs.*.result, 'cancelled') && 'cancelled' || 'success') }}
+          title: Deploy pho0m ${{ needs.release.outputs.tag }}
+          description: |
+            Site: https://kiattiphoom-pho0m.web.app
+            check: ${{ needs.check.result }} · api: ${{ needs.api.result }} (${{ needs.api.outputs.status }}) · web: ${{ needs.web.result }} · release: ${{ needs.release.result }}

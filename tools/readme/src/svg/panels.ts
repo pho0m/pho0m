@@ -39,7 +39,7 @@ function diaryBody(d: DiaryPanelData, t: Theme): Built {
   d.entries.forEach((e, i) => {
     s += `<rect x="${PAD}" y="${y}" width="${PANEL_W - 2 * PAD}" height="26" fill="${i % 2 ? t.bg : t.panel}" shape-rendering="crispEdges"/>`;
     s += text(PAD + 8, y + 19, e.month, { font: "led", size: 20, fill: t.led, spacing: 1 });
-    s += text(PAD + 8 + monthW, y + 18, fit(e.title, "b5", 13, PANEL_W - 2 * PAD - monthW - 16), { font: "b5", size: 13, fill: t.text });
+    s += text(PAD + 8 + monthW, y + 18, fit(e.title, "b4", 13, PANEL_W - 2 * PAD - monthW - 16), { font: "b4", size: 13, fill: t.text });
     y += 26;
   });
   y += 24;
@@ -63,7 +63,7 @@ function docsBody(d: DocsPanelData, t: Theme): Built {
   const labelW = Math.max(...d.contact.map((c) => measure(c.label, "led", 18, 1)), 40) + 14;
   for (const c of d.contact) {
     s += text(PAD, y + 18, c.label, { font: "led", size: 18, fill: t.muted, spacing: 1 });
-    s += text(PAD + labelW, y + 18, fit(c.value, "b5", 14, PANEL_W - 2 * PAD - labelW), { font: "b5", size: 14, fill: t.text });
+    s += text(PAD + labelW, y + 18, fit(c.value, "b4", 14, PANEL_W - 2 * PAD - labelW), { font: "b4", size: 14, fill: t.text });
     y += 28;
   }
   return { body: s, height: y + 18, title: d.title };

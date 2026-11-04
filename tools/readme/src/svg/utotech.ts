@@ -25,13 +25,13 @@ export function utotechCard(d: UtotechData, t: Theme): string {
 
   // header
   const tile = 92;
-  s += pxBox(pad, 30, tile, tile, { fill: FILM.paper, step: 3 });
+  s += pxBox(pad, 30, tile, tile, { fill: FILM.paper, step: 3, stroke: t.name === "light" ? t.line2 : undefined, border: 2 });
   if (d.logo) s += `<image x="${pad + 8}" y="38" width="${tile - 16}" height="${tile - 16}" href="${esc(d.logo)}"/>`;
   else s += monogram(d.shortName || d.name, pad + 14, 44, tile - 28, FILM.ink, FILM.paper);
   const hx = pad + tile + 22;
   const headW = CARD_W - hx - pad - 120;
   s += text(hx, 66, fit(d.name, "px7", 30, headW), { font: "px7", size: 30, fill: t.text });
-  s += text(hx, 94, fit(d.tagline, "b5", 17, headW), { font: "b5", size: 17, fill: t.muted });
+  s += text(hx, 94, fit(d.tagline, "b4", 17, headW), { font: "b4", size: 17, fill: t.muted });
   if (d.slogan) s += text(hx, 118, fit(d.slogan.toUpperCase(), "led", 20, headW, 1), { font: "led", size: 20, fill: t.accent, spacing: 1 });
   if (d.role) {
     const label = `MY ROLE ${d.role.toUpperCase()}`;

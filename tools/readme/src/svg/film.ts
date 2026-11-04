@@ -7,7 +7,7 @@ import { n, svgDocument } from "./xml.ts";
 
 const PRINT_W = 148;
 const PRINT_H = 112;
-const HORIZON = 92;
+const HORIZON = 88;
 
 /** One frame's paper print: dithered sky, horizon, ground, the sprite as a two-tone print and a date imprint. */
 function print(f: FilmFrame, x: number, y: number, newest: boolean, t: Theme): string {
@@ -15,11 +15,11 @@ function print(f: FilmFrame, x: number, y: number, newest: boolean, t: Theme): s
   let s = `<g transform="translate(${n(x)} ${n(y)})">`;
   s += `<rect width="${PRINT_W}" height="${PRINT_H}" fill="${FILM.paper}"/>`;
   // sky: darker at the top, fading to paper (2x2 Bayer tiles)
-  const bands: [number, number, number][] = [[0, 8, 3], [8, 20, 2], [20, 36, 1]];
+  const bands: [number, number, number][] = [[0, 6, 2], [6, 18, 1]];
   for (const [y0, y1, level] of bands) {
     s += `<rect y="${y0}" width="${PRINT_W}" height="${y1 - y0}" fill="${ditherFill(P, level)}"/>`;
   }
-  s += `<rect y="${HORIZON}" width="${PRINT_W}" height="${PRINT_H - HORIZON}" fill="${ditherFill(P, 1)}"/>`;
+  s += `<rect y="${HORIZON + 2}" width="${PRINT_W}" height="6" fill="${ditherFill(P, 1)}"/>`;
   s += `<rect y="${HORIZON}" width="${PRINT_W}" height="2" fill="${FILM.ink}"/>`;
   // 16x16 sprite at 4x, aligned to the 4 px dither grid, standing on the horizon
   s += sprite(f.frame.icon, 40, HORIZON - 64, 4, "print", P);

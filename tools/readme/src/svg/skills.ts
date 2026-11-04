@@ -27,8 +27,8 @@ export function skillsCard(g: SkillGroup, t: Theme): string {
   let y = desc ? 96 : 72;
   const maxX = CARD_W - pad;
   for (const item of g.items) {
-    const name = fit(item.name, "b5", 14, 300);
-    const w = Math.ceil(10 + 16 + 8 + measure(name, "b5", 14) + 12);
+    const name = fit(item.name, "b6", 14, 300);
+    const w = Math.ceil(10 + 16 + 8 + measure(name, "b6", 14) + 12);
     if (x + w > maxX && x > pad) {
       x = pad;
       y += CHIP_H + GAP;
@@ -37,7 +37,7 @@ export function skillsCard(g: SkillGroup, t: Theme): string {
     const icon = brandIcon(item.slug);
     if (icon) s += brandPath(icon.path, x + 10, y + 8, 16, t.led);
     else s += monogram(item.name, x + 10, y + 8, 16, t.accent, t.onAccent);
-    s += text(x + 34, y + 21, name, { font: "b5", size: 14, fill: t.text });
+    s += text(x + 34, y + 21, name, { font: "b6", size: 14, fill: t.text });
     x += w + GAP;
   }
   const H = y + (g.items.length ? CHIP_H : 0) + 26;

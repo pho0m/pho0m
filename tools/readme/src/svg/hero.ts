@@ -1,4 +1,4 @@
-import { fit, measure, sentencesThatFit, wrap } from "../font/fonts.ts";
+import { fit, measure, sentences, sentencesThatFit, wrap } from "../font/fonts.ts";
 import type { Stat } from "../model.ts";
 import { CARD_W, cardFrame, pxBox, pxRectPath, text, triangle } from "./kit.ts";
 import { FILM, type Theme } from "./theme.ts";
@@ -85,11 +85,21 @@ function statChips(stats: Stat[], x: number, y: number, maxW: number, t: Theme):
   return s;
 }
 
+const words = (s: string) => s.toLowerCase().match(/[\p{L}\p{N}+#]+/gu) ?? [];
+
+/** Bio without sentences that only repeat the headline (most of their words already appear there). */
+export function bioWithoutEcho(bio: string, headline: string): string {
+  const head = new Set(words(headline));
+  return sentences(bio)
+    .filter((s) => {
+      const w = words(s);
+      return !w.length || w.filter((x) => head.has(x)).length / w.length < 0.7;
+    })
+    .join(" ");
+}
+
 export function heroCard(d: HeroData, t: Theme): string {
-  const H = 306;
-  const frame = cardFrame(CARD_W, H, t, "hero", { x: 0.1, y: 0.05 });
-  let body = frame.body;
-  body += avatarPrint(d, 34, 34, t);
+  let body = avatarPrint(d, 34, 34, t);
 
   const x = 266;
   const maxW = CARD_W - x - 34;
@@ -101,19 +111,23 @@ export function heroCard(d: HeroData, t: Theme): string {
   body += text(x, 136, fit(d.role, "b6", 19, maxW), { font: "b6", size: 19, fill: t.accent });
 
   let y = 170;
-  const headline = wrap(d.headline, "b5", 19, maxW, 2);
+  const headline = wrap(d.headline, "b4", 20, maxW, 2);
   for (const line of headline) {
-    body += text(x, y, line, { font: "b5", size: 19, fill: t.text });
-    y += 24;
+    body += text(x, y, line, { font: "b4", size: 20, fill: t.text });
+    y += 25;
   }
-  const bioLines = headline.length > 1 ? 1 : 2;
-  const bio = wrap(sentencesThatFit(d.bio, "b4", 14, maxW, bioLines), "b4", 14, maxW, bioLines);
-  y += 2;
+  const bioText = bioWithoutEcho(d.bio, d.headline);
+  const bio = bioText ? wrap(sentencesThatFit(bioText, "b4", 14, maxW, 2), "b4", 14, maxW, 2) : [];
+  y += 1;
   for (const line of bio) {
     body += text(x, y, line, { font: "b4", size: 14, fill: t.muted });
     y += 19;
   }
-  body += statChips(d.stats, x, 240, maxW, t);
+  const chipsY = Math.max(236, y + 6);
+  body += statChips(d.stats, x, chipsY, maxW, t);
+  const H = Math.max(310, chipsY + 38 + 28);
+  const frame = cardFrame(CARD_W, H, t, "hero", { x: 0.1, y: 0.05 });
+  body = frame.body + body;
 
   const defs =
     frame.defs +
