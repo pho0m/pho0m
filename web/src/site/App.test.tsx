@@ -1,7 +1,14 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { seed, timelineFrames } from "@pho0m/content";
+import { seed, t, timelineFrames, type Project } from "@pho0m/content";
+import { LangProvider } from "../lib/i18n.tsx";
 import { App } from "./App.tsx";
+import { Projects } from "./sections/Projects.tsx";
+import { groupLabel } from "./util.ts";
+
+// Everything below is derived from content/seed.json: the seed grows (frames, projects,
+// skills), so no test hard-codes a count, a name or which frame has a photo.
+const lang = seed.site.defaultLang;
 
 // jsdom has no 2D canvas; a stub is enough for the print/frame painters.
 beforeAll(() => {
@@ -28,7 +35,7 @@ describe("public site", () => {
     const { container } = render(<App />);
     for (const id of ["top", "film", "utotech", "projects", "skills", "diary", "contact"])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Kiattiphoom Poonketkit");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(t(seed.profile.name, lang));
     // one film cell per published frame
     expect(container.querySelectorAll(".ff")).toHaveLength(timelineFrames(seed).length);
     // only documents with a url are listed
@@ -64,9 +71,9 @@ describe("public site", () => {
     const dialog = screen.getByRole("dialog");
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     const first = timelineFrames(seed)[0]!;
-    expect(within(dialog).getByRole("heading", { level: 2 }).textContent).toBe(first.title.th);
-    // the first frame has a photo, so the Original toggle is offered
-    expect(within(dialog).getByRole("button", { name: "ดูรูปจริง" })).toBeTruthy();
+    expect(within(dialog).getByRole("heading", { level: 2 }).textContent).toBe(t(first.title, lang));
+    // the Original toggle is offered only for a frame with a photo
+    expect(within(dialog).queryByRole("button", { name: "ดูรูปจริง" }) !== null).toBe(first.images.length > 0);
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(open);
@@ -76,8 +83,47 @@ describe("public site", () => {
     const { container } = render(<App />);
     const published = seed.projects.filter((p) => p.published);
     expect(container.querySelectorAll(".pcard")).toHaveLength(published.length);
-    fireEvent.click(screen.getByRole("button", { name: /งานสอน/ }));
-    expect(container.querySelectorAll(".pcard")).toHaveLength(published.filter((p) => p.group === "teaching").length);
+    const group = published[published.length - 1]!.group;
+    const label = groupLabel(group, lang).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const chip = screen.getByRole("button", { name: new RegExp(`^${label} \\d+$`) });
+    fireEvent.click(chip);
+    expect(chip.getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelectorAll(".pcard")).toHaveLength(published.filter((p) => p.group === group).length);
+  });
+
+  it("shows client work as text with an NDA note, and survives an unknown group", () => {
+    const base: Project = {
+      id: "x",
+      name: "x",
+      description: { th: "งาน", en: "Work" },
+      url: "",
+      repo: "",
+      tags: [],
+      group: "personal",
+      year: "",
+      featured: false,
+      published: true,
+    };
+    const projects: Project[] = [
+      { ...base, id: "c1", name: "Client app", group: "client", image: { url: "/shot.png", alt: { th: "", en: "" } } },
+      { ...base, id: "p1", name: "Side thing" },
+      // a group a later contract may add: must not crash, gets its own chip
+      { ...base, id: "z1", name: "Zine", group: "zine" as Project["group"] },
+    ];
+    const { container } = render(
+      <LangProvider defaultLang="th">
+        <Projects projects={projects} />
+      </LangProvider>,
+    );
+    expect(container.querySelector(".nda-note")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /^งานลูกค้า 1$/ }));
+    expect(container.querySelectorAll(".pcard")).toHaveLength(1);
+    expect(container.querySelector(".nda-note")?.textContent).toContain("NDA");
+    // no screenshot for client work
+    expect(container.querySelector(".pcard .print")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /^Zine 1$/ }));
+    expect(container.querySelectorAll(".pcard")).toHaveLength(1);
+    expect(container.querySelector(".nda-note")).toBeNull();
   });
 
   it("opens a Utotech project with its features", () => {

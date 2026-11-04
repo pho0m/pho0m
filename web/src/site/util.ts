@@ -104,13 +104,27 @@ export function hostOf(url: string): string {
 
 export const PROJECT_GROUP_LABEL: Record<string, { th: string; en: string }> = {
   utotech: { th: "Utotech", en: "Utotech" },
+  client: { th: "งานลูกค้า", en: "Client work" },
   personal: { th: "ส่วนตัว", en: "Personal" },
   teaching: { th: "งานสอน", en: "Teaching" },
   school: { th: "สมัยเรียน", en: "School" },
   coop: { th: "สหกิจ", en: "Co-op" },
 };
 
+/** Label for a project group; an unknown (future) group falls back to its id, tidied up ("open-source" → "Open source"). */
 export function groupLabel(group: string, lang: Lang): string {
-  const l = PROJECT_GROUP_LABEL[group];
-  return l ? l[lang] : group;
+  const l = Object.hasOwn(PROJECT_GROUP_LABEL, group) ? PROJECT_GROUP_LABEL[group] : undefined;
+  if (l) return l[lang];
+  const words = group.replace(/[-_]+/g, " ").trim();
+  return words ? words[0]!.toUpperCase() + words.slice(1) : "—";
+}
+
+/**
+ * Groups to offer as filters: the known groups in their contract order, then any
+ * other group found in the data (so a group added later never breaks the page).
+ */
+export function projectGroups(known: readonly string[], present: readonly string[]): string[] {
+  const have = new Set(present);
+  const extra = [...have].filter((g) => !known.includes(g));
+  return [...known.filter((g) => have.has(g)), ...extra];
 }

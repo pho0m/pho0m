@@ -33,7 +33,10 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-function MediaCard({ item, used }: { item: MediaItem; used: boolean }) {
+/** Where a file is still referenced: on the live site (saved content), only in the draft, or nowhere. */
+type Use = "live" | "draft" | null;
+
+function MediaCard({ item, used }: { item: MediaItem; used: Use }) {
   const media = useMedia();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -51,7 +54,7 @@ function MediaCard({ item, used }: { item: MediaItem; used: boolean }) {
         <span className="media-meta">
           {formatBytes(item.size)} · {item.updated ? new Date(item.updated).toLocaleDateString("th-TH") : ""}
         </span>
-        {used ? <Chip tone="ok">ใช้อยู่ในเนื้อหา</Chip> : null}
+        {used === "live" ? <Chip tone="ok">ใช้อยู่บนเว็บ</Chip> : used === "draft" ? <Chip tone="warn">ใช้ในฉบับร่าง</Chip> : null}
       </div>
       <div className="btnrow">
         <button
@@ -68,7 +71,9 @@ function MediaCard({ item, used }: { item: MediaItem; used: boolean }) {
           label={busy ? "กำลังลบ…" : "ลบ"}
           disabled={busy}
           ariaLabel={`ลบไฟล์ ${name}`}
-          question={used ? "ไฟล์นี้ยังถูกใช้อยู่ ลบเลย?" : "ลบไฟล์นี้ถาวร?"}
+          question={
+            used === "live" ? "เว็บยังใช้ไฟล์นี้อยู่ ลบเลย?" : used === "draft" ? "ฉบับร่างยังใช้ไฟล์นี้ ลบเลย?" : "ลบไฟล์นี้ถาวร?"
+          }
           onConfirm={async () => {
             setBusy(true);
             try {
@@ -85,7 +90,7 @@ function MediaCard({ item, used }: { item: MediaItem; used: boolean }) {
   );
 }
 
-export function MediaSection({ contentJson }: { contentJson: string }) {
+export function MediaSection({ draftJson, savedJson }: { draftJson: string; savedJson: string }) {
   const media = useMedia();
   const [kind, setKind] = useState<Kind>("all");
   const [query, setQuery] = useState("");
@@ -145,7 +150,11 @@ export function MediaSection({ contentJson }: { contentJson: string }) {
       {media.status === "ready" && !items.length ? <p className="empty">ไม่มีไฟล์ที่ตรงเงื่อนไข</p> : null}
       <ul className="media-cards">
         {items.map((m) => (
-          <MediaCard key={m.path} item={m} used={contentJson.includes(m.url)} />
+          <MediaCard
+            key={m.path}
+            item={m}
+            used={savedJson.includes(m.url) ? "live" : draftJson.includes(m.url) ? "draft" : null}
+          />
         ))}
       </ul>
     </>

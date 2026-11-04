@@ -1,14 +1,21 @@
-import { loadImage, sourceToImageData } from "../../lib/pixel.ts";
+import { FRAME_H, FRAME_W, ditherPrint, loadImage, negativeOf } from "../../lib/pixel.ts";
+import { clearPrint, developingPrint, downsample, photoSource, type PrintSource } from "../../lib/print.ts";
 
-const cache = new Map<string, Promise<HTMLImageElement>>();
+/**
+ * Site glue around the shared print pipeline (web/src/lib/print.ts): an image
+ * cache, per-source caches so the clear print / negative are computed once, and
+ * an idle queue so that work never lands in the scroll loop.
+ */
+
+const images = new Map<string, Promise<HTMLImageElement>>();
 
 /** loadImage() with a per-URL cache; failed loads are forgotten so they can be retried. */
 export function loadCached(url: string): Promise<HTMLImageElement> {
-  let p = cache.get(url);
+  let p = images.get(url);
   if (!p) {
     p = loadImage(url);
-    cache.set(url, p);
-    p.catch(() => cache.delete(url));
+    images.set(url, p);
+    p.catch(() => images.delete(url));
   }
   return p;
 }
@@ -18,84 +25,106 @@ const natural = (img: HTMLImageElement) => ({
   h: img.naturalHeight || img.height || 1,
 });
 
-/**
- * True when the image has see-through corners (a cut-out logo). Throws on a
- * tainted (non-CORS) image, like sourceToImageData.
- */
-export function hasTransparentEdges(img: HTMLImageElement): boolean {
-  const c = document.createElement("canvas");
-  c.width = 8;
-  c.height = 8;
-  const ctx = c.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return false;
-  ctx.drawImage(img, 0, 0, 8, 8);
-  const d = ctx.getImageData(0, 0, 8, 8).data;
-  const corners = [0, 7, 56, 63];
-  return corners.some((p) => d[p * 4 + 3]! < 250);
-}
-
-/** Contain-fit a cut-out image on white paper with a small margin. */
-function containOnPaper(img: HTMLImageElement, w: number, h: number): ImageData {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d", { willReadFrequently: true })!;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, w, h);
-  const { w: sw, h: sh } = natural(img);
-  const scale = Math.min((w * 0.84) / sw, (h * 0.84) / sh);
-  const dw = sw * scale;
-  const dh = sh * scale;
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-  return ctx.getImageData(0, 0, w, h);
-}
-
-export type Tone = { black: number; white: number };
-export type PrintSource = { data: ImageData; tone: Tone | undefined };
-
-/**
- * Per-photo tone curve for ditherPrint: map the darkest/lightest `clip` share of
- * pixels to solid ink/paper so the subject reads as a clean silhouette.
- */
-export function autoTone(src: ImageData, clip = 0.12, minSpan = 0.35): Tone {
-  const hist = new Uint32Array(256);
-  const d = src.data;
-  for (let k = 0; k < d.length; k += 4) hist[Math.round(d[k]! * 0.3 + d[k + 1]! * 0.59 + d[k + 2]! * 0.11)]!++;
-  const total = d.length / 4;
-  const at = (q: number) => {
-    let acc = 0;
-    for (let v = 0; v < 256; v++) {
-      acc += hist[v]!;
-      if (acc >= q * total) return v / 255;
-    }
-    return 1;
-  };
-  let black = at(clip);
-  let white = at(1 - clip);
-  if (white - black < minSpan) {
-    const mid = (white + black) / 2;
-    black = Math.max(0, mid - minSpan / 2);
-    white = Math.min(1, mid + minSpan / 2);
-  }
-  return { black, white };
-}
-
-/**
- * Image → bitmap ready for ditherPrint: photos are cover-fitted (pixel.ts) and
- * get an auto tone curve; cut-out logos are placed on white so their transparent
- * parts print as paper. Throws when the canvas cannot be read (CORS).
- */
-export function toPrintSource(img: HTMLImageElement, w: number, h: number): PrintSource {
-  if (hasTransparentEdges(img)) return { data: containOnPaper(img, w, h), tone: undefined };
-  const data = sourceToImageData(img, w, h);
-  return { data, tone: autoTone(data) };
-}
-
 /** Height for a target width keeping the image's natural aspect (bounded). */
 export function naturalHeight(img: HTMLImageElement, w: number, minAspect = 0.5, maxAspect = 2): number {
   const { w: sw, h: sh } = natural(img);
   const ratio = Math.min(maxAspect, Math.max(minAspect, sw / sh));
   return Math.max(1, Math.round(w / ratio));
+}
+
+/**
+ * Size of the clear print for a photo shown `width` dither-pixels wide at `aspect`
+ * (w/h): about 3× the dither, at most `max` px wide, never wider than the part of
+ * the photo a cover-fit actually uses (no upscaling).
+ */
+export function clearSize(img: HTMLImageElement, width: number, aspect: number, max = 640): { w: number; h: number } {
+  const { w: sw, h: sh } = natural(img);
+  const used = Math.min(sw, sh * aspect);
+  const w = Math.max(width, Math.min(max, Math.round(width * 3.2), Math.round(used)));
+  return { w, h: Math.max(1, Math.round(w / aspect)) };
+}
+
+const photos = new Map<string, Promise<PrintSource>>();
+
+/** Cached photoSource() for a URL at w×h. Rejects when the image cannot be loaded or read (CORS). */
+export function photoPrintSource(url: string, w: number, h: number): Promise<PrintSource> {
+  const key = `${url}|${w}x${h}`;
+  let p = photos.get(key);
+  if (!p) {
+    p = loadCached(url).then((img) => photoSource(img, w, h));
+    photos.set(key, p);
+    p.catch(() => photos.delete(key));
+  }
+  return p;
+}
+
+const clears = new WeakMap<PrintSource, ImageData>();
+const negatives = new WeakMap<PrintSource, ImageData>();
+const smalls = new WeakMap<PrintSource, PrintSource>();
+
+/** The finished clear print of a source, computed once. */
+export function clearOf(src: PrintSource): ImageData {
+  let c = clears.get(src);
+  if (!c) {
+    c = clearPrint(src);
+    clears.set(src, c);
+  }
+  return c;
+}
+
+/** The red safelight negative (same as negativePrint), computed once from the cached clear print. */
+export function negativeFor(src: PrintSource): ImageData {
+  let c = negatives.get(src);
+  if (!c) {
+    c = negativeOf(clearOf(src));
+    negatives.set(src, c);
+  }
+  return c;
+}
+
+/**
+ * The developing dither at w×h (default: the film frame size). A big photo is
+ * box-downsampled once and cached, so each animation step is one cheap dither pass.
+ */
+export function developingAt(src: PrintSource, level: number, out?: ImageData, w = FRAME_W, h = FRAME_H): ImageData {
+  let small = smalls.get(src);
+  if (!small || small.data.width !== w || small.data.height !== h) {
+    small = { ...src, data: downsample(src.data, w, h) };
+    smalls.set(src, small);
+  }
+  if (w === FRAME_W && h === FRAME_H) return developingPrint(small, level, out);
+  // developingPrint() is fixed to the film frame size; other shapes (avatar 4:5…) get the same dither at their own size.
+  return ditherPrint(small.data, { ...src.ditherTone, level }, out);
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+};
+
+const queue: (() => void)[] = [];
+let pumping = false;
+
+/** Run `job` when the browser is idle, one job per idle slot (keeps long print maths out of animation frames). */
+export function whenIdle(job: () => void): void {
+  queue.push(job);
+  if (pumping) return;
+  pumping = true;
+  const w = (typeof window !== "undefined" ? window : undefined) as IdleWindow | undefined;
+  const next = () => {
+    const fn = queue.shift();
+    if (!fn) {
+      pumping = false;
+      return;
+    }
+    try {
+      fn();
+    } finally {
+      if (w?.requestIdleCallback) w.requestIdleCallback(next, { timeout: 300 });
+      else setTimeout(next, 16);
+    }
+  };
+  if (w?.requestIdleCallback) w.requestIdleCallback(next, { timeout: 300 });
+  else setTimeout(next, 0);
 }

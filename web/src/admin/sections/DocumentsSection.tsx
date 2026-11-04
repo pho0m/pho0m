@@ -17,7 +17,7 @@ function DocEditor({ value, onChange }: { value: DocumentItem; onChange: (v: Doc
         hint="อัปโหลด PDF หรือวางลิงก์ (Canva, Google Sheets…) · เว้นว่าง = ยังไม่แสดงบนเว็บ"
         {...f("url")}
       />
-      <ImageField label="ภาพตัวอย่าง (ไม่บังคับ)" folder="docs" {...f("image")} />
+      <ImageField label="ภาพตัวอย่าง (ไม่บังคับ)" folder="docs" aspect={4 / 3} {...f("image")} />
     </>
   );
 }

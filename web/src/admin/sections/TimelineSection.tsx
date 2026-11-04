@@ -9,9 +9,10 @@ import {
 } from "@pho0m/content";
 import { useJump } from "../context.tsx";
 import { dateOrder, insertItem, removeItem, replaceItem } from "../list.ts";
+import { FRAME_ASPECT } from "../darkroom.ts";
 import { autoId } from "../validate.ts";
 import { ConfirmButton, Grid, IdField, LocalizedField, TagsField, TextField, Toggle, bind } from "../fields/basic.tsx";
-import { DarkroomCanvas, SpriteIcon } from "../fields/canvas.tsx";
+import { PrintCanvas, PrintControls, SpriteIcon, useDarkroomPrint } from "../fields/canvas.tsx";
 import { ImagesField } from "../fields/ImageField.tsx";
 import { LinksEditor } from "../fields/LinksEditor.tsx";
 import { Chip, SectionHead } from "./common.tsx";
@@ -90,49 +91,29 @@ function IconPicker({ value, onChange }: { value: IconName; onChange: (v: IconNa
   );
 }
 
-/** The frame as it will look on the film: dithered print (or negative) with the date imprint. */
+/**
+ * The frame as it will look on the film: the clear print by default, the developing
+ * dither (replayable) or the safelight negative, with the date imprint.
+ */
 function FramePreview({ frame, t, seed }: { frame: Frame; t: number; seed: number }) {
-  const [level, setLevel] = useState(1);
-  const [negative, setNegative] = useState(false);
-  const id = useId();
+  const p = useDarkroomPrint({ url: frame.images[0]?.url, icon: frame.icon, t, seed });
   const dateOk = SortDate.safeParse(frame.date).success;
   return (
     <figure className="film-preview">
       <div className="film px">
         <div className="film-holes" aria-hidden="true" />
         <div className="film-gate">
-          <DarkroomCanvas
-            url={frame.images[0]?.url}
-            icon={frame.icon}
-            t={t}
-            seed={seed}
-            level={level}
-            negative={negative}
-            label={`พรีวิวเฟรม ${frame.title.th || frame.title.en}`}
-            className="film-canvas"
-          />
-          {dateOk ? <span className="film-stamp lcd">{frameStamp(frame)}</span> : null}
+          <PrintCanvas p={p} icon label={`พรีวิวเฟรม ${frame.title.th || frame.title.en}`} className="film-canvas">
+            {dateOk ? <span className="film-stamp lcd">{frameStamp(frame)}</span> : null}
+          </PrintCanvas>
         </div>
         <div className="film-holes" aria-hidden="true" />
       </div>
       <figcaption>
         <span className="lcd">{dateOk ? frameDateLabel(frame) : "----"}</span> {frame.title.th || frame.title.en || "(ไม่มีชื่อ)"}
+        {p.usingIcon && p.status !== "error" ? <small className="muted"> · ไม่มีรูป ใช้ภาพไอคอน</small> : null}
       </figcaption>
-      <div className="film-ctl">
-        <label htmlFor={`${id}-lv`} className="lcd">
-          DEV {Math.round(level * 100)}%
-        </label>
-        <input
-          id={`${id}-lv`}
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={level}
-          onChange={(e) => setLevel(Number(e.target.value))}
-        />
-        <Toggle label="ฟิล์มเนกาทีฟ" value={negative} onChange={setNegative} />
-      </div>
+      <PrintControls p={p} slider />
     </figure>
   );
 }
@@ -181,6 +162,7 @@ function FrameEditor({
         folder="timeline"
         path={`timeline.${index}.images`}
         hint="รูปแรกใช้เป็นภาพบนฟิล์ม"
+        aspect={FRAME_ASPECT}
         {...f("images")}
       />
       <LinksEditor path={`timeline.${index}.links`} {...f("links")} />

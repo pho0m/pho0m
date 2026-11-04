@@ -4,6 +4,7 @@ import {
   crossedGate,
   damp,
   darkroomTimer,
+  DEVELOP_MS,
   developLevel,
   dwell,
   edgePrint,
@@ -12,6 +13,7 @@ import {
   frameVisible,
   frameWidthFor,
   initialStates,
+  isDry,
   positiveOpacity,
   posToScroll,
   scrollStep,
@@ -148,6 +150,16 @@ describe("darkroom timer", () => {
     expect(darkroomTimer(0.5).stage).toBe(2);
     expect(darkroomTimer(1)).toEqual({ stage: 3, seconds: 240, clock: "04:00" });
     expect(darkroomTimer(0.25).clock).toBe("01:00");
+  });
+
+  it("is DRY (time for the clear print) exactly when the timer shows DRY", () => {
+    expect(isDry(0)).toBe(false);
+    expect(isDry(0.8)).toBe(false);
+    expect(isDry(0.9)).toBe(true);
+    expect(isDry(1)).toBe(true);
+    for (let l = 0; l <= 1; l += 0.01) expect(isDry(l)).toBe(darkroomTimer(l).stage === 3);
+    // the film crossfades well before the develop ends
+    expect(isDry(developLevel(DEVELOP_MS * 0.7))).toBe(true);
   });
 });
 

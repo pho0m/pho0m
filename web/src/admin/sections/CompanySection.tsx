@@ -115,7 +115,7 @@ export function CompanySection({ value, onChange }: { value: Company; onChange: 
 
       <Group title="โลโก้และภาพปก" hint="Logo & cover">
         <ImageField label="โลโก้" folder="utotech" {...f("logo")} />
-        <ImageField label="ภาพปก" folder="utotech" {...f("cover")} />
+        <ImageField label="ภาพปก" folder="utotech" aspect={4 / 3} {...f("cover")} />
       </Group>
 
       <Group title="เรื่องราวบริษัท" hint="About, mission, vision, story">
@@ -140,7 +140,7 @@ export function CompanySection({ value, onChange }: { value: Company; onChange: 
               <>
                 <LocalizedField label="หัวข้อ" required {...g("title")} />
                 <LocalizedField label="คำอธิบาย" multiline rows={3} required {...g("description")} />
-                <ImageField label="รูป" folder="utotech" {...g("image")} />
+                <ImageField label="รูป" folder="utotech" aspect={4 / 3} {...g("image")} />
               </>
             );
           }}
@@ -163,7 +163,7 @@ export function CompanySection({ value, onChange }: { value: Company; onChange: 
                 <LocalizedField label="ป้ายสั้น (title)" required {...g("title")} />
                 <LocalizedField label="หัวข้อ (heading)" required {...g("heading")} />
                 <LocalizedField label="คำอธิบาย" multiline rows={3} required {...g("description")} />
-                <ImageField label="รูป" folder="utotech" {...g("image")} />
+                <ImageField label="รูป" folder="utotech" aspect={4 / 3} {...g("image")} />
               </>
             );
           }}
@@ -236,7 +236,7 @@ export function CompanySection({ value, onChange }: { value: Company; onChange: 
       </Group>
 
       <Group title="แกลเลอรี" hint={`Gallery · ${value.gallery.length}`} defaultOpen={false}>
-        <ImagesField label="รูปบรรยากาศ" folder="utotech" path="company.gallery" {...f("gallery")} />
+        <ImagesField label="รูปบรรยากาศ" folder="utotech" path="company.gallery" aspect={4 / 3} {...f("gallery")} />
       </Group>
 
       <Group title="ติดต่อ" hint="Contact, addresses, tax ID">

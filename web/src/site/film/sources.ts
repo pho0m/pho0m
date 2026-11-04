@@ -1,34 +1,31 @@
 import type { Frame } from "@pho0m/content";
-import { FRAME_H, FRAME_W, iconScene } from "../../lib/pixel.ts";
-import { loadCached, toPrintSource, type Tone } from "../ui/images.ts";
-
-export type FrameSource = { data: ImageData; photo: boolean; tone: Tone | undefined };
+import { PRINT_H, PRINT_W } from "../../lib/pixel.ts";
+import { iconSource, type PrintSource } from "../../lib/print.ts";
+import { photoPrintSource } from "../ui/images.ts";
 
 /** Time of day for the generated scene: dawn for the oldest frame, night for the newest. */
 export const sceneTime = (i: number, n: number): number => (n > 1 ? i / (n - 1) : 0);
 
-const cache = new Map<string, Promise<FrameSource>>();
+const cache = new Map<string, Promise<PrintSource>>();
 
 /**
- * Colour source bitmap for a frame: its first image (CORS-loaded), or the
- * generated icon scene when it has none or the image cannot be read.
+ * Print source for a frame: its first image (CORS-loaded, PRINT size by default),
+ * or the generated pixel-art scene when it has none or the image cannot be read.
  */
-export function frameSource(frame: Frame, i: number, n: number, w = FRAME_W, h = FRAME_H): Promise<FrameSource> {
+export function frameSource(frame: Frame, i: number, n: number, w = PRINT_W, h = PRINT_H): Promise<PrintSource> {
   const img = frame.images[0];
   const key = `${img?.url ?? ""}|${frame.icon}|${i}|${n}|${w}x${h}`;
   let p = cache.get(key);
   if (!p) {
-    p = (async (): Promise<FrameSource> => {
+    p = (async (): Promise<PrintSource> => {
       if (img) {
         try {
-          const el = await loadCached(img.url);
-          const { data, tone } = toPrintSource(el, w, h);
-          return { data, tone, photo: true };
+          return await photoPrintSource(img.url, w, h);
         } catch {
           /* CORS / taint / network: fall back to the pixel scene */
         }
       }
-      return { data: iconScene(frame.icon, sceneTime(i, n), i), photo: false, tone: undefined };
+      return iconSource(frame.icon, sceneTime(i, n), i);
     })();
     cache.set(key, p);
   }

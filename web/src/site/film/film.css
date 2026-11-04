@@ -16,6 +16,7 @@
   height: 100svh;
   overflow: hidden;
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* long tick rows / captions never widen the stage */
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 8px;
   padding: calc(var(--bar-h) + env(safe-area-inset-top, 0px) + 12px) var(--gutter-r)
@@ -163,14 +164,20 @@
   background: #1b0504;
   box-shadow: inset 0 0 0 1px rgba(255, 138, 118, 0.12);
 }
-.ff-img canvas {
+.ff-img canvas,
+.ff-pos {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+}
+/* The developing dither is pixel art; the clear print and the negative get their
+   rendering from the source (smooth for photos, pixelated for scenes) in JS. */
+.ff-img canvas {
   image-rendering: pixelated;
 }
-.ff-pos {
+.ff-pos,
+.ff-clear {
   opacity: 0;
 }
 .ff[data-state="unexposed"] canvas,
@@ -390,12 +397,26 @@
   min-width: 0;
 }
 .fc-ticks {
+  position: relative; /* offsetLeft of the ticks is measured from here */
   display: flex;
   gap: 3px;
-  margin: 0;
-  padding: 0;
+  margin: -3px 0;
+  padding: 3px; /* room for the focus ring inside the scroller */
   list-style: none;
   min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.fc-ticks::-webkit-scrollbar {
+  display: none;
+}
+.fc-ticks[data-overflow] {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+.fc-ticks li {
+  flex: none;
 }
 .fc-tick,
 .fc-step {
@@ -472,7 +493,7 @@
     0 18px 40px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(0, 0, 0, 0.2);
 }
-.pm-canvas,
+.pm-print,
 .pm-original {
   display: block;
   width: 100%;
@@ -481,8 +502,20 @@
   object-fit: cover;
   background: var(--paper);
 }
-.pm-canvas {
+.pm-print {
+  position: relative;
+}
+.pm-print canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pm-dev {
   image-rendering: pixelated;
+}
+.pm-clear {
+  opacity: 0;
 }
 .pm-stamp {
   position: absolute;
@@ -618,8 +651,7 @@
     gap: 2px;
   }
   .fc-ticks li {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 1 0 26px;
   }
   .fc-tick {
     width: 100%;

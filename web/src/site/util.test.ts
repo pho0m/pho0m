@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { seed } from "@pho0m/content";
-import { badgeTint, groupLabel, hostOf, linkCode, linkLabel, monogram, paragraphs, telHref } from "./util.ts";
+import { PROJECT_GROUPS, seed } from "@pho0m/content";
+import { badgeTint, groupLabel, hostOf, linkCode, linkLabel, monogram, paragraphs, PROJECT_GROUP_LABEL, projectGroups, telHref } from "./util.ts";
 
 describe("monogram", () => {
   it("uses initials, camel capitals or the first two letters", () => {
@@ -42,5 +42,20 @@ describe("text helpers", () => {
   it("names project groups in both languages", () => {
     expect(groupLabel("teaching", "th")).toBe("งานสอน");
     expect(groupLabel("teaching", "en")).toBe("Teaching");
+  });
+
+  it("labels every contract group and survives unknown ones", () => {
+    for (const g of PROJECT_GROUPS) expect(PROJECT_GROUP_LABEL[g], g).toBeDefined();
+    expect(groupLabel("client", "th")).toBe("งานลูกค้า");
+    expect(groupLabel("client", "en")).toBe("Client work");
+    expect(groupLabel("open-source", "en")).toBe("Open source");
+    expect(groupLabel("toString", "en")).toBe("ToString");
+  });
+});
+
+describe("projectGroups", () => {
+  it("keeps contract order and appends groups it does not know", () => {
+    expect(projectGroups(PROJECT_GROUPS, ["school", "client", "zine", "school"])).toEqual(["client", "school", "zine"]);
+    expect(projectGroups(PROJECT_GROUPS, [])).toEqual([]);
   });
 });

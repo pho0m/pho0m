@@ -534,14 +534,26 @@ p {
   position: relative;
   background: var(--paper);
 }
-.print-canvas {
+/* develop (dither, pixelated) under the clear print; JS fades the clear print in */
+.print-frame {
+  position: relative;
   display: block;
   width: 100%;
-  height: auto;
+  overflow: hidden;
+  background: var(--paper);
+}
+.print-frame canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.print-dev {
   image-rendering: pixelated;
 }
-.print--loading .print-canvas {
-  background: var(--paper);
+.print-clear {
+  opacity: 0;
 }
 .print--fallback img {
   display: block;
@@ -565,6 +577,11 @@ p {
   object-fit: cover;
   opacity: 0;
   transition: opacity 0.35s steps(5);
+}
+.print-real--contain {
+  object-fit: contain;
+  padding: 8%;
+  background: var(--paper);
 }
 .print--reveal:hover .print-real,
 .print-toggle:focus-visible .print-real,

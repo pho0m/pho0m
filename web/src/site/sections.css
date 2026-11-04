@@ -20,7 +20,7 @@
   transform: rotate(-2deg);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
 }
-.ut-logo img {
+.ut-logo .print {
   width: 100%;
   max-width: 180px;
   margin: 0 auto;
@@ -665,6 +665,28 @@
 }
 .chip-btn[aria-pressed="true"] .chip-count {
   color: #1a0402;
+}
+/* client filter: why there are no screenshots */
+.nda-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 68ch;
+  margin: -8px 0 20px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-left: 4px solid var(--red);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.nda-tag {
+  flex: none;
+  padding: 2px 6px 1px;
+  font-size: 16px;
+  line-height: 1;
+  color: #1a0402;
+  background: var(--led);
 }
 .pgrid {
   display: grid;

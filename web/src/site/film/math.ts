@@ -122,7 +122,7 @@ export function frameWidthFor(stageW: number, stageH: number): number {
   return Math.round(clamp(Math.min(byW, byH), 210, 360));
 }
 
-/** Print development over time: 0 → 1 with an ease-out (shadows show up first in ditherPrint). */
+/** Print development over time: 0 → 1 with an ease-out (shadows show up first in the developing dither). */
 export const DEVELOP_MS = 700;
 export function developLevel(elapsedMs: number, durationMs = DEVELOP_MS): number {
   const u = clamp(elapsedMs / durationMs, 0, 1);
@@ -155,6 +155,14 @@ export function darkroomTimer(progress: number | null): TimerReading {
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
   return { stage, seconds, clock: `${mm}:${ss}` };
+}
+
+/**
+ * True once the print reaches the DRY stage of the timer: the developing dither is
+ * done and the frame crossfades to the clear print.
+ */
+export function isDry(level: number): boolean {
+  return darkroomTimer(level).stage === TIMER_STAGES.length - 1;
 }
 
 export const pad2 = (v: number): string => String(v).padStart(2, "0");

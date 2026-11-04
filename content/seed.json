@@ -144,7 +144,7 @@
         {
           "url": "/img/studiotwist.png",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Studio Twist",
             "en": "Studio Twist logo"
           }
         }
@@ -245,7 +245,7 @@
         {
           "url": "/media/utotech/logo.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ยูโทเทค",
             "en": "Utotech logo"
           }
         }
@@ -650,7 +650,7 @@
         {
           "url": "/media/utotech/office/office1.webp",
           "alt": {
-            "th": "",
+            "th": "ออฟฟิศยูโทเทค",
             "en": "Utotech office"
           }
         }
@@ -732,7 +732,7 @@
         "image": {
           "url": "/media/utotech/office/office2.webp",
           "alt": {
-            "th": "",
+            "th": "ออฟฟิศยูโทเทค",
             "en": "Utotech office"
           }
         }
@@ -749,7 +749,7 @@
         "image": {
           "url": "/media/utotech/office/office3.webp",
           "alt": {
-            "th": "",
+            "th": "ออฟฟิศยูโทเทค",
             "en": "Utotech office"
           }
         }
@@ -766,7 +766,7 @@
         "image": {
           "url": "/media/utotech/office/office1.webp",
           "alt": {
-            "th": "",
+            "th": "ทีมยูโทเทค",
             "en": "Utotech team"
           }
         }
@@ -789,7 +789,7 @@
         "image": {
           "url": "/media/utotech/services/systemdesign.webp",
           "alt": {
-            "th": "",
+            "th": "การออกแบบระบบ",
             "en": "System design"
           }
         }
@@ -810,7 +810,7 @@
         "image": {
           "url": "/media/utotech/services/software-development-company.webp",
           "alt": {
-            "th": "",
+            "th": "วงจรการพัฒนาซอฟต์แวร์",
             "en": "Software development life cycle"
           }
         }
@@ -831,7 +831,7 @@
         "image": {
           "url": "/media/utotech/services/uiux.webp",
           "alt": {
-            "th": "",
+            "th": "UX และ UI",
             "en": "UX and UI"
           }
         }
@@ -944,60 +944,70 @@
           "en": "Information System for Thailand education"
         },
         "description": {
-          "th": "",
-          "en": "ISTEd is a data analysis platform tailored for educational institutions. It helps analyze student performance and educational outcomes using real-time data processing."
+          "th": "ISTEd เป็นแพลตฟอร์มวิเคราะห์ข้อมูลสำหรับสถาบันการศึกษา ช่วยวิเคราะห์ผลการเรียนของนักเรียนและผลลัพธ์ทางการศึกษา ด้วยการประมวลผลข้อมูลแบบเรียลไทม์ นำเข้าข้อมูลแล้ววิเคราะห์ต่อได้ด้วย flow builder แบบภาพ ที่ต่อคอลัมน์ ตัวดำเนินการ และผลลัพธ์เข้าด้วยกัน",
+          "en": "ISTEd is a data analysis platform tailored for educational institutions. It helps analyze student performance and educational outcomes using real-time data processing. Data is imported and then analyzed with a visual flow builder that connects columns, operators and results."
         },
         "url": "https://isted.onec.go.th/",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "ภาพรวม KPI การศึกษาไทย",
               "en": "Overall KPIs in Thailand"
             },
             "description": {
-              "th": "",
+              "th": "KPI ด้านการศึกษาของไทยวัดเรื่องสำคัญ เช่น ผลการเรียนของนักเรียน อัตราการสำเร็จการศึกษา คุณภาพครู และการเข้าถึงการศึกษา ตัวชี้วัดเหล่านี้ช่วยประเมินว่านโยบายการศึกษาได้ผลแค่ไหน และผลักดันให้ผลการเรียนรู้และระบบทำงานได้ดีขึ้น",
               "en": "In education, KPIs in Thailand measure key areas such as student performance, graduation rates, teacher quality, and access to education. These indicators help evaluate the effectiveness of educational policies and drive improvements in learning outcomes and system efficiency."
             },
             "image": {
               "url": "/media/utotech/projects/isted/4.webp",
               "alt": {
-                "th": "",
+                "th": "ภาพรวม KPI การศึกษาไทย",
                 "en": "Overall KPIs in Thailand"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "วิเคราะห์ด้วยสถิติ",
               "en": "Analytics with Statistics"
             },
             "description": {
-              "th": "",
-              "en": "Uses statistical methods to analyze data and support data-driven decisions. It helps researchers measure performance, predict and manage KPIs"
+              "th": "ใช้วิธีทางสถิติวิเคราะห์ข้อมูลเพื่อช่วยตัดสินใจจากข้อมูลจริง ช่วยให้นักวิจัยวัดผล คาดการณ์ และบริหาร KPI",
+              "en": "Uses statistical methods to analyze data and support data-driven decisions. It helps researchers measure performance, predict and manage KPIs."
             },
             "image": {
               "url": "/media/utotech/projects/isted/1.webp",
               "alt": {
-                "th": "",
+                "th": "วิเคราะห์ด้วยสถิติ",
                 "en": "Analytics with Statistics"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แอนิเมชัน",
               "en": "Animations"
             },
             "description": {
-              "th": "",
-              "en": "Adding motion and visual effects to websites, enhancing user engagement, improving usability, and making the experience more dynamic and interactive"
+              "th": "เพิ่มการเคลื่อนไหวและเอฟเฟกต์ภาพให้เว็บไซต์ ดึงความสนใจผู้ใช้ ใช้งานง่ายขึ้น และทำให้ประสบการณ์มีชีวิตชีวาและโต้ตอบได้มากขึ้น",
+              "en": "Adds motion and visual effects to the website, enhancing user engagement, improving usability and making the experience more dynamic and interactive."
             },
             "image": {
               "url": "/media/utotech/projects/isted/2.webp",
               "alt": {
-                "th": "",
+                "th": "แอนิเมชัน",
                 "en": "Animations"
               }
+            }
+          },
+          {
+            "title": {
+              "th": "Flow builder แบบภาพ",
+              "en": "Visual flow builder"
+            },
+            "description": {
+              "th": "นำเข้าข้อมูล แล้วสร้างการวิเคราะห์แบบภาพด้วยการต่อคอลัมน์ ตัวดำเนินการ และผลลัพธ์เข้าด้วยกัน",
+              "en": "Import data, then build the analysis visually by connecting columns, operators and results."
             }
           }
         ],
@@ -1006,7 +1016,7 @@
         "cover": {
           "url": "/media/utotech/projects/isted/logo-isted.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ ISTEd",
             "en": "ISTEd logo"
           }
         }
@@ -1020,77 +1030,87 @@
           "en": "Booking system and events management"
         },
         "description": {
-          "th": "",
-          "en": "Comedu Reunion is a web platform designed to manage alumni events, reunions, and bookings, offering a seamless experience for event organizers and attendees. Also using Line-OA and have Dashboard managment system."
+          "th": "Comedu Reunion เป็นแพลตฟอร์มเว็บสำหรับจัดการงานศิษย์เก่า งานคืนสู่เหย้า และการจอง ระบบจัดการการจองโต๊ะที่มาจาก LINE OA, LIFF และ Dashboard โดย admin รวมถึงเก็บข้อมูลการชำระเงิน แสดงสถานะโต๊ะหรือเก้าอี้ว่าจองได้หรือไม่ แสดงจำนวนผู้มาร่วมงาน และสั่งอาหารในงานเลี้ยง เช่น โต๊ะจีน",
+          "en": "Comedu Reunion is a web platform for managing alumni events, reunions and bookings, giving organizers and attendees a smooth experience. Table bookings come in from LINE OA, LIFF and an admin dashboard. The system keeps payment records, shows whether each table or seat can still be booked, shows how many guests are coming, and takes food orders for the banquet, such as a Chinese banquet table."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "แพลตฟอร์มการจอง",
               "en": "Booking Platform"
             },
             "description": {
-              "th": "",
-              "en": "Comedu Reunion is a web platform designed to manage alumni events, reunions, and bookings, offering a seamless experience for event organizers and attendees. Also using Line-OA and have Dashboard managment system."
+              "th": "รวมการจองโต๊ะจาก LINE OA, LIFF และ Dashboard ของ admin ไว้ในที่เดียว เห็นได้ทันทีว่าโต๊ะหรือเก้าอี้ไหนยังจองได้ และมีผู้มาร่วมงานกี่คน",
+              "en": "Table bookings from LINE OA, LIFF and the admin dashboard in one place, showing which tables or seats can still be booked and how many guests are coming."
             },
             "image": {
               "url": "/media/utotech/projects/comedu/1.webp",
               "alt": {
-                "th": "",
+                "th": "แพลตฟอร์มการจอง",
                 "en": "Booking Platform"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "พัฒนาเชื่อมต่อกับ LINE OA",
               "en": "Integrated development with Line-OA."
             },
             "description": {
-              "th": "",
+              "th": "ผู้ใช้จองผ่าน LINE OA ได้ง่าย ๆ เลือกบริการ เช็กที่ว่างแบบเรียลไทม์ และจองได้ทันทีในหน้า LINE OA มีตัวเลือกเฉพาะบุคคลและแจ้งยืนยันทันที ใช้งานสะดวกบนแพลตฟอร์มที่คุ้นเคย",
               "en": "User booking via Line-OA allows customers to easily select services, check real-time availability, and make reservations directly through the Line-OA interface. With personalized options and instant confirmation notifications, the process is seamless and user-friendly, all within the familiar Line-OA platform."
             },
             "image": {
               "url": "/media/utotech/projects/comedu/2.webp",
               "alt": {
-                "th": "",
+                "th": "พัฒนาเชื่อมต่อกับ LINE OA",
                 "en": "Integrated development with Line-OA."
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "รองรับการชำระเงินและการตรวจสอบ",
               "en": "Support payment and verification system."
             },
             "description": {
-              "th": "",
+              "th": "ระบบจองผ่าน LINE OA แจ้งเตือนอัตโนมัติ อัปเดตผู้ใช้และแอดมินทันทีเรื่องการจอง การชำระเงิน การเตือนความจำ และการเปลี่ยนแปลง สื่อสารคล่องขึ้น ลดงานที่ต้องทำมือ และมีระบบจัดการสำหรับแอดมินบนเว็บแอปพลิเคชัน",
               "en": "Automated notifications in a Line-OA booking system provide instant updates for users and admins on bookings, payments, reminders, and changes, streamlining communication and reducing manual effort and also Admin Management on Web Application."
             },
             "image": {
               "url": "/media/utotech/projects/comedu/3.webp",
               "alt": {
-                "th": "",
+                "th": "รองรับการชำระเงินและการตรวจสอบ",
                 "en": "Support payment and verification system."
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ใช้งานง่ายด้วยหน้าสรุปการจอง",
               "en": "Easy usage with booking page summary."
             },
             "description": {
-              "th": "",
+              "th": "ผู้ใช้เลือกบริการ ดูที่ว่าง ชำระเงิน และรับการยืนยันได้ทันที ทำให้การจองราบรื่นและรวดเร็ว",
               "en": "Allows users to quickly select services, view availability, make payments, and receive instant confirmations, ensuring a smooth and efficient booking process."
             },
             "image": {
               "url": "/media/utotech/projects/comedu/4.webp",
               "alt": {
-                "th": "",
+                "th": "ใช้งานง่ายด้วยหน้าสรุปการจอง",
                 "en": "Easy usage with booking page summary."
               }
+            }
+          },
+          {
+            "title": {
+              "th": "สั่งอาหารในงานเลี้ยง",
+              "en": "Banquet food ordering"
+            },
+            "description": {
+              "th": "สั่งอาหารสำหรับงานเลี้ยงได้ในระบบเดียวกัน เช่น โต๊ะจีน",
+              "en": "Food for the banquet, such as a Chinese banquet table, is ordered in the same system."
             }
           }
         ],
@@ -1099,7 +1119,7 @@
         "cover": {
           "url": "/media/utotech/projects/comedu/logo-comedu.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Comedu Reunion",
             "en": "Comedu Reunion logo"
           }
         }
@@ -1109,64 +1129,74 @@
         "name": "Asia Pacific",
         "category": "Website",
         "summary": {
-          "th": "",
+          "th": "เว็บบล็อกสำหรับงานประชุม",
           "en": "Conference blog web"
         },
         "description": {
-          "th": "",
-          "en": "Asia Pacific is a blogging and content-sharing platform for conferences, allowing participants to easily share insights, blogs, and updates related to the Asia Pacific region."
+          "th": "Asia Pacific คือเว็บแลนดิ้งเพจสำหรับโชว์ข้อมูลงาน SB Asia Pacific \"Brands for Good\" เดือนกุมภาพันธ์ 2022 เป็นแพลตฟอร์มบล็อกและแชร์คอนเทนต์ของงานประชุม ให้ผู้ร่วมงานแบ่งปันมุมมอง บล็อก และข่าวสารเกี่ยวกับภูมิภาคเอเชียแปซิฟิกได้ง่าย",
+          "en": "Asia Pacific is the landing page for the SB Asia Pacific \"Brands for Good\" event in February 2022. It is a blogging and content-sharing platform for the conference, letting participants easily share insights, blogs and updates related to the Asia Pacific region."
         },
         "url": "https://sb22asiapacific.com/",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "เว็บไซต์คอนเทนต์แบบ responsive",
               "en": "Content Website Responsive"
             },
             "description": {
-              "th": "",
+              "th": "เว็บไซต์ปรับเลย์เอาต์และดีไซน์ให้พอดีกับทุกขนาดหน้าจอและอุปกรณ์โดยอัตโนมัติ คอนเทนต์อ่านง่ายและสวยทั้งบนเดสก์ท็อป แท็บเล็ต และสมาร์ตโฟน",
               "en": "A responsive website automatically adjusts its layout and design to fit different screen sizes and devices, providing an optimal viewing experience. It ensures that content is accessible and visually appealing on desktops, tablets, and smartphones."
             },
             "image": {
               "url": "/media/utotech/projects/asiapacific/1.webp",
               "alt": {
-                "th": "",
+                "th": "เว็บไซต์คอนเทนต์แบบ responsive",
                 "en": "Content Website Responsive"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ข้อมูลพร้อมค้นหาและตัวกรอง",
               "en": "Informations with search and filter"
             },
             "description": {
-              "th": "",
+              "th": "เรียงและค้นหาการประชุมได้รวดเร็วตามวันที่ เวลา หรือผู้เข้าร่วม ช่วยให้จัดตารางได้ง่ายและมีประสิทธิภาพ",
               "en": "Lets users quickly sort and find meetings by criteria like date, time, or participants, making scheduling more efficient and user-friendly."
             },
             "image": {
               "url": "/media/utotech/projects/asiapacific/2.webp",
               "alt": {
-                "th": "",
+                "th": "ข้อมูลพร้อมค้นหาและตัวกรอง",
                 "en": "Informations with search and filter"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ปรับรูปภาพให้เบา",
               "en": "Image optimization"
             },
             "description": {
-              "th": "",
-              "en": "reducing the file size of images without compromising quality, ensuring faster website load times and improved performance."
+              "th": "ลดขนาดไฟล์รูปภาพโดยไม่เสียคุณภาพ ให้เว็บไซต์โหลดเร็วและทำงานได้ดีขึ้น",
+              "en": "Reduces image file sizes without losing quality, so the website loads faster and performs better."
             },
             "image": {
               "url": "/media/utotech/projects/asiapacific/3.webp",
               "alt": {
-                "th": "",
+                "th": "ปรับรูปภาพให้เบา",
                 "en": "Image optimization"
               }
+            }
+          },
+          {
+            "title": {
+              "th": "แลนดิ้งเพจงาน Brands for Good",
+              "en": "Brands for Good event site"
+            },
+            "description": {
+              "th": "เว็บแลนดิ้งเพจสำหรับโชว์ข้อมูลงาน SB Asia Pacific \"Brands for Good\" เดือนกุมภาพันธ์ 2022",
+              "en": "A landing page that shows the information for the SB Asia Pacific \"Brands for Good\" event, February 2022."
             }
           }
         ],
@@ -1175,7 +1205,7 @@
         "cover": {
           "url": "/media/utotech/projects/asiapacific/logo-asia-pacific.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Asia Pacific",
             "en": "Asia Pacific logo"
           }
         }
@@ -1189,75 +1219,75 @@
           "en": "Ecommerce and stock management system"
         },
         "description": {
-          "th": "",
+          "th": "CGas เป็นแพลตฟอร์มอีคอมเมิร์ซที่เน้นการจัดการสต๊อกสำหรับธุรกิจแก๊ส ช่วยให้ผู้จำหน่ายแก๊สติดตามสินค้าคงคลังและขายออนไลน์ได้ง่ายขึ้น",
           "en": "CGas is an ecommerce platform specializing in stock management for the gas industry. It simplifies inventory tracking and online sales for gas suppliers."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "อีคอมเมิร์ซพร้อมระบบยืนยันตัวตน",
               "en": "E-Commerce with Authentication"
             },
             "description": {
-              "th": "",
+              "th": "ผู้ใช้ต้องเข้าสู่ระบบก่อนใช้งาน ช่วยปกป้องข้อมูล และรองรับการช้อปแบบเฉพาะบุคคล ติดตามคำสั่งซื้อ และบันทึกวิธีชำระเงิน ให้ซื้อของได้ปลอดภัยและสะดวกขึ้น",
               "en": "User access by requiring login, protecting data while enabling personalized shopping, order tracking, and saved payment methods for a safer, more convenient experience."
             },
             "image": {
               "url": "/media/utotech/projects/cgas/3.webp",
               "alt": {
-                "th": "",
+                "th": "อีคอมเมิร์ซพร้อมระบบยืนยันตัวตน",
                 "en": "E-Commerce with Authentication"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ระบบจัดการสต๊อกสินค้า",
               "en": "Stock management system"
             },
             "description": {
-              "th": "",
+              "th": "ติดตามและควบคุมระดับสินค้าคงคลัง ให้จำนวนสต๊อกถูกต้อง เติมสินค้าได้ทันเวลา และจัดการคำสั่งซื้อได้รวดเร็ว ช่วยป้องกันสินค้าล้นหรือขาดสต๊อก ทำให้ห่วงโซ่อุปทานคล่องตัวและประหยัดต้นทุน",
               "en": "Tracks and controls inventory levels, ensuring accurate stock availability, timely restocking, and efficient order processing. It helps businesses manage inventory, prevent overstock or stockouts, and streamline supply chain operations for better efficiency and cost savings."
             },
             "image": {
               "url": "/media/utotech/projects/cgas/1.webp",
               "alt": {
-                "th": "",
+                "th": "ระบบจัดการสต๊อกสินค้า",
                 "en": "Stock management system"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แดชบอร์ดวิเคราะห์ร้านค้า",
               "en": "Shop analytic dashboard"
             },
             "description": {
-              "th": "",
+              "th": "สรุปข้อมูลยอดขาย พฤติกรรมลูกค้า และสินค้าคงคลัง ช่วยตัดสินใจจากข้อมูลเพื่อเพิ่มประสิทธิภาพและกำไร",
               "en": "Delivers insights on sales, customer behavior, and inventory, enabling data-driven decisions to boost efficiency and profitability."
             },
             "image": {
               "url": "/media/utotech/projects/cgas/2.webp",
               "alt": {
-                "th": "",
+                "th": "แดชบอร์ดวิเคราะห์ร้านค้า",
                 "en": "Shop analytic dashboard"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ยืนยันคำสั่งซื้อ",
               "en": "Order confirmation"
             },
             "description": {
-              "th": "",
+              "th": "ส่งแจ้งเตือนถึงลูกค้าหลังสั่งซื้อ ยืนยันว่าคำสั่งซื้อสำเร็จ พร้อมรายละเอียดคำสั่งซื้อ การยืนยันการชำระเงิน และวันจัดส่งโดยประมาณ ให้ลูกค้ามั่นใจในการซื้อขาย",
               "en": "Notification sent to customers after a purchase, verifying that the order has been successfully placed. It typically includes order details, payment confirmation, and estimated delivery information, ensuring clarity and trust in the transaction."
             },
             "image": {
               "url": "/media/utotech/projects/cgas/4.webp",
               "alt": {
-                "th": "",
+                "th": "ยืนยันคำสั่งซื้อ",
                 "en": "Order confirmation"
               }
             }
@@ -1268,7 +1298,7 @@
         "cover": {
           "url": "/media/utotech/projects/cgas/logo-cgas.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ CGas E-Commerce",
             "en": "CGas E-Commerce logo"
           }
         }
@@ -1278,79 +1308,79 @@
         "name": "Calcount",
         "category": "Platform / Mobile Application / Web Application",
         "summary": {
-          "th": "",
+          "th": "แอปพลิเคชันด้านการแพทย์",
           "en": "Applications for medicine"
         },
         "description": {
-          "th": "",
-          "en": ""
+          "th": "Calcount เป็นแอปมือถือที่ช่วยให้บุคลากรทางการแพทย์จัดการตารางการให้ยาและติดตามค่าสุขภาพของผู้ป่วยได้อย่างมีประสิทธิภาพ พร้อมวิเคราะห์และแสดงผลข้อมูลเป็นภาพ จัดการสต๊อกยา และให้แอดมินปรับตั้งค่าได้ทั้งบนเว็บและมือถือ",
+          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently. It also analyzes and visualizes data, tracks medicine stock, and lets admins customize settings on web and mobile."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "วิเคราะห์ข้อมูล",
               "en": "Data analyze"
             },
             "description": {
-              "th": "",
-              "en": "Collects customer data to helps businesses enhance customer well-being while optimizing services and strategies based on health-focused insights."
+              "th": "เก็บข้อมูลลูกค้าเพื่อช่วยธุรกิจดูแลสุขภาพที่ดีของลูกค้า และปรับบริการกับกลยุทธ์จากข้อมูลเชิงสุขภาพ",
+              "en": "Collects customer data to help businesses improve customer well-being while optimizing services and strategies based on health-focused insights."
             },
             "image": {
               "url": "/media/utotech/projects/calcount/2.webp",
               "alt": {
-                "th": "",
+                "th": "วิเคราะห์ข้อมูล",
                 "en": "Data analyze"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แสดงผลข้อมูลเป็นภาพ",
               "en": "Data Visualization"
             },
             "description": {
-              "th": "",
+              "th": "นำเสนอข้อมูลเป็นกราฟ เข้าใจง่าย เห็นรูปแบบ แนวโน้ม และข้อมูลเชิงลึก เพื่อการตัดสินใจที่ดีขึ้น",
               "en": "Presents data in graphical formats, making it easier to understand and identify patterns, trends, and insights for better decision-making."
             },
             "image": {
               "url": "/media/utotech/projects/calcount/3.webp",
               "alt": {
-                "th": "",
+                "th": "แสดงผลข้อมูลเป็นภาพ",
                 "en": "Data Visualization"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "คลังยา",
               "en": "Medicine Inventory"
             },
             "description": {
-              "th": "",
-              "en": "Tracks and manages stock levels of medications,  It helps streamline the supply chain, monitor expiration dates, and ensure the availability of essential medicines."
+              "th": "ติดตามและจัดการระดับสต๊อกยา ช่วยให้ห่วงโซ่อุปทานคล่องตัว ตรวจวันหมดอายุ และมียาที่จำเป็นพร้อมใช้เสมอ",
+              "en": "Tracks and manages stock levels of medications. It helps streamline the supply chain, monitor expiration dates, and ensure the availability of essential medicines."
             },
             "image": {
               "url": "/media/utotech/projects/calcount/4.webp",
               "alt": {
-                "th": "",
+                "th": "คลังยา",
                 "en": "Medicine Inventory"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ปรับแต่งการตั้งค่า",
               "en": "Setting customization"
             },
             "description": {
-              "th": "",
+              "th": "ให้แอดมินปรับค่ากำหนดและการตั้งค่าได้ทั้งในเว็บและแอปมือถือ เช่น การแจ้งเตือน ธีม ความเป็นส่วนตัว และการจัดการบัญชี ให้ประสบการณ์ที่เหมือนกันและเป็นของตัวเองในทุกแพลตฟอร์ม",
               "en": "Allows admins to customize preferences and configurations within both web and mobile apps. It provides options for adjusting notifications, themes, privacy settings, and account management, ensuring a consistent and personalized experience across platforms."
             },
             "image": {
               "url": "/media/utotech/projects/calcount/5.webp",
               "alt": {
-                "th": "",
+                "th": "ปรับแต่งการตั้งค่า",
                 "en": "Setting customization"
               }
             }
@@ -1361,7 +1391,7 @@
         "cover": {
           "url": "/media/utotech/projects/calcount/logo-calcount.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Calcount",
             "en": "Calcount logo"
           }
         }
@@ -1371,96 +1401,106 @@
         "name": "Wedding Landing Page",
         "category": "Website / Landing Page / Integrations",
         "summary": {
-          "th": "",
+          "th": "แลนดิ้งเพจใช้แทนการ์ดงานแต่ง",
           "en": "A Landing page for replace wedding card"
         },
         "description": {
-          "th": "",
-          "en": ""
+          "th": "MCW Wedding Card with LINE OA: เว็บแอปบน LIFF ใช้แทนการ์ดงานแต่งแบบออนไลน์ และมีกิจกรรมในตัว ทั้งหน้าเล่าเรื่องราวความรัก แกลเลอรี แบบสอบถาม และมินิเกม",
+          "en": "MCW Wedding Card with LINE OA: a web app on LIFF that replaces the wedding card with an online one and has activities built in, such as a love story page, a gallery, a questionnaire and mini games."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "การ์ดงานแต่งออนไลน์บน LIFF",
+              "en": "Online wedding card on LIFF"
+            },
+            "description": {
+              "th": "เว็บแอปบน LIFF ผ่าน LINE OA ใช้แทนการ์ดงานแต่งแบบออนไลน์ และมีกิจกรรมในตัว",
+              "en": "A web app on LIFF, reached through LINE OA, that replaces the wedding card online and has activities built in."
+            }
+          },
+          {
+            "title": {
+              "th": "ออกแบบและปรับแต่งการ์ดเชิญ",
               "en": "Invitation card customize and design"
             },
             "description": {
-              "th": "",
+              "th": "ปรับดีไซน์ สี ฟอนต์ และข้อความได้ตามใจ สร้างการ์ดเชิญที่สะท้อนสไตล์และธีมของคู่บ่าวสาว ปรับได้ทุกรายละเอียด ให้การ์ดพิเศษและน่าจดจำ",
               "en": "Personalize designs, colors, fonts, and messages to create unique invitations that reflect their style and theme. This feature provides flexibility to tailor every detail, making the invitations special and memorable."
             },
             "image": {
               "url": "/media/utotech/projects/mcw/1.webp",
               "alt": {
-                "th": "",
+                "th": "ออกแบบและปรับแต่งการ์ดเชิญ",
                 "en": "Invitation card customize and design"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แกลเลอรีงานแต่ง",
               "en": "Wedding Gallery feature"
             },
             "description": {
-              "th": "",
+              "th": "โชว์ภาพและวิดีโองานแต่ง เป็นพื้นที่ให้แขกดูและแชร์ความทรงจำ มีส่วนพรีเวดดิ้ง ไฮไลต์พิธี และภาพจากแขก เป็นของที่ระลึกดิจิทัลของวันสำคัญ",
               "en": "Showcase photos and videos from their wedding, providing a dedicated space for guests to view and share memories. It can include sections for pre-wedding shoots, ceremony highlights, and guest contributions, creating a digital keepsake for the special day."
             },
             "image": {
               "url": "/media/utotech/projects/mcw/2.webp",
               "alt": {
-                "th": "",
+                "th": "แกลเลอรีงานแต่ง",
                 "en": "Wedding Gallery feature"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แลนดิ้งเพจเรื่องราวความรัก",
               "en": "Love Story landing page"
             },
             "description": {
-              "th": "",
+              "th": "เล่าเส้นทางความรักของคู่บ่าวสาวแบบสั้นและน่าติดตาม ให้แขกได้เห็นความสัมพันธ์และช่วงเวลาพิเศษก่อนถึงวันแต่ง",
               "en": "Shares the couple's journey in a brief, engaging format, offering guests a glimpse into their relationship and special moments leading up to the wedding."
             },
             "image": {
               "url": "/media/utotech/projects/mcw/3.webp",
               "alt": {
-                "th": "",
+                "th": "แลนดิ้งเพจเรื่องราวความรัก",
                 "en": "Love Story landing page"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แบบสอบถาม",
               "en": "Questionnaire Form"
             },
             "description": {
-              "th": "",
+              "th": "สร้างและส่งแบบฟอร์มเพื่อเก็บข้อมูล ความคิดเห็น หรือฟีดแบ็ก รองรับคำถามหลายแบบ ทั้งแบบตัวเลือก ปลายเปิด และให้คะแนน รวบรวมและวิเคราะห์คำตอบได้ง่าย เหมาะกับแบบสำรวจ งานวิจัย และการประเมินผล",
               "en": "Create and distribute custom forms for collecting data, feedback, or opinions. It includes options for multiple question types such as multiple-choice, open-ended, and rating scales, making it easy to gather and analyze responses efficiently. This feature is ideal for surveys, research, and evaluations."
             },
             "image": {
               "url": "/media/utotech/projects/mcw/4.webp",
               "alt": {
-                "th": "",
+                "th": "แบบสอบถาม",
                 "en": "Questionnaire Form"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "มินิเกมใน LINE LIFF",
               "en": "Mini game in LINE LIFF"
             },
             "description": {
-              "th": "",
+              "th": "เกมแบบโต้ตอบในหน้า LINE ทั้งเกมหมุนวงล้อ กระดานผู้นำ และรางวัล เล่นได้โดยไม่ต้องออกจากแพลตฟอร์ม",
               "en": "Interactive games within the LINE frontend, offering fun experiences with features like spin game, leaderboards and rewards, all without leaving the platform."
             },
             "image": {
               "url": "/media/utotech/projects/mcw/5.webp",
               "alt": {
-                "th": "",
+                "th": "มินิเกมใน LINE LIFF",
                 "en": "Mini game in LINE LIFF"
               }
             }
@@ -1471,7 +1511,7 @@
         "cover": {
           "url": "/media/utotech/projects/mcw/logo.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Wedding Landing Page",
             "en": "Wedding Landing Page logo"
           }
         }
@@ -1481,64 +1521,74 @@
         "name": "Titan Automative Drive",
         "category": "Mobile Application / Custom",
         "summary": {
-          "th": "",
+          "th": "แอปพลิเคชันควบคุมรถผ่านมือถือ",
           "en": "Applications for control car with moblie"
         },
         "description": {
-          "th": "",
-          "en": "Titan Automative Drive is a mobile app to remote and control Titan car in real-time"
+          "th": "Titan Automative Drive (Car Drive Auto Application) เป็นแอปมือถือสำหรับสั่งงานและควบคุมรถ Titan แบบเรียลไทม์ เป็นระบบ interface ควบคุมและแสดงภาพการมองเห็นของรถแบบ real-time เพื่อเตรียมข้อมูลสำหรับระบบขับเคลื่อนอัตโนมัติ",
+          "en": "Titan Automative Drive (Car Drive Auto Application) is a mobile app to remotely control the Titan car in real time. It is an interface that controls the car and shows what the car sees in real time, to prepare data for an autonomous driving system."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "แผงสั่งงานและควบคุม",
               "en": "Remote and Control Panel"
             },
             "description": {
-              "th": "",
+              "th": "หน้าจอจัดการฟังก์ชันต่าง ๆ ของรถ ผู้ใช้ควบคุมผ่านแอปได้ เช่น ระบบปรับอากาศ การนำทาง เปิด-ปิดไฟ โหมด Manual/Auto และดูสถานะ",
               "en": "Interface to manage various vehicle functions. Through the app, users can control features such as climate settings, navigation, lighting ON-OFF, Manual/Auto mode and status."
             },
             "image": {
               "url": "/media/utotech/projects/car-track-frontend/titan.webp",
               "alt": {
-                "th": "",
+                "th": "แผงสั่งงานและควบคุม",
                 "en": "Remote and Control Panel"
               }
             }
           },
           {
             "title": {
-              "th": "",
-              "en": " Real-Time View"
+              "th": "มุมมองแบบเรียลไทม์",
+              "en": "Real-Time View"
             },
             "description": {
-              "th": "",
-              "en": "Camera and LiDAR sensor integration provides accurate, 3D visual data by combining video footage and depth information, measures distances and creates a detailed 3D map of the surroundings. This combination enhances object detection, navigation, and situational awareness"
+              "th": "ผสานกล้องกับเซนเซอร์ LiDAR ให้ข้อมูลภาพ 3 มิติที่แม่นยำ โดยรวมวิดีโอเข้ากับข้อมูลความลึก วัดระยะทาง และสร้างแผนที่ 3 มิติของสภาพแวดล้อมรอบรถอย่างละเอียด ช่วยให้ตรวจจับวัตถุ นำทาง และรับรู้สถานการณ์ได้ดีขึ้น",
+              "en": "Camera and LiDAR sensor integration provides accurate 3D visual data by combining video footage with depth information, measuring distances and creating a detailed 3D map of the surroundings. This combination enhances object detection, navigation and situational awareness."
             },
             "image": {
               "url": "/media/utotech/projects/car-track-frontend/2.webp",
               "alt": {
-                "th": "",
-                "en": " Real-Time View"
+                "th": "มุมมองแบบเรียลไทม์",
+                "en": "Real-Time View"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ติดตามบนแผนที่",
               "en": "Map view tracking"
             },
             "description": {
-              "th": "",
+              "th": "แสดงตำแหน่ง เส้นทาง และสถานะของรถแบบเรียลไทม์บนแผนที่ดิจิทัล ช่วยให้ติดตาม นำทาง และใช้งานได้สะดวกขึ้น",
               "en": "Shows the vehicle's real-time location, route, and status on a digital map, enhancing tracking, navigation, and user convenience."
             },
             "image": {
               "url": "/media/utotech/projects/car-track-frontend/3.webp",
               "alt": {
-                "th": "",
+                "th": "ติดตามบนแผนที่",
                 "en": "Map view tracking"
               }
+            }
+          },
+          {
+            "title": {
+              "th": "เตรียมข้อมูลสำหรับขับเคลื่อนอัตโนมัติ",
+              "en": "Data for autonomous driving"
+            },
+            "description": {
+              "th": "ใช้การควบคุมและภาพการมองเห็นของรถแบบเรียลไทม์ เพื่อเตรียมข้อมูลสำหรับระบบขับเคลื่อนอัตโนมัติ",
+              "en": "Real-time control and the car's view are used to prepare data for an autonomous driving system."
             }
           }
         ],
@@ -1547,7 +1597,7 @@
         "cover": {
           "url": "/media/utotech/projects/car-track-frontend/logo.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Titan Automative Drive",
             "en": "Titan Automative Drive logo"
           }
         }
@@ -1557,45 +1607,55 @@
         "name": "Covid Alert",
         "category": "Web application",
         "summary": {
-          "th": "",
+          "th": "ติดตามสถานะโควิดตามพื้นที่และสถิติ",
           "en": "Tracking covid status at location and statistics"
         },
         "description": {
-          "th": "",
-          "en": ""
+          "th": "ระบบ dashboard แสดงยอดผู้ป่วย COVID-19 ที่แจ้งเรื่องเข้ามาทาง LINE OA แล้วนำมาแสดงผล ประมวลยอด และจำแนกระดับความฉุกเฉิน เพื่อการรักษาที่มีประสิทธิภาพและทันท่วงที",
+          "en": "A dashboard of COVID-19 patients who report their case through LINE OA. It displays and totals the cases and sorts them by emergency level, for effective and timely treatment."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "แจ้งเตือนบนแดชบอร์ด",
               "en": "Dashboard notification"
             },
             "description": {
-              "th": "",
+              "th": "แจ้งเตือนเมื่อมีรายงานผู้ที่อาจติดเชื้อ COVID-19 รายใหม่ แดชบอร์ดแสดงตัวเลขสำคัญ เช่น ผู้ป่วยใหม่ เคสที่กำลังดูแล ยอดผู้ป่วยสะสมตามช่วงเวลา และตำแหน่งของผู้ป่วย พร้อมไฮไลต์รายการเคสฉุกเฉิน อัปเดตแบบเรียลไทม์ ให้จัดการและติดตามเคสได้อย่างมีประสิทธิภาพและตอบสนองได้รวดเร็ว",
               "en": "Alerts users when a new potential COVID-19 infection case is reported. It also includes a dashboard view that displays key metrics such as new patient cases, cases in progress, total patients over time, and patient locations. Additionally, it highlights a list of emergency cases, providing real-time updates to manage and monitor COVID-19 cases efficiently and ensure quick responses."
             },
             "image": {
               "url": "/media/utotech/projects/covid-alert/covid.webp",
               "alt": {
-                "th": "",
+                "th": "แจ้งเตือนบนแดชบอร์ด",
                 "en": "Dashboard notification"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แจ้งเรื่องผ่าน LINE OA และจำแนกความฉุกเฉิน",
+              "en": "LINE OA reports & emergency levels"
+            },
+            "description": {
+              "th": "ผู้ป่วยแจ้งเรื่องผ่าน LINE OA ระบบนำมาประมวลยอดและจำแนกระดับความฉุกเฉิน เพื่อการรักษาที่มีประสิทธิภาพและทันท่วงที",
+              "en": "Patients report through LINE OA; the system totals the cases and classifies each by emergency level, for effective and timely treatment."
+            }
+          },
+          {
+            "title": {
+              "th": "จัดการข้อมูลผู้ป่วย",
               "en": "Patient Management"
             },
             "description": {
-              "th": "",
-              "en": "Handles all aspects of patient care, including registration, treatment tracking and medical records management It helps healthcare providers streamline operations by organizing patient data and tracking treatment progress."
+              "th": "ครอบคลุมการดูแลผู้ป่วยทุกด้าน ตั้งแต่ลงทะเบียน ติดตามการรักษา ไปจนถึงจัดการเวชระเบียน ช่วยให้บุคลากรทางการแพทย์ทำงานคล่องขึ้นด้วยการจัดระเบียบข้อมูลผู้ป่วยและติดตามความคืบหน้าการรักษา",
+              "en": "Handles all aspects of patient care, including registration, treatment tracking and medical records management. It helps healthcare providers streamline operations by organizing patient data and tracking treatment progress."
             },
             "image": {
               "url": "/media/utotech/projects/covid-alert/1.webp",
               "alt": {
-                "th": "",
+                "th": "จัดการข้อมูลผู้ป่วย",
                 "en": "Patient Management"
               }
             }
@@ -1606,7 +1666,7 @@
         "cover": {
           "url": "/media/utotech/projects/covid-alert/covid.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Covid Alert",
             "en": "Covid Alert logo"
           }
         }
@@ -1616,64 +1676,94 @@
         "name": "Keeta Thai Traditional Karaoke",
         "category": "Mobile Application",
         "summary": {
-          "th": "",
+          "th": "แอปพลิเคชันเรียนรู้หลักการขับร้องเพลงไทย ทั้งประวัติ เนื้อร้อง และอื่น ๆ",
           "en": "An application for learning the principles of Thai singing, including the history, lyrics, and more"
         },
         "description": {
-          "th": "",
-          "en": "An application for learning the principles of Thai singing, including the history, lyrics, and more about Thai musical arts, integrating technology with education to enhance effective learning both inside and outside the classroom."
+          "th": "แอปพลิเคชันเรียนรู้หลักการขับร้องเพลงไทย ทั้งประวัติ เนื้อร้อง และเรื่องอื่น ๆ ของศิลปะดนตรีไทย ผสานเทคโนโลยีกับการศึกษา เพื่อให้เรียนรู้ได้อย่างมีประสิทธิภาพทั้งในและนอกห้องเรียน Keeta Application เวอร์ชัน 1.0.0 และ 2.0.0 เป็นแอปฝึกขับร้องเพลงไทยบน Android และ iOS พร้อม Keeta Management Application และ Keeta Landing Page หน้าเว็บสำหรับโหลดไฟล์ติดตั้ง Keeta บน Android",
+          "en": "An application for learning the principles of Thai singing, including the history, lyrics, and more about Thai musical arts, integrating technology with education to enhance effective learning both inside and outside the classroom. Keeta Application v1.0.0 and v2.0.0 are Thai singing practice apps for Android and iOS, alongside the Keeta Management Application and the Keeta Landing Page for downloading the Keeta installer on Android."
         },
         "url": "https://vtca-app.web.app/",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "สตอรีในแอป",
               "en": "Application Story"
             },
             "description": {
-              "th": "",
+              "th": "คัดสรรและอัปเดตข้อมูลบนหน้ามือถือได้ง่าย ควบคุมเลย์เอาต์และช่วงเวลาที่แสดงได้เต็มที่ เพื่อประสบการณ์ใช้งานที่ดีที่สุด",
               "en": "Allows users to easily curate and update information on a mobile page, ensuring content is displayed with full control over layout and timing for an optimized user experience."
             },
             "image": {
               "url": "/media/utotech/projects/keeta/1.webp",
               "alt": {
-                "th": "",
+                "th": "สตอรีในแอป",
                 "en": "Application Story"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "เมนูนำทางดีไซน์เท่",
               "en": "Cool menu design navigation"
             },
             "description": {
-              "th": "",
+              "th": "ยกระดับประสบการณ์ผู้ใช้ด้วยเลย์เอาต์ที่สวยและใช้ง่าย เปลี่ยนหน้าลื่นไหล ไอคอนชัด หมวดหมู่เป็นระเบียบ ไปยังส่วนต่าง ๆ ของแอปได้ง่าย ดีไซน์สร้างสรรค์แต่ยังใช้งานได้จริง",
               "en": "Enhances user experience with visually appealing and intuitive layouts. It offers smooth transitions, clear icons, and well-organized categories, making it easy for users to navigate through an app or website. This design adds creativity while ensuring functionality, resulting in an engaging and user-friendly interface."
             },
             "image": {
               "url": "/media/utotech/projects/keeta/2.webp",
               "alt": {
-                "th": "",
+                "th": "เมนูนำทางดีไซน์เท่",
                 "en": "Cool menu design navigation"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "คาราโอเกะที่ควบคุมได้เต็มที่",
               "en": "Karaoke with full control"
             },
             "description": {
-              "th": "",
+              "th": "ควบคุมฟีเจอร์หลักได้ครบ ทั้งเล่น หยุด ย้อนกลับ และข้ามไปเพลงถัดไปหรือก่อนหน้า เปิดหรือปิดเสียงดนตรีและเสียงร้องได้ พร้อมแสดงเนื้อเพลงตรงจังหวะบนหน้าจอ ให้ประสบการณ์คาราโอเกะที่โต้ตอบได้และปรับได้ตามใจผู้ใช้",
               "en": "Lets users manage key features like play, stop, rewind, and skip to the next or previous song. It also allows users to turn instruments and vocals on or off, while displaying synchronized lyrics on the screen. This provides a highly interactive and customizable karaoke experience, allowing users to fully tailor the performance to their preferences."
             },
             "image": {
               "url": "/media/utotech/projects/keeta/4.webp",
               "alt": {
-                "th": "",
+                "th": "คาราโอเกะที่ควบคุมได้เต็มที่",
                 "en": "Karaoke with full control"
               }
+            }
+          },
+          {
+            "title": {
+              "th": "Keeta Application v1.0.0 และ v2.0.0",
+              "en": "Keeta Application v1.0.0 & v2.0.0"
+            },
+            "description": {
+              "th": "แอปฝึกขับร้องเพลงไทย บน Android และ iOS",
+              "en": "The Thai singing practice app, on Android and iOS."
+            }
+          },
+          {
+            "title": {
+              "th": "Keeta Management Application",
+              "en": "Keeta Management Application"
+            },
+            "description": {
+              "th": "แอปสำหรับจัดการระบบ Keeta",
+              "en": "A separate app for managing Keeta."
+            }
+          },
+          {
+            "title": {
+              "th": "Keeta Landing Page",
+              "en": "Keeta Landing Page"
+            },
+            "description": {
+              "th": "หน้าเว็บสำหรับโหลดไฟล์ติดตั้ง Keeta บน Android",
+              "en": "A web page for downloading the Keeta installer for Android."
             }
           }
         ],
@@ -1682,7 +1772,7 @@
         "cover": {
           "url": "/media/utotech/projects/keeta/keeta.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Keeta Thai Traditional Karaoke",
             "en": "Keeta Thai Traditional Karaoke logo"
           }
         }
@@ -1692,62 +1782,62 @@
         "name": "Line Official Account Integration (Line OA)",
         "category": "Platform / Integrations",
         "summary": {
-          "th": "",
+          "th": "LINE OA ที่ปรับแต่งตามความต้องการของคุณ",
           "en": "Custom line oa for your requirement"
         },
         "description": {
-          "th": "",
-          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+          "th": "พัฒนา LINE Official Account ตามความต้องการของคุณ ทั้ง Rich Menu ที่ปรับแต่งได้ Flex Message และ UX/UI ที่ออกแบบให้ใช้งานง่ายและดึงดูดผู้ใช้",
+          "en": "A LINE Official Account built around your requirements: custom Rich Menus, Flex Messages and an intuitive UX/UI that keeps users engaged."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "ปรับแต่ง Rich Menu",
               "en": "Rich Menu customize"
             },
             "description": {
-              "th": "",
+              "th": "สร้างเมนูแบบโต้ตอบที่ปรับแต่งได้ มีปุ่มสำหรับการทำงานต่าง ๆ เช่น ไปยังคอนเทนต์ จองบริการ หรือดูสินค้า เพิ่มการมีส่วนร่วมและให้ประสบการณ์ที่ลื่นไหลตามแบรนด์",
               "en": "Create personalized, interactive menus with buttons for actions like navigating content, booking, or viewing products. It enhances user engagement and provides a seamless experience tailored to the brand."
             },
             "image": {
               "url": "/media/utotech/projects/line-oa/1.webp",
               "alt": {
-                "th": "",
+                "th": "ปรับแต่ง Rich Menu",
                 "en": "Rich Menu customize"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "Flex Message",
               "en": "Flex Message"
             },
             "description": {
-              "th": "",
-              "en": "Customizable messages with rich content, including images, buttons, and text in a flexible layout. It enhances user interaction by offering dynamic and visually appealing messages that adapt to various screen sizes, perfect for promoting products, services, or important updates"
+              "th": "ข้อความที่ปรับแต่งได้พร้อมคอนเทนต์หลากหลาย ทั้งรูปภาพ ปุ่ม และข้อความในเลย์เอาต์ที่ยืดหยุ่น ปรับตามขนาดหน้าจอ ดึงดูดสายตา เหมาะกับการโปรโมตสินค้า บริการ หรือแจ้งข่าวสำคัญ",
+              "en": "Customizable messages with rich content, including images, buttons and text in a flexible layout. Dynamic, eye-catching messages that adapt to different screen sizes, perfect for promoting products, services or important updates."
             },
             "image": {
               "url": "/media/utotech/projects/line-oa/2.webp",
               "alt": {
-                "th": "",
+                "th": "Flex Message",
                 "en": "Flex Message"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "ส่งมอบ UX/UI ที่ดีที่สุด",
               "en": "Deliver best UX/UI"
             },
             "description": {
-              "th": "",
+              "th": "เน้นดีไซน์ที่ใช้งานง่าย Rich Menu ที่ปรับแต่งได้ และ Flex Message แบบไดนามิก เพื่อเพิ่มการมีส่วนร่วมและให้ผู้ใช้โต้ตอบได้สะดวก",
               "en": "Focuses on intuitive design, customized Rich Menus, and dynamic Flex Messages to enhance engagement and streamline user interactions."
             },
             "image": {
               "url": "/media/utotech/projects/line-oa/3.webp",
               "alt": {
-                "th": "",
+                "th": "ส่งมอบ UX/UI ที่ดีที่สุด",
                 "en": "Deliver best UX/UI"
               }
             }
@@ -1758,7 +1848,7 @@
         "cover": {
           "url": "/media/utotech/projects/line-oa/line.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Line Official Account Integration (Line OA)",
             "en": "Line Official Account Integration (Line OA) logo"
           }
         }
@@ -1768,45 +1858,45 @@
         "name": "Low Code Platform",
         "category": "Platform / Integrations",
         "summary": {
-          "th": "",
+          "th": "ปรับแต่งและสร้างระบบได้เร็ว ต้นทุนต่ำ ด้วยแพลตฟอร์ม low code",
           "en": "Custom and make quickly low cost with low code platform"
         },
         "description": {
-          "th": "",
-          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+          "th": "สร้างและปรับแต่งแอปพลิเคชันได้รวดเร็วและต้นทุนต่ำด้วยแพลตฟอร์ม low code รวมถึงแดชบอร์ดแอดมินและรายงานที่สร้างจากเครื่องมือสำเร็จรูป เขียนโค้ดน้อยที่สุด",
+          "en": "Build and customize applications quickly and at low cost on a low-code platform, including admin dashboards and reports made with pre-built tools and minimal coding."
         },
         "url": "",
         "features": [
           {
             "title": {
-              "th": "",
+              "th": "ปรับแต่งแอปพลิเคชัน",
               "en": "Application customize"
             },
             "description": {
-              "th": "",
+              "th": "แก้ไขและสร้างแอปด้วยแพลตฟอร์ม low code พัฒนาได้เร็วขึ้น เข้าถึงง่ายขึ้น แต่ยังยืดหยุ่นและใช้งานได้ครบ",
               "en": "Modify and build apps with low-code platform, making development faster and more accessible while maintaining flexibility and functionality."
             },
             "image": {
               "url": "/media/utotech/projects/low-code/low-code.webp",
               "alt": {
-                "th": "",
+                "th": "ปรับแต่งแอปพลิเคชัน",
                 "en": "Application customize"
               }
             }
           },
           {
             "title": {
-              "th": "",
+              "th": "แดชบอร์ดแอดมินและรายงานด้วย low code",
               "en": "Admin dashboard & Reported with low code"
             },
             "description": {
-              "th": "",
+              "th": "สร้างแดชบอร์ดและรายงานได้รวดเร็วด้วยเครื่องมือสำเร็จรูป จัดการและแสดงผลข้อมูลได้อย่างมีประสิทธิภาพโดยเขียนโค้ดน้อยที่สุด",
               "en": "Quick creation of dashboards and reports using pre-built tools, allowing efficient data management and visualization with minimal coding effort."
             },
             "image": {
               "url": "/media/utotech/projects/low-code/1.webp",
               "alt": {
-                "th": "",
+                "th": "แดชบอร์ดแอดมินและรายงานด้วย low code",
                 "en": "Admin dashboard & Reported with low code"
               }
             }
@@ -1817,7 +1907,7 @@
         "cover": {
           "url": "/media/utotech/projects/low-code/low-code.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Low Code Platform",
             "en": "Low Code Platform logo"
           }
         }
@@ -1827,21 +1917,32 @@
         "name": "3d Integrations",
         "category": "Web Application / Integrations",
         "summary": {
-          "th": "",
-          "en": "Integraion with 3d element"
+          "th": "ผสานองค์ประกอบ 3 มิติเข้ากับเว็บ",
+          "en": "Integration with 3D elements"
         },
         "description": {
-          "th": "",
-          "en": "Calcount is a mobile app designed to help healthcare professionals manage medication schedules and track patient health metrics efficiently."
+          "th": "ผสานองค์ประกอบ 3 มิติเข้ากับเว็บไซต์ ตั้งแต่ปั้นโมเดล 3D ใส่ rig body และอื่น ๆ ให้พร้อมใช้บนเว็บ",
+          "en": "Integrating 3D elements into websites: modelling 3D models, rigging their bodies and more, ready to use on the web."
         },
         "url": "https://pho0m.github.io/the-timmy-story/",
-        "features": [],
+        "features": [
+          {
+            "title": {
+              "th": "โมเดล 3D สำหรับเว็บไซต์",
+              "en": "3D models for websites"
+            },
+            "description": {
+              "th": "ปั้นโมเดลและใส่ rig body เพื่อใช้บนเว็บไซต์",
+              "en": "Modelling 3D models and rigging their bodies for use on websites."
+            }
+          }
+        ],
         "featured": false,
         "published": true,
         "cover": {
           "url": "/media/utotech/projects/3d/3d.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ 3d Integrations",
             "en": "3d Integrations logo"
           }
         }
@@ -1853,7 +1954,7 @@
         "logo": {
           "url": "/media/utotech/customers/1.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Office of the Education Council",
             "en": "Office of the Education Council logo"
           }
         },
@@ -1864,7 +1965,7 @@
         "logo": {
           "url": "/media/utotech/customers/2.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Smile Siam",
             "en": "Smile Siam logo"
           }
         },
@@ -1875,7 +1976,7 @@
         "logo": {
           "url": "/media/utotech/customers/3.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Rotson 3D",
             "en": "Rotson 3D logo"
           }
         },
@@ -1886,7 +1987,7 @@
         "logo": {
           "url": "/media/utotech/customers/4.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Thai Otsuka",
             "en": "Thai Otsuka logo"
           }
         },
@@ -1897,7 +1998,7 @@
         "logo": {
           "url": "/media/utotech/customers/6.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ OCE",
             "en": "OCE logo"
           }
         },
@@ -1908,7 +2009,7 @@
         "logo": {
           "url": "/media/utotech/customers/7.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Pee Chong",
             "en": "Pee Chong logo"
           }
         },
@@ -1919,7 +2020,7 @@
         "logo": {
           "url": "/media/utotech/customers/8.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Rise Tea House",
             "en": "Rise Tea House logo"
           }
         },
@@ -1930,7 +2031,7 @@
         "logo": {
           "url": "/media/utotech/customers/9.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Kolawat",
             "en": "Kolawat logo"
           }
         },
@@ -1941,7 +2042,7 @@
         "logo": {
           "url": "/media/utotech/customers/10.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Get Sound & Light",
             "en": "Get Sound & Light logo"
           }
         },
@@ -1952,7 +2053,7 @@
         "logo": {
           "url": "/media/utotech/customers/11.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Keeta",
             "en": "Keeta logo"
           }
         },
@@ -1963,7 +2064,7 @@
         "logo": {
           "url": "/media/utotech/customers/12.webp",
           "alt": {
-            "th": "",
+            "th": "โลโก้ Mild Chet",
             "en": "Mild Chet logo"
           }
         },
@@ -1974,28 +2075,28 @@
       {
         "url": "/media/utotech/office/office1.webp",
         "alt": {
-          "th": "",
+          "th": "ออฟฟิศยูโทเทค",
           "en": "Utotech office"
         }
       },
       {
         "url": "/media/utotech/office/office2.webp",
         "alt": {
-          "th": "",
+          "th": "ออฟฟิศยูโทเทค",
           "en": "Utotech office"
         }
       },
       {
         "url": "/media/utotech/office/office3.webp",
         "alt": {
-          "th": "",
+          "th": "ออฟฟิศยูโทเทค",
           "en": "Utotech office"
         }
       },
       {
         "url": "/media/utotech/services/utotech-company-profile.webp",
         "alt": {
-          "th": "",
+          "th": "โปรไฟล์บริษัทยูโทเทค",
           "en": "Utotech company profile"
         }
       }
@@ -2029,6 +2130,44 @@
   },
   "projects": [
     {
+      "id": "utoeyes",
+      "name": "UtoEyes",
+      "description": {
+        "th": "แอปมือถือสมาร์ทโฮมของ Utotech จัดการบ้านและห้อง สมาชิกในครอบครัว และอุปกรณ์อย่างกล้อง Utoeye พัดลม ไฟ และลำโพง มีปุ่มสั่งงานด้วยเสียง ดูภาพสดจากกล้องพร้อมพูดคุยผ่านกล้อง หมุนกล้อง (pan/tilt) สัญญาณเตือน โหมดความเป็นส่วนตัว และดูหรือดาวน์โหลดวิดีโอที่บันทึกไว้",
+        "en": "Utotech's smart-home mobile app: manage homes and rooms, family members and devices such as the Utoeye camera, fans, lights and speakers. It has a voice-control button and a camera live view with talk, pan/tilt, alarm, privacy mode, and recordings you can watch or download."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Mobile app",
+        "Smart home",
+        "Camera"
+      ],
+      "group": "utotech",
+      "year": "",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": "checkal",
+      "name": "Checkal",
+      "description": {
+        "th": "เครื่องมือคำนวณโภชนบำบัดทางคลินิกของ Utotech มี Checkal Dashboard ให้แอดมินจัดการรายการยา (ชนิด enteral หรือ parenteral พลังงาน โปรตีน ปริมาตร) ลูกค้า และผู้ใช้ รองรับภาษาไทยและอังกฤษ และ Checkal Mobile Application สำหรับบันทึกข้อมูลเคส คำนวณ BMI ความต้องการพลังงานและโปรตีนต่อวัน ตอบแบบคัดกรองภาวะโภชนาการ ดูรายการผลิตภัณฑ์ และส่งออกเป็น PDF",
+        "en": "Utotech's clinical nutrition calculator. Checkal Dashboard lets admins manage medicines (enteral or parenteral, energy, protein, volume), customers and users, in English and Thai. Checkal Mobile Application covers case information, BMI, daily energy and protein requirements, nutrition screening questions, a product list and export to PDF."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Dashboard",
+        "Mobile app",
+        "Clinical nutrition"
+      ],
+      "group": "utotech",
+      "year": "",
+      "featured": true,
+      "published": true
+    },
+    {
       "id": "utotech-hiring-test",
       "name": "Utotech developer test",
       "description": {
@@ -2048,11 +2187,195 @@
       "published": true
     },
     {
+      "id": "checkchue",
+      "name": "CheckChue",
+      "description": {
+        "th": "เว็บแดชบอร์ดสำหรับตรวจสอบและบันทึกการเข้าเรียนของนักเรียน พร้อมแอปมือถือสำหรับงานเดียวกัน",
+        "en": "A web dashboard for checking and recording student attendance, plus a mobile app for the same job."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Dashboard",
+        "Web",
+        "Mobile app"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "pos-dashboard",
+      "name": "Point of Sale Dashboard (POS)",
+      "description": {
+        "th": "หน้าจอที่สรุปข้อมูลทุกอย่างไว้ในหน้าเดียว ให้ผู้บริหารดูแล้วเข้าใจได้ทันที",
+        "en": "One screen that sums up all the data, so executives understand it at a glance."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Dashboard",
+        "POS"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "stock-control",
+      "name": "Stock Control",
+      "description": {
+        "th": "แอปจัดการระบบคลังสินค้า สร้าง QR code สำหรับแปะ stock ได้ทันที",
+        "en": "A warehouse management app that creates QR codes to stick on stock right away."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Inventory",
+        "QR code"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "stock-management-dashboard",
+      "name": "Stock Management Dashboard",
+      "description": {
+        "th": "แดชบอร์ดจัดการ stock และตรวจสอบประกันของสินค้าที่นำเข้าและจัดส่งออก พิมพ์บาร์โค้ดไว้สแกนตอนนำเข้าสินค้าได้",
+        "en": "A dashboard for managing stock and checking the warranty of goods coming in and going out. It prints barcodes to scan when goods arrive."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Dashboard",
+        "Inventory",
+        "Barcode"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "dt-application",
+      "name": "DT Application",
+      "description": {
+        "th": "แอปสตรีมมิ่งเพลงไทย บน Android และ iOS ทำทั้งเวอร์ชัน 1.0.0 และ 1.5.0",
+        "en": "A Thai music streaming app for Android and iOS, versions 1.0.0 and 1.5.0."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Android",
+        "iOS",
+        "Music streaming"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "safe-from-covid",
+      "name": "Safe from Covid (SFC)",
+      "description": {
+        "th": "เว็บแอปบน LIFF ผ่าน LINE OA ไว้ตรวจสอบข้อมูล COVID-19 ปัจจุบันและข้อมูลต่าง ๆ",
+        "en": "A LIFF web app on LINE OA for checking current COVID-19 information and other related data."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "LINE OA",
+        "LIFF",
+        "Web app"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "malnutrition-screening-application",
+      "name": "Malnutrition Screening Application (MSA)",
+      "description": {
+        "th": "แอปประเมินภาวะโภชนาการด้วยเครื่องมือคัดกรอง คำนวณผลได้ทันทีแบบ real-time",
+        "en": "An assessment app for malnutrition screening tools that calculates results instantly, in real time."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Nutrition screening",
+        "Real-time"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "gantt-chart-application",
+      "name": "Gantt Chart Application",
+      "description": {
+        "th": "แกรนด์ชาร์ต แอปพลิเคชัน: แอปคำนวณความต้องการพลังงานและโปรตีนของคนไข้ มีทั้งบน Android และ iOS",
+        "en": "An app that calculates a patient's energy and protein requirements, on both Android and iOS."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Android",
+        "iOS",
+        "Healthcare"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "rise-tea-house-line-oa",
+      "name": "Rise Tea House LINE OA",
+      "description": {
+        "th": "LINE Official Account ของ Rise Tea House คาเฟ่สำหรับคนรักกาแฟ ซึ่งเป็นลูกค้าของ Utotech ด้วย",
+        "en": "The LINE Official Account of Rise Tea House, a café for coffee lovers and also a Utotech customer."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "LINE OA"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": "stay-organize",
+      "name": "Stay Organize",
+      "description": {
+        "th": "เว็บแอปจัดการเอกสารในบริษัท ทั้งใบเสนอราคา ใบเสร็จ ใบแจ้งหนี้ ใบกำกับภาษี สัญญา และเงินเดือน พร้อมจัดการคนในองค์กร",
+        "en": "A web app for managing company documents (quotations, receipts, invoices, tax invoices, contracts and payroll) and the people in the organisation."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Web app",
+        "Documents"
+      ],
+      "group": "client",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
       "id": "seyes",
       "name": "SEYES",
       "description": {
-        "th": "ระบบตรวจจับการใช้งานห้องเรียนด้วย AI object detection แยกเป็น core เว็บเซิร์ฟเวอร์ (Go), บริการตรวจจับ (Python), แอป (TypeScript) และเซิร์ฟเวอร์กล้อง",
-        "en": "Classroom usage detection with object-detection AI, split into a Go core web server, a Python detection service, a TypeScript app and a camera server."
+        "th": "ระบบตรวจสอบการใช้งานห้องเรียนผ่านกล้องวงจรปิดด้วย AI object detection ดักจับคอมพิวเตอร์ที่เปิดอยู่และหัวคนที่อยู่ในระยะ แล้วแจ้งเตือนผ่าน LINE Notify มี Seyes AI Dashboard แสดงผลข้อมูลจาก AI และจัดการผู้ใช้ทั้งระบบ และ Seyes AI Camera ส่งแจ้งเตือนแบบเรียลไทม์จากกล้องวงจรปิดไป LINE Notify แยกเป็น core เว็บเซิร์ฟเวอร์ (Go), บริการตรวจจับ (Python), แอป (TypeScript) และเซิร์ฟเวอร์กล้อง",
+        "en": "Classroom usage monitoring through CCTV with object-detection AI: it spots computers that are on and people's heads in range, then alerts through LINE Notify. Seyes AI Dashboard shows the AI results and manages users for the whole system, and Seyes AI Camera sends real-time alerts from the CCTV to LINE Notify. Split into a Go core web server, a Python detection service, a TypeScript app and a camera server."
       },
       "url": "",
       "repo": "https://github.com/pho0m/seyes-app",
@@ -2060,7 +2383,8 @@
         "Go",
         "Python",
         "TypeScript",
-        "AI"
+        "AI",
+        "LINE Notify"
       ],
       "group": "school",
       "year": "2023",
@@ -2084,6 +2408,27 @@
       "group": "personal",
       "year": "2023",
       "featured": true,
+      "published": true
+    },
+    {
+      "id": "tracking-pump-dashboard",
+      "name": "Tracking Pump Dashboard",
+      "description": {
+        "th": "Application interface ระบบ IoT แสดงผลระบบปั๊มน้ำและควบคุมได้แบบ real-time ทำช่วงสหกิจที่ Studio Twist และนำไปออกงาน BMA EXPO 2023",
+        "en": "An IoT application interface that shows and controls a water-pump system in real time. Built during my co-op at Studio Twist and shown at BMA EXPO 2023."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "IoT",
+        "Dashboard",
+        "Real-time",
+        "Arduino",
+        "NB-IoT"
+      ],
+      "group": "coop",
+      "year": "2023",
+      "featured": false,
       "published": true
     },
     {
@@ -2157,6 +2502,25 @@
       "published": true
     },
     {
+      "id": "cloud-computing",
+      "name": "Cloud Computing",
+      "description": {
+        "th": "เว็บแอปสำหรับการเรียนการสอน พร้อมแชทบอทออนไลน์",
+        "en": "A web app for teaching and learning, with an online chatbot."
+      },
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Web app",
+        "Chatbot",
+        "E-learning"
+      ],
+      "group": "teaching",
+      "year": "",
+      "featured": false,
+      "published": true
+    },
+    {
       "id": "thap",
       "name": "Thap",
       "description": {
@@ -2213,14 +2577,15 @@
       "id": "bangkok-history",
       "name": "Bangkok History",
       "description": {
-        "th": "โปรเจกต์กลางภาควิชาเทคโนโลยีเว็บ",
-        "en": "Midterm project for a web technology class."
+        "th": "เว็บไซต์ประวัติศาสตร์กรุงเทพฯ แสดงผลแบบ parallax และ interactive web เป็นโปรเจกต์กลางภาควิชาเทคโนโลยีเว็บ",
+        "en": "A Bangkok history website with parallax scrolling and interactive web pages, made as a midterm project for a web technology class."
       },
       "url": "",
       "repo": "https://github.com/pho0m/bangkok-history",
       "tags": [
         "HTML",
-        "CSS"
+        "CSS",
+        "Parallax"
       ],
       "group": "school",
       "year": "2022",
@@ -2666,7 +3031,7 @@
       "logo": {
         "url": "/img/studiotwist.png",
         "alt": {
-          "th": "",
+          "th": "โลโก้ Studio Twist",
           "en": "Studio Twist logo"
         }
       }
@@ -2712,7 +3077,7 @@
         },
         "period": "1 May - 1 June 2023",
         "title": {
-          "th": "",
+          "th": "เริ่มสหกิจด้วยปาร์ตี้ต้อนรับการกลับมา...",
           "en": "Let's starting internship with comeback party..."
         },
         "body": {
@@ -2729,7 +3094,7 @@
         },
         "period": "1 June - 1 July 2023",
         "title": {
-          "th": "",
+          "th": "เขียนโค้ดและทดสอบ integration test กับ unit test...",
           "en": "Coding and Testing intragration test and unit test..."
         },
         "body": {
@@ -2746,7 +3111,7 @@
         },
         "period": "1 July - 1 August 2023",
         "title": {
-          "th": "",
+          "th": "เตรียมตัวไปงาน BMAEXPO2023 กับทีม Twist...",
           "en": "Prepared and setup to go to BMAEXPO2023 with twist team..."
         },
         "body": {
@@ -2763,7 +3128,7 @@
         },
         "period": "1 August - 1 September 2023",
         "title": {
-          "th": "",
+          "th": "เขียนโค้ด เขียนโค้ด เขียนโค้ด แล้วก็เทสสสส !!!",
           "en": "Coding Coding Coding Anddddd Testing !!!"
         },
         "body": {
@@ -2780,7 +3145,7 @@
         },
         "period": "1 September - 1 October 2023",
         "title": {
-          "th": "",
+          "th": "ลุยงาน BMAEXPO2023 กันนน..................",
           "en": "Let's go to BMAEXPO2023.................."
         },
         "body": {
@@ -2797,7 +3162,7 @@
         },
         "period": "1 October - 31 October 2023",
         "title": {
-          "th": "",
+          "th": "ระบบ ERP Diamons กับโปรเจกต์ใหม่ที่ต้องดูแล....",
           "en": "Diamons ERP system with new project for work...."
         },
         "body": {

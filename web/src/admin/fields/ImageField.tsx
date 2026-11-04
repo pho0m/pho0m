@@ -3,7 +3,7 @@ import type { ImageRef, MediaItem } from "@pho0m/content";
 import type { UploadResult } from "../context.tsx";
 import { fileNameOf, isPdfUrl } from "../image.ts";
 import { LocalizedField, TextField } from "./basic.tsx";
-import { DarkroomCanvas } from "./canvas.tsx";
+import { PrintPreview } from "./canvas.tsx";
 import { ListEditor } from "./ListEditor.tsx";
 import { MediaPicker } from "./MediaPicker.tsx";
 import { UploadButton, UploadProgress, useUploader } from "./UploadButton.tsx";
@@ -46,8 +46,8 @@ function useLatest<T>(value: T) {
 }
 
 /**
- * One image: thumbnail + darkroom dithered preview, upload (drag & drop too),
- * pick from the library, edit URL, alt TH/EN, remove.
+ * One image: the original, its darkroom print (clear / developing / negative),
+ * upload (drag & drop too), pick from the library, edit URL, alt TH/EN, remove.
  */
 export function ImageField({
   label,
@@ -56,6 +56,7 @@ export function ImageField({
   folder,
   hint,
   removable = true,
+  aspect,
 }: {
   label: string;
   value: ImageRef | undefined;
@@ -63,6 +64,8 @@ export function ImageField({
   folder?: string;
   hint?: string;
   removable?: boolean;
+  /** Width / height of the print on the site (crop of the preview). Default: a film frame (16:11). */
+  aspect?: number;
 }) {
   const id = useId();
   const latest = useLatest({ value, onChange });
@@ -107,7 +110,7 @@ export function ImageField({
               <span className="thumb-empty">{up.busy ? "กำลังอัปโหลด…" : "ยังไม่มีรูป\nลากไฟล์มาวางได้"}</span>
             )}
           </div>
-          {url ? <DarkroomCanvas url={url} label={`พรีวิวแบบภาพพิมพ์ห้องมืดของ ${label}`} className="thumb px" /> : null}
+          {url && !isPdfUrl(url) ? <PrintPreview url={url} aspect={aspect} label={`ภาพพิมพ์ห้องมืดของ ${label}`} /> : null}
         </div>
         <div className="imgf-ctl">
           <TextField
@@ -184,6 +187,7 @@ export function ImagesField({
   folder,
   hint,
   path,
+  aspect,
 }: {
   label: string;
   value: ImageRef[];
@@ -191,6 +195,7 @@ export function ImagesField({
   folder?: string;
   hint?: string;
   path?: string;
+  aspect?: number;
 }) {
   const latest = useLatest({ value, onChange });
   const [picking, setPicking] = useState(false);
@@ -217,6 +222,7 @@ export function ImagesField({
             label="รูป"
             value={img}
             folder={folder}
+            aspect={aspect}
             removable={false}
             onChange={(v) => set(v ?? { url: "", alt: emptyAlt() })}
           />

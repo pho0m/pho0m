@@ -18,7 +18,7 @@ function EntryEditor({ value, onChange, path }: { value: DiaryEntry; onChange: (
       <LocalizedField label="เดือน" required {...f("month")} />
       <LocalizedField label="หัวข้อ" required {...f("title")} />
       <LocalizedField label="บันทึก" multiline rows={8} required {...f("body")} />
-      <ImagesField label="รูปประกอบ" folder="diary" path={`${path}.images`} {...f("images")} />
+      <ImagesField label="รูปประกอบ" folder="diary" path={`${path}.images`} aspect={4 / 3} {...f("images")} />
     </>
   );
 }

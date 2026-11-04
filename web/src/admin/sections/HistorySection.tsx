@@ -54,7 +54,7 @@ export function HistorySection({ dirty, onLoad }: { dirty: boolean; onLoad: (c: 
       }
       const label = formatDateTime(item.updated);
       onLoad(parsed.content, label);
-      toast.push({ kind: "info", text: `โหลดเวอร์ชัน ${label} เข้าฉบับร่างแล้ว — กด “บันทึก” เพื่อใช้จริง` });
+      toast.push({ kind: "info", text: `โหลดเวอร์ชันที่ใช้จนถึง ${label} เข้าฉบับร่างแล้ว — กด “บันทึก” เพื่อใช้จริง` });
     } catch (e) {
       toast.push({ kind: "error", text: "โหลดเวอร์ชันนี้ไม่สำเร็จ", detail: errorMessage(e) });
     } finally {
@@ -78,13 +78,15 @@ export function HistorySection({ dirty, onLoad }: { dirty: boolean; onLoad: (c: 
           {error}
         </p>
       ) : null}
-      {status === "ready" && !items.length ? <p className="empty">ยังไม่มีประวัติ — จะเริ่มเก็บหลังบันทึกครั้งแรก</p> : null}
+      {status === "ready" && !items.length ? <p className="empty">ยังไม่มีประวัติ — เวอร์ชันเดิมจะถูกเก็บไว้ทุกครั้งที่บันทึกทับ</p> : null}
       {items.length ? (
         <ol className="history">
           {items.map((it, i) => (
             <li key={it.path} className="history-row px">
               <span className="lcd history-no">{String(items.length - i).padStart(2, "0")}</span>
-              <span className="history-date">{formatDateTime(it.updated)}</span>
+              <span className="history-date">
+                <small className="muted">ใช้อยู่บนเว็บจนถึง</small> {formatDateTime(it.updated)}
+              </span>
               <span className="muted history-size">{formatBytes(it.size)}</span>
               {dirty ? (
                 <ConfirmButton

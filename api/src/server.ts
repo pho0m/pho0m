@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app.ts";
 import { ConfigError, describeConfig, loadConfig, type Config } from "./config.ts";
+import { RedeployTrigger } from "./redeploy.ts";
 import { storageFromConfig } from "./storage/index.ts";
 
 /** Entry point: env → config → storage → app → HTTP server. */
@@ -21,7 +22,8 @@ try {
 }
 
 const storage = storageFromConfig(config);
-const app = createApp({ config, storage });
+const redeploy = config.dispatch ? new RedeployTrigger({ ...config.dispatch, logger: console }) : null;
+const app = createApp({ config, storage, redeploy });
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" }, (info) => {
   console.log(`[api] listening on http://localhost:${info.port}`);
@@ -36,8 +38,12 @@ const server = serve({ fetch: app.fetch, port: config.port, hostname: "0.0.0.0" 
 
 function shutdown(signal: string): void {
   console.log(`[api] ${signal} received, closing…`);
-  server.close(() => process.exit(0));
-  setTimeout(() => process.exit(0), 5000).unref();
+  // Cloud Run allows ~10 s after SIGTERM: send a rebuild request still waiting for its window.
+  const flushed = redeploy?.flush() ?? Promise.resolve();
+  server.close(() => {
+    void flushed.finally(() => process.exit(0));
+  });
+  setTimeout(() => process.exit(0), 8000).unref();
 }
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));

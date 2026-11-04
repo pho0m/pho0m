@@ -34,7 +34,7 @@ export function ProfileSection({ value, onChange }: { value: Profile; onChange: 
         <LocalizedField label="ความฝัน (dream)" multiline rows={4} {...f("dream")} />
       </Group>
       <Group title="รูปโปรไฟล์" hint="Avatar">
-        <ImageField label="รูปโปรไฟล์" folder="profile" {...f("avatar")} />
+        <ImageField label="รูปโปรไฟล์" folder="profile" aspect={4 / 5} {...f("avatar")} />
       </Group>
       <Group title="ช่องทางติดต่อ" hint="Contact">
         <Grid>

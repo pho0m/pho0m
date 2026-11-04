@@ -1,16 +1,31 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { frameDateLabel, frameStamp, type Frame } from "@pho0m/content";
-import { FRAME_H, FRAME_W, createImageData, ditherPrint, negativeOf, paint } from "../../lib/pixel.ts";
+import { FRAME_H, FRAME_W, createImageData, paint } from "../../lib/pixel.ts";
+import { renderingFor, type PrintSource } from "../../lib/print.ts";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { useReducedMotion } from "../hooks.ts";
 import { Tags } from "../ui/bits.tsx";
+import { clearOf, developingAt, negativeFor, whenIdle } from "../ui/images.ts";
 import * as M from "./math.ts";
-import { frameSource, type FrameSource } from "./sources.ts";
+import { frameSource } from "./sources.ts";
 import { PrintDialog } from "./PrintDialog.tsx";
 import { Spool } from "./Spool.tsx";
 import "./film.css";
 
-type Slot = { cell: HTMLDivElement | null; pos: HTMLCanvasElement | null; neg: HTMLCanvasElement | null };
+/**
+ * DOM handles of one film cell. Stack inside the frame window, bottom → top:
+ *   neg   red safelight negative (continuous tone), seen when the frame is off the gate
+ *   pos   wrapper whose opacity crossfades positive ↔ negative with the distance to the gate
+ *     dev   the developing two-tone dither at 128×88 (the effect)
+ *     clear the finished clear print, faded in when the timer reaches DRY
+ */
+type Slot = {
+  cell: HTMLDivElement | null;
+  neg: HTMLCanvasElement | null;
+  pos: HTMLDivElement | null;
+  dev: HTMLCanvasElement | null;
+  clear: HTMLCanvasElement | null;
+};
 
 /** Mutable animation state, kept out of React so the scroll loop never re-renders. */
 type Engine = {
@@ -24,8 +39,12 @@ type Engine = {
   states: M.FrameState[];
   devStart: number[];
   level: number[];
-  src: (FrameSource | null)[];
+  src: (PrintSource | null)[];
   buf: (ImageData | null)[];
+  /** Clear print + negative painted into their canvases. */
+  finals: boolean[];
+  /** Clear print showing (the frame is DRY). */
+  dry: boolean[];
   opacity: number[];
   shown: boolean[];
   leaders: [boolean, boolean];
@@ -50,6 +69,8 @@ function newEngine(n: number): Engine {
     level: Array.from({ length: n }, (_, i) => (i === 0 ? 1 : 0)),
     src: Array.from({ length: n }, () => null),
     buf: Array.from({ length: n }, () => null),
+    finals: Array.from({ length: n }, () => false),
+    dry: Array.from({ length: n }, () => false),
     opacity: Array.from({ length: n }, () => -1),
     shown: Array.from({ length: n }, () => true),
     leaders: [true, true],
@@ -73,6 +94,7 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
   const flashRef = useRef<HTMLDivElement>(null);
   const reelRefs = useRef<(HTMLDivElement | null)[]>([null, null]);
   const leaderRefs = useRef<(HTMLDivElement | null)[]>([null, null]);
+  const ticksRef = useRef<HTMLOListElement>(null);
   const slots = useRef<Slot[]>([]);
   const engRef = useRef<Engine | null>(null);
   if (!engRef.current) engRef.current = newEngine(n);
@@ -87,26 +109,45 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
   const [printOpen, setPrintOpen] = useState(false);
 
   // ---- painting -------------------------------------------------------------
-  const paintPrint = useCallback(
+  /** Developing dither at frame size: the only print work done inside the animation loop. */
+  const paintDev = useCallback(
     (i: number, level: number) => {
       const s = slots.current[i];
       const src = e.src[i];
-      if (!s?.pos || !src) return;
-      const buf = e.buf[i] ?? (e.buf[i] = createImageData(src.data.width, src.data.height));
-      ditherPrint(src.data, { ...src.tone, level }, buf);
-      paint(s.pos, buf);
+      if (!s?.dev || !src) return;
+      const buf = e.buf[i] ?? (e.buf[i] = createImageData(FRAME_W, FRAME_H));
+      paint(s.dev, developingAt(src, level, buf));
       e.level[i] = level;
     },
     [e],
   );
-  const paintNegative = useCallback(
+  /** Clear print + negative: computed once per source (cached) and painted once per cell. */
+  const paintFinals = useCallback(
     (i: number) => {
       const s = slots.current[i];
       const src = e.src[i];
-      if (!s?.neg || !src) return;
-      paint(s.neg, negativeOf(ditherPrint(src.data, { ...src.tone, level: 1 })));
+      if (e.finals[i] || !s?.clear || !s.neg || !src) return;
+      const rendering = renderingFor(src);
+      paint(s.clear, clearOf(src));
+      paint(s.neg, negativeFor(src));
+      s.clear.style.imageRendering = rendering;
+      s.neg.style.imageRendering = rendering;
+      e.finals[i] = true;
     },
     [e],
+  );
+  /** Swap the dither for the clear print: a short opacity crossfade at DRY, instant otherwise. */
+  const showClear = useCallback(
+    (i: number, animate: boolean) => {
+      const s = slots.current[i];
+      if (e.dry[i] || !s?.clear || !e.src[i]) return;
+      paintFinals(i);
+      e.dry[i] = true;
+      s.clear.style.opacity = "1";
+      if (animate && typeof s.clear.animate === "function")
+        s.clear.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: "ease-out" });
+    },
+    [e, paintFinals],
   );
 
   // ---- the loop ---------------------------------------------------------------
@@ -192,8 +233,7 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
           if (s === "developed" && e.states[i] !== "developed") {
             e.states[i] = "developed";
             e.level[i] = 1;
-            paintPrint(i, 1);
-            paintNegative(i);
+            showClear(i, false);
             changed = true;
           }
         });
@@ -213,10 +253,13 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
         if (e.states[i] === "developing" && e.src[i]) {
           if (Number.isNaN(e.devStart[i]!)) {
             e.devStart[i] = now;
-            paintNegative(i);
+            // The negative is usually ready already (painted while idle); never compute it here.
+            if (!e.finals[i]) whenIdle(() => paintFinals(i));
           }
           const level = reducedRef.current ? 1 : M.developLevel(now - e.devStart[i]!);
-          paintPrint(i, level);
+          if (reducedRef.current) e.level[i] = level;
+          else paintDev(i, level);
+          if (M.isDry(level)) showClear(i, !reducedRef.current);
           if (level >= 1) {
             e.states[i] = "developed";
             changed = true;
@@ -259,14 +302,18 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
     // Run the loop only while the stage is on screen.
     let ioVisible: IntersectionObserver | null = null;
     let ioNear: IntersectionObserver | null = null;
+    let alive = true;
     const loadSources = () =>
       frames.forEach((f, i) => {
         void frameSource(f, i, n).then((source) => {
+          if (!alive) return;
           e.src[i] = source;
-          if (e.states[i] === "developed") {
-            paintPrint(i, 1);
-            paintNegative(i);
-          } else if (e.states[i] === "developing") schedule();
+          if (e.states[i] === "developed") showClear(i, false);
+          else if (e.states[i] === "developing") schedule();
+          // Clear print + negative are computed while the browser is idle, not in the scroll loop.
+          whenIdle(() => {
+            if (alive) paintFinals(i);
+          });
         });
       });
     const sec = sectionRef.current;
@@ -299,6 +346,7 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
     }
 
     return () => {
+      alive = false;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       window.removeEventListener("wheel", onUserScroll);
@@ -308,7 +356,7 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
       if (e.raf) cancelAnimationFrame(e.raf);
       e.raf = 0;
     };
-  }, [e, frames, n, paintPrint, paintNegative]);
+  }, [e, frames, n, paintDev, paintFinals, showClear]);
 
   // Frame size follows the stage size.
   useEffect(() => {
@@ -325,6 +373,19 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
     e.fw = fw;
     loop.current.apply();
   }, [e, fw]);
+
+  // Long rolls: the tick row scrolls sideways and keeps the current frame centred.
+  const tickIndex = Math.min(index, n - 1);
+  useEffect(() => {
+    const ol = ticksRef.current;
+    if (!ol) return;
+    const over = ol.scrollWidth > ol.clientWidth + 1;
+    ol.toggleAttribute("data-overflow", over);
+    const li = ol.children[tickIndex] as HTMLElement | undefined;
+    if (!over || !li || typeof ol.scrollTo !== "function") return;
+    const left = li.offsetLeft - (ol.clientWidth - li.offsetWidth) / 2;
+    ol.scrollTo({ left, behavior: reducedRef.current ? "auto" : "smooth" });
+  }, [tickIndex, n, fw]);
 
   // ---- navigation -------------------------------------------------------------
   const goTo = useCallback(
@@ -505,7 +566,7 @@ export function FilmTimeline({ frames }: { frames: Frame[] }) {
             >
               ◂
             </button>
-            <ol className="fc-ticks">
+            <ol className="fc-ticks" ref={ticksRef}>
               {frames.map((f, i) => (
                 <li key={f.id}>
                   <button
@@ -550,10 +611,12 @@ type CellProps = {
 
 const FilmCell = memo(function FilmCell({ frame, i, n, state, current, register, onPick }: CellProps) {
   const cell = useRef<HTMLDivElement>(null);
-  const pos = useRef<HTMLCanvasElement>(null);
   const neg = useRef<HTMLCanvasElement>(null);
+  const pos = useRef<HTMLDivElement>(null);
+  const dev = useRef<HTMLCanvasElement>(null);
+  const clear = useRef<HTMLCanvasElement>(null);
   useLayoutEffect(() => {
-    register(i, { cell: cell.current, pos: pos.current, neg: neg.current });
+    register(i, { cell: cell.current, neg: neg.current, pos: pos.current, dev: dev.current, clear: clear.current });
   }, [i, register]);
   const style = { "--k": M.frameLeft(i, n, 1) } as CSSProperties;
   return (
@@ -566,8 +629,11 @@ const FilmCell = memo(function FilmCell({ frame, i, n, state, current, register,
       onClick={() => onPick(i)}
     >
       <div className="ff-img">
-        <canvas ref={neg} className="ff-neg pixelated" width={FRAME_W} height={FRAME_H} />
-        <canvas ref={pos} className="ff-pos pixelated" width={FRAME_W} height={FRAME_H} />
+        <canvas ref={neg} className="ff-neg" width={FRAME_W} height={FRAME_H} />
+        <div ref={pos} className="ff-pos">
+          <canvas ref={dev} className="ff-dev pixelated" width={FRAME_W} height={FRAME_H} />
+          <canvas ref={clear} className="ff-clear" width={FRAME_W} height={FRAME_H} />
+        </div>
         <span className="ff-latent lcd">{i + 1}</span>
         <span className="ff-stamp lcd">{frameStamp(frame)}</span>
       </div>

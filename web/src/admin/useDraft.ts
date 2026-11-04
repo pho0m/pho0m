@@ -205,6 +205,8 @@ export function useDraft(api: AdminApi, authVersion: number) {
     retry: () => void load(true),
     draft,
     draftJson,
+    /** JSON of the version last loaded from / saved to the server (what the site shows). */
+    savedJson: baseline,
     setDraft,
     dirty,
     generation,

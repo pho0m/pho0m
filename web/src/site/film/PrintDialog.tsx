@@ -1,24 +1,29 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { frameDateLabel, frameStamp, type Frame } from "@pho0m/content";
-import { FRAME_H, FRAME_W, ditherPrint, paint } from "../../lib/pixel.ts";
+import { FRAME_H, FRAME_W, PRINT_H, PRINT_W, createImageData, paint } from "../../lib/pixel.ts";
+import { renderingFor } from "../../lib/print.ts";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { useReducedMotion } from "../hooks.ts";
 import { LinkRow, Tags } from "../ui/bits.tsx";
 import { Modal } from "../ui/Modal.tsx";
 import { Print } from "../ui/Print.tsx";
+import { clearOf, developingAt } from "../ui/images.ts";
 import { paragraphs } from "../util.ts";
-import { developLevel, pad2 } from "./math.ts";
+import { developLevel, isDry, pad2 } from "./math.ts";
 import { frameSource } from "./sources.ts";
 
-/** Big print size for photos (icon scenes stay at their native 128×88). */
-const BIG_W = FRAME_W * 2;
-const BIG_H = FRAME_H * 2;
+/** Photos get a bigger clear print in the dialog; pixel-art scenes stay 128×88 (shown pixelated). */
+const BIG_W = PRINT_W * 2;
+const BIG_H = PRINT_H * 2;
 
 export function PrintDialog({ frame, index, n, onClose }: { frame: Frame; index: number; n: number; onClose: () => void }) {
   const { lang, t } = useLang();
   const reduced = useReducedMotion();
   const titleId = useId();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const devRef = useRef<HTMLCanvasElement>(null);
+  const clearRef = useRef<HTMLCanvasElement>(null);
+  /** Develop once per opened frame; coming back from "Original" shows the clear print straight away. */
+  const developed = useRef("");
   const [original, setOriginal] = useState(false);
   const photo = frame.images[0];
 
@@ -26,21 +31,35 @@ export function PrintDialog({ frame, index, n, onClose }: { frame: Frame; index:
     if (original) return;
     let cancelled = false;
     let raf = 0;
-    const big = Boolean(photo);
-    void frameSource(frame, index, n, big ? BIG_W : FRAME_W, big ? BIG_H : FRAME_H).then(({ data, tone }) => {
-      const canvas = canvasRef.current;
-      if (cancelled || !canvas) return;
-      if (reduced) {
-        paint(canvas, ditherPrint(data, tone));
+    const source = photo ? frameSource(frame, index, n, BIG_W, BIG_H) : frameSource(frame, index, n);
+    void source.then((src) => {
+      const dev = devRef.current;
+      const clear = clearRef.current;
+      if (cancelled || !dev || !clear) return;
+      paint(clear, clearOf(src));
+      clear.style.imageRendering = renderingFor(src);
+      if (reduced || developed.current === frame.id) {
+        clear.style.opacity = "1";
+        developed.current = frame.id;
         return;
       }
+      const out = createImageData(FRAME_W, FRAME_H);
+      let dry = false;
       const t0 = performance.now();
       const step = (now: number) => {
         if (cancelled) return;
-        const level = developLevel(now - t0, 900);
-        paint(canvas, ditherPrint(data, { ...tone, level }));
+        const level = developLevel(now - t0, 1100);
+        paint(dev, developingAt(src, level, out));
+        if (!dry && isDry(level)) {
+          dry = true;
+          developed.current = frame.id;
+          clear.style.opacity = "1";
+          if (typeof clear.animate === "function")
+            clear.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: "ease-out" });
+        }
         if (level < 1) raf = requestAnimationFrame(step);
       };
+      paint(dev, developingAt(src, 0, out));
       raf = requestAnimationFrame(step);
     });
     return () => {
@@ -62,14 +81,10 @@ export function PrintDialog({ frame, index, n, onClose }: { frame: Frame; index:
             {original && photo ? (
               <img className="pm-original" src={photo.url} alt={printAlt} />
             ) : (
-              <canvas
-                ref={canvasRef}
-                className="pm-canvas pixelated"
-                width={photo ? BIG_W : FRAME_W}
-                height={photo ? BIG_H : FRAME_H}
-                role="img"
-                aria-label={printAlt}
-              />
+              <div className="pm-print" role="img" aria-label={printAlt}>
+                <canvas ref={devRef} className="pm-dev pixelated" width={FRAME_W} height={FRAME_H} />
+                <canvas ref={clearRef} className="pm-clear" width={FRAME_W} height={FRAME_H} />
+              </div>
             )}
             <span className="pm-stamp lcd" aria-hidden="true">
               {frameStamp(frame)}

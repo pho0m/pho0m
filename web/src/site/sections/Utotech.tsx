@@ -42,7 +42,7 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
           <div className="ut-logo">
             {c.logo ? (
               <div className="paper-print px">
-                <img src={c.logo.url} alt={t(c.logo.alt)} loading="lazy" decoding="async" />
+                <Print image={c.logo} width={120} aspect={1} develop reveal fit="contain" className="print--logo" />
               </div>
             ) : null}
             <p className="ut-mark lcd" aria-hidden="true">
@@ -86,7 +86,7 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
           </div>
           {c.cover ? (
             <div className="ut-cover">
-              <Print image={c.cover} width={192} aspect={4 / 3} reveal />
+              <Print image={c.cover} width={192} aspect={4 / 3} develop reveal />
             </div>
           ) : null}
         </div>
@@ -103,7 +103,7 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
                   <li key={i} className="hanger">
                     <span className="peg" aria-hidden="true" />
                     <div className="hang-paper">
-                      {h.image ? <Print image={h.image} width={160} aspect={4 / 3} reveal /> : null}
+                      {h.image ? <Print image={h.image} width={160} aspect={4 / 3} develop reveal /> : null}
                     </div>
                     <h4 className="hanger-title">{t(h.title)}</h4>
                     <p className="hanger-text">{t(h.description)}</p>

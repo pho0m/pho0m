@@ -357,7 +357,7 @@ fieldset.field > legend + * { clear: both; }
 .imgf > legend { padding: 0 4px; }
 .imgf.is-drag { border-color: var(--red); background: rgba(255, 74, 50, 0.08); }
 .imgf-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; margin-bottom: 4px; }
-.imgf-previews { display: flex; gap: 6px; flex: none; }
+.imgf-previews { display: flex; gap: 8px; flex: none; align-items: flex-start; max-width: 100%; }
 .imgf-ctl { flex: 1 1 260px; min-width: 0; }
 .thumb {
   width: 128px;
@@ -371,9 +371,30 @@ fieldset.field > legend + * { clear: both; }
 }
 .thumb img { width: 100%; height: 100%; object-fit: contain; }
 .thumb-empty { white-space: pre-line; text-align: center; font-size: 12px; color: var(--muted); padding: 6px; }
-.darkroom.thumb { background: var(--paper); }
-.darkroom { position: relative; }
-.darkroom canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+/* darkroom print preview (lib/print.ts): clear print, developing dither or negative */
+.darkroom { position: relative; overflow: hidden; background: var(--paper); }
+.darkroom[data-view="negative"] { background: var(--film-base); }
+.darkroom canvas { display: block; width: 100%; height: 100%; }
+.darkroom canvas.pixelated { image-rendering: pixelated; }
+.darkroom-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff8ec;
+  pointer-events: none;
+  animation: darkroom-flash 480ms ease-out forwards;
+}
+@keyframes darkroom-flash {
+  0% { opacity: 0.96; }
+  100% { opacity: 0; }
+}
+.pv { display: flex; flex-direction: column; gap: 6px; width: 224px; flex: none; min-width: 0; }
+.pv-print { width: 100%; box-shadow: 0 0 0 1px var(--line-2), 0 3px 0 #050000; }
+.pv-ctl { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pv-views { display: flex; flex-wrap: wrap; gap: 4px; }
+.pv-views .chip-btn { padding: 2px 8px; font-size: 12px; min-height: 28px; }
+.pv-dev { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.pv-timer { font-size: 18px; color: var(--led); min-width: 8ch; white-space: nowrap; }
+.pv-dev input[type="range"] { flex: 1 1 90px; min-width: 80px; accent-color: var(--red); }
 .darkroom-note {
   position: absolute;
   inset: auto 0 0 0;
@@ -646,10 +667,12 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
 .tl-item {
   width: 100%;
   display: grid;
-  grid-template-columns: 32px 54px minmax(0, 1fr) auto;
+  /* icon | date over title | draft chip — long date labels ("2016 – 2020") get their own line */
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-areas: "icon date chip" "icon title chip";
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: 0 8px;
+  padding: 3px 6px;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text);
@@ -658,8 +681,10 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
 }
 .tl-item:hover { background: var(--bg-3); }
 .tl-item.is-on { background: var(--bg-3); border-color: var(--red); }
-.tl-date { font-size: 17px; white-space: nowrap; }
-.tl-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-item > .sprite { grid-area: icon; }
+.tl-item > .chip { grid-area: chip; }
+.tl-date { grid-area: date; font-size: 17px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-title { grid-area: title; font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tl-add { width: 100%; margin-top: 6px; }
 .tl-detail { min-width: 0; background: var(--bg-2); border: 1px solid var(--line); padding: 12px 14px; }
 .tl-detail-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -696,7 +721,7 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
   background-position: 0 center;
 }
 .film-gate { position: relative; background: #000; box-shadow: 0 0 0 2px #0a0101; }
-.film-canvas canvas { width: 100%; height: auto; aspect-ratio: 128 / 88; }
+.film-canvas { width: 100%; }
 .film-stamp {
   position: absolute;
   right: 6px;
@@ -707,10 +732,7 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
 }
 .film-preview figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .film-preview figcaption .lcd { font-size: 17px; }
-.film-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; }
-.film-ctl label.lcd { font-size: 17px; min-width: 74px; }
-.film-ctl input[type="range"] { flex: 1 1 100px; accent-color: var(--red); }
-.film-ctl .field-toggle { margin: 0; }
+.film-preview .pv-ctl { margin-top: 6px; }
 
 /* ---------- history ---------- */
 
@@ -775,4 +797,9 @@ dialog::backdrop { background: rgba(8, 1, 1, 0.78); }
   .film-preview { flex-basis: 100%; }
   .imgf-previews { width: 100%; }
   .imgf-previews .thumb { flex: 1 1 0; width: auto; aspect-ratio: 128 / 88; height: auto; }
+  .imgf-previews .pv { flex: 1 1 0; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .darkroom-flash { display: none; }
 }

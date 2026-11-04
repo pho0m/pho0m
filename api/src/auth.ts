@@ -3,9 +3,17 @@ import { sign, verify } from "hono/jwt";
 
 /** Session tokens (HS256 JWT, sub "admin") and login throttling. */
 
+/** Per client IP: 5 failed logins per 10 minutes. */
 export const LOGIN_MAX_FAILURES = 5;
 export const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+/**
+ * Across all IPs: 30 failed logins per 10 minutes. Backstop for attackers that rotate or
+ * spoof addresses; while it is hit, every login answers 429 (also for the owner).
+ */
+export const GLOBAL_LOGIN_MAX_FAILURES = 30;
 const MAX_TRACKED_IPS = 10_000;
+/** Longest client key kept (an IPv6 address with zone fits easily). */
+const MAX_KEY_LENGTH = 64;
 
 /** Constant-time compare: hash both sides so lengths never leak through timing. */
 export function passwordMatches(given: string, expected: string): boolean {
@@ -53,7 +61,21 @@ export function bearer(header: string | undefined): string | null {
   return m?.[1] ?? null;
 }
 
-/** In-memory sliding window of failed logins per IP (per instance). */
+/**
+ * Client address for rate limiting. Google's front end (Cloud Run) APPENDS the address it saw to
+ * X-Forwarded-For, so only the right-most entry is trustworthy; anything to its left was sent by
+ * the client and can be spoofed. Without the header (local dev) the socket address is used.
+ */
+export function clientKey(xff: string | undefined, remoteAddress: string | undefined): string {
+  const last = xff
+    ?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .pop();
+  return (last || remoteAddress || "unknown").slice(0, MAX_KEY_LENGTH);
+}
+
+/** In-memory sliding window of failed logins per key (client IP, or one shared key), per instance. */
 export class LoginLimiter {
   private readonly failures = new Map<string, number[]>();
 
@@ -80,6 +102,8 @@ export class LoginLimiter {
   fail(ip: string, nowMs: number): void {
     const list = this.recent(ip, nowMs);
     list.push(nowMs);
+    // Only the newest `max` failures matter for retryAfter(); keep memory bounded.
+    if (list.length > this.max) list.splice(0, list.length - this.max);
     this.failures.set(ip, list);
     if (this.failures.size > MAX_TRACKED_IPS) this.sweep(nowMs);
   }

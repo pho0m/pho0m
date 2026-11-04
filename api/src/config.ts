@@ -1,5 +1,6 @@
 import { createHmac, randomBytes } from "node:crypto";
 import path from "node:path";
+import { DEFAULT_GITHUB_REPOSITORY, isRepository } from "./redeploy.ts";
 
 /**
  * Environment → Config. Pure (no I/O besides what the caller passes in) so it is easy to test.
@@ -29,6 +30,11 @@ export type Config = {
   sessionSecretSource: "SESSION_SECRET" | "service-account-key" | "ADMIN_PASSWORD" | "random";
   allowedOrigins: string[];
   tokenTtlSeconds: number;
+  /**
+   * GitHub repository_dispatch after each save (GITHUB_DISPATCH_TOKEN + GITHUB_REPOSITORY),
+   * so the site's baked SEO files follow the content. null → off.
+   */
+  dispatch: { token: string; repository: string } | null;
 };
 
 export type Env = Record<string, string | undefined>;
@@ -170,7 +176,20 @@ export function loadConfig(env: Env, opts: LoadConfigOptions): Config {
     sessionSecretSource,
     allowedOrigins: parseOrigins(env.ALLOWED_ORIGINS),
     tokenTtlSeconds: TOKEN_TTL_SECONDS,
+    dispatch: parseDispatch(env),
   };
+}
+
+/** GITHUB_DISPATCH_TOKEN (optional) + GITHUB_REPOSITORY (default pho0m/pho0m). Never echoes the token. */
+export function parseDispatch(env: Env): Config["dispatch"] {
+  const token = clean(env.GITHUB_DISPATCH_TOKEN);
+  if (!token) return null;
+  if (/\s/.test(token)) throw new ConfigError("GITHUB_DISPATCH_TOKEN contains whitespace; paste the token only.");
+  const repository = clean(env.GITHUB_REPOSITORY) || DEFAULT_GITHUB_REPOSITORY;
+  if (!isRepository(repository)) {
+    throw new ConfigError(`GITHUB_REPOSITORY must look like owner/repo (got "${repository.slice(0, 120)}").`);
+  }
+  return { token, repository };
 }
 
 /** One-line, secret-free description for startup logs. */
@@ -185,5 +204,6 @@ export function describeConfig(config: Config): string {
     `login: ${config.adminPassword ? "enabled" : "DISABLED (ADMIN_PASSWORD not set)"}`,
     `session secret: ${config.sessionSecretSource}`,
     `origins: ${config.allowedOrigins.join(", ")}`,
+    `redeploy on save: ${config.dispatch ? `on (${config.dispatch.repository})` : "off (GITHUB_DISPATCH_TOKEN not set)"}`,
   ].join(" | ");
 }

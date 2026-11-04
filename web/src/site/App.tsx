@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { absoluteUrl, timelineFrames, type Content, type Lang } from "@pho0m/content";
+import { timelineFrames, type Content, type Lang } from "@pho0m/content";
 import { LangProvider, ui, useLang } from "../lib/i18n.tsx";
 import { fetchLiveContent, seed } from "../lib/content.ts";
+import { pageDescription, pageTitle } from "../seo/build.ts";
 import { FilmTimeline } from "./film/FilmTimeline.tsx";
 import { TopBar } from "./sections/TopBar.tsx";
 import { Hero } from "./sections/Hero.tsx";
@@ -29,37 +30,48 @@ export function App() {
   );
 }
 
-function setMeta(selector: string, attr: "name" | "property", key: string, value: string) {
-  let el = document.head.querySelector<HTMLMetaElement>(selector);
+/**
+ * Update a head tag in place. In production the SEO post-step (web/src/seo/postbuild.ts)
+ * has already written every tag, so this never adds a second copy; a tag is only
+ * created when it is missing (dev server, no post-step).
+ */
+function setMeta(attr: "name" | "property", key: string, value: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
   if (!el) {
     el = document.createElement("meta");
     el.setAttribute(attr, key);
     document.head.appendChild(el);
   }
-  el.content = value;
+  if (el.content !== value) el.content = value;
 }
 
-function useDocumentMeta(content: Content, lang: Lang, t: (v: Content["site"]["title"]) => string) {
+/**
+ * Keep the language-dependent head tags in step with the chosen language, using the
+ * same title/description builders as the SEO post-step. Static tags it owns
+ * (canonical, alternates, og:url, og:image, JSON-LD) are left as written.
+ */
+function useDocumentMeta(content: Content, lang: Lang) {
   useEffect(() => {
-    const title = t(content.site.title);
-    const description = t(content.site.description);
-    if (title) document.title = title;
-    if (description) {
-      setMeta('meta[name="description"]', "name", "description", description);
-      setMeta('meta[property="og:description"]', "property", "og:description", description);
+    const title = pageTitle(content, lang);
+    const description = pageDescription(content, lang);
+    if (title && document.title !== title) document.title = title;
+    if (title) {
+      setMeta("property", "og:title", title);
+      setMeta("name", "twitter:title", title);
     }
-    if (title) setMeta('meta[property="og:title"]', "property", "og:title", title);
-    setMeta('meta[property="og:locale"]', "property", "og:locale", lang === "th" ? "th_TH" : "en_US");
-    if (content.site.url) setMeta('meta[property="og:url"]', "property", "og:url", absoluteUrl("/", content.site.url));
-    const og = content.site.ogImage ?? content.profile.avatar;
-    if (og && content.site.url)
-      setMeta('meta[property="og:image"]', "property", "og:image", absoluteUrl(og.url, content.site.url));
-  }, [content, lang, t]);
+    if (description) {
+      setMeta("name", "description", description);
+      setMeta("property", "og:description", description);
+      setMeta("name", "twitter:description", description);
+    }
+    setMeta("property", "og:locale", lang === "th" ? "th_TH" : "en_US");
+    setMeta("property", "og:locale:alternate", lang === "th" ? "en_US" : "th_TH");
+  }, [content, lang]);
 }
 
 function Site({ content }: { content: Content }) {
-  const { lang, t } = useLang();
-  useDocumentMeta(content, lang, t);
+  const { lang } = useLang();
+  useDocumentMeta(content, lang);
   const frames = useMemo(() => timelineFrames(content), [content]);
   // Remount the film when the set of frames (or their pictures) changes.
   const filmKey = frames.map((f) => `${f.id}:${f.icon}:${f.images[0]?.url ?? ""}`).join("|");

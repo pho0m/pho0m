@@ -240,7 +240,7 @@ export function Editor({
       case "documents":
         return <DocumentsSection value={draft.documents} onChange={set("documents")} />;
       case "media":
-        return <MediaSection contentJson={d.draftJson} />;
+        return <MediaSection draftJson={d.draftJson} savedJson={d.savedJson} />;
       case "history":
         return <HistorySection dirty={d.dirty} onLoad={(c) => d.setDraft(c)} />;
       case "site":
@@ -265,11 +265,11 @@ export function Editor({
               <span className="lcd bar-state">
                 {d.saving ? "SAVING…" : d.dirty ? "ยังไม่บันทึก" : d.lastSaved ? `บันทึก ${timeLabel(d.lastSaved)}` : "ตรงกับเว็บ"}
               </span>
-              {draft.updatedAt ? (
+              {d.generation === null ? (
+                <span className="bar-meta hide-sm">ยังไม่เคยบันทึกขึ้นเซิร์ฟเวอร์ (ใช้ seed)</span>
+              ) : draft.updatedAt ? (
                 <span className="bar-meta hide-sm">แก้ล่าสุด {formatDateTime(draft.updatedAt)}</span>
-              ) : (
-                <span className="bar-meta hide-sm">ยังไม่เคยบันทึก (ใช้ seed)</span>
-              )}
+              ) : null}
             </div>
             <div className="bar-actions">
               {d.issues.length ? (

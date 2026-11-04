@@ -21,8 +21,18 @@ import {
   type SaveContentResponse,
 } from "@pho0m/content";
 import type { Config } from "./config.ts";
-import { bearer, issueToken, LoginLimiter, passwordMatches, verifyToken } from "./auth.ts";
+import {
+  bearer,
+  clientKey,
+  GLOBAL_LOGIN_MAX_FAILURES,
+  issueToken,
+  LOGIN_WINDOW_MS,
+  LoginLimiter,
+  passwordMatches,
+  verifyToken,
+} from "./auth.ts";
 import { FOLDER_RE, isDeletableMediaPath, mediaPath, sniffType } from "./media.ts";
+import type { Redeployer } from "./redeploy.ts";
 import { CONTENT_CACHE_CONTROL, MEDIA_CACHE_CONTROL } from "./storage/storage.ts";
 import { ConflictError, PreconditionFailedError, type Storage } from "./storage/types.ts";
 
@@ -42,6 +52,8 @@ export type AppDeps = {
   /** Injectable clock (tests). */
   now?: () => Date;
   logger?: Logger;
+  /** Told after every successful save (GitHub repository_dispatch → site rebuild). Optional. */
+  redeploy?: Redeployer | null;
 };
 
 type Env = {
@@ -69,11 +81,11 @@ function fail(
 }
 
 function clientIp(c: Context<Env>): string {
-  const xff = c.req.header("x-forwarded-for");
-  const first = xff?.split(",")[0]?.trim();
-  if (first) return first;
-  return c.env?.incoming?.socket?.remoteAddress ?? "unknown";
+  return clientKey(c.req.header("x-forwarded-for"), c.env?.incoming?.socket?.remoteAddress);
 }
+
+/** Key of the limiter that counts failures from every address together. */
+const ALL_CLIENTS = "*";
 
 function zodIssues(err: z.ZodError): { path: string; message: string }[] {
   return err.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
@@ -83,7 +95,9 @@ export function createApp(deps: AppDeps): Hono<Env> {
   const { config, storage } = deps;
   const now = deps.now ?? (() => new Date());
   const log: Logger = deps.logger ?? console;
+  const redeploy = deps.redeploy ?? null;
   const limiter = new LoginLimiter();
+  const globalLimiter = new LoginLimiter(GLOBAL_LOGIN_MAX_FAILURES, LOGIN_WINDOW_MS);
   const app = new Hono<Env>();
   const contentUrl = storage.publicUrl(CONTENT_OBJECT);
 
@@ -151,6 +165,12 @@ export function createApp(deps: AppDeps): Hono<Env> {
     }
     const ip = clientIp(c);
     const nowMs = now().getTime();
+    // Checked before the password, so a locked-out client learns nothing from more guesses.
+    const waitAll = globalLimiter.retryAfter(ALL_CLIENTS, nowMs);
+    if (waitAll > 0) {
+      c.header("Retry-After", String(waitAll));
+      return fail(c, 429, `login is paused after too many failed attempts; try again in ${waitAll} s`);
+    }
     const wait = limiter.retryAfter(ip, nowMs);
     if (wait > 0) {
       c.header("Retry-After", String(wait));
@@ -166,6 +186,7 @@ export function createApp(deps: AppDeps): Hono<Env> {
     if (!parsed.success) return fail(c, 400, "password is required", { issues: zodIssues(parsed.error) });
     if (!passwordMatches(parsed.data.password, config.adminPassword)) {
       limiter.fail(ip, nowMs);
+      globalLimiter.fail(ALL_CLIENTS, nowMs);
       return fail(c, 401, "wrong password");
     }
     limiter.reset(ip);
@@ -241,6 +262,12 @@ export function createApp(deps: AppDeps): Hono<Env> {
       await storage.pruneHistory(HISTORY_KEEP);
     } catch (err) {
       log.warn("[api] could not prune history:", err instanceof Error ? err.message : err);
+    }
+    // Fire-and-forget: the rebuild request must never delay or fail the save.
+    try {
+      redeploy?.notify();
+    } catch (err) {
+      log.warn("[api] could not request a site rebuild:", err instanceof Error ? err.message : err);
     }
     return c.json({ generation: written.generation, updatedAt, url: contentUrl } satisfies SaveContentResponse);
   });

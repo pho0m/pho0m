@@ -17,7 +17,7 @@ export function Hero({ content, frameCount }: { content: Content; frameCount: nu
   if (c.customers.length > 0)
     stats.push({ value: String(c.customers.length), label: ui(lang, "ลูกค้าของ Utotech", "Utotech clients") });
   if (frameCount > 0) stats.push({ value: String(frameCount), label: ui(lang, "เฟรมบนไทม์ไลน์", "Timeline frames") });
-  if (projectCount > 0) stats.push({ value: String(projectCount), label: ui(lang, "โปรเจกต์ส่วนตัว", "Personal projects") });
+  if (projectCount > 0) stats.push({ value: String(projectCount), label: ui(lang, "โปรเจกต์", "Projects") });
   if (p.codingSince)
     stats.push({ value: String(p.codingSince), label: ui(lang, "เริ่มเขียนโค้ดปี", "Coding since") });
 
@@ -69,7 +69,7 @@ export function Hero({ content, frameCount }: { content: Content; frameCount: nu
             <div className="hang">
               <span className="peg" aria-hidden="true" />
               <div className="hang-paper">
-                <Print image={p.avatar} width={150} aspect={4 / 5} develop className="print--avatar" />
+                <Print image={p.avatar} width={150} aspect={4 / 5} develop reveal className="print--avatar" />
                 <p className="hang-cap lcd" aria-hidden="true">
                   {p.handle || "pho0m"} · ISO 400
                 </p>

@@ -40,8 +40,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const push = useCallback(
     (t: Omit<Toast, "id">) => {
       const id = nextId.current++;
-      // a success makes earlier failures and successes stale; keep at most 3 on screen
-      setToasts((ts) => [...(t.kind === "ok" ? ts.filter((x) => x.kind === "info") : ts).slice(-2), { ...t, id }]);
+      // a success makes every earlier message stale; otherwise keep at most 3 on screen
+      setToasts((ts) => [...(t.kind === "ok" ? [] : ts.slice(-2)), { ...t, id }]);
       window.setTimeout(() => dismiss(id), t.kind === "error" ? 15000 : t.link ? 9000 : 5000);
     },
     [dismiss],
