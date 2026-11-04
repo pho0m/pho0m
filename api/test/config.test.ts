@@ -1,0 +1,144 @@
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  ConfigError,
+  DEFAULT_ALLOWED_ORIGINS,
+  deriveSecret,
+  describeConfig,
+  loadConfig,
+  parseServiceAccountKey,
+  type Env,
+} from "../src/config.ts";
+
+const PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\n";
+const KEY = {
+  type: "service_account",
+  project_id: "kiattiphoom-pho0m",
+  private_key_id: "abc123",
+  private_key: PRIVATE_KEY,
+  client_email: "admin-api@kiattiphoom-pho0m.iam.gserviceaccount.com",
+};
+const RAW = JSON.stringify(KEY, null, 2);
+const B64 = Buffer.from(RAW).toString("base64");
+
+const load = (env: Env) => loadConfig(env, { defaultDataDir: "/srv/api/.data", randomSecret: () => "rnd" });
+
+describe("loadConfig defaults", () => {
+  it("falls back to the local driver, port 8787 and the default origins", () => {
+    const c = load({});
+    expect(c.port).toBe(8787);
+    expect(c.publicBaseUrl).toBe("http://localhost:8787");
+    expect(c.driver).toEqual({ kind: "local", dataDir: path.resolve("/srv/api/.data") });
+    expect(c.adminPassword).toBeNull();
+    expect(c.allowedOrigins).toEqual([...DEFAULT_ALLOWED_ORIGINS]);
+    expect(c.allowedOrigins).toEqual([
+      "https://kiattiphoom-pho0m.web.app",
+      "https://kiattiphoom-pho0m.firebaseapp.com",
+      "http://localhost:5173",
+      "http://localhost:4173",
+    ]);
+    expect(c.tokenTtlSeconds).toBe(12 * 3600);
+    expect(c.sessionSecret).toBe("rnd");
+    expect(c.sessionSecretSource).toBe("random");
+  });
+
+  it("reads PORT, PUBLIC_BASE_URL, DATA_DIR and ALLOWED_ORIGINS", () => {
+    const c = load({
+      PORT: "8080",
+      DATA_DIR: "/var/data",
+      ALLOWED_ORIGINS: " https://a.example/ , http://localhost:3000,https://a.example ",
+    });
+    expect(c.port).toBe(8080);
+    expect(c.publicBaseUrl).toBe("http://localhost:8080");
+    expect(c.driver).toEqual({ kind: "local", dataDir: "/var/data" });
+    expect(c.allowedOrigins).toEqual(["https://a.example", "http://localhost:3000"]);
+    expect(load({ PUBLIC_BASE_URL: "https://api.example.com/" }).publicBaseUrl).toBe("https://api.example.com");
+  });
+
+  it("rejects a bad PORT", () => {
+    expect(() => load({ PORT: "eighty" })).toThrow(ConfigError);
+    expect(() => load({ PORT: "70000" })).toThrow(ConfigError);
+  });
+});
+
+describe("service account key", () => {
+  it("accepts raw JSON", () => {
+    const c = load({ SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content" });
+    expect(c.driver).toEqual({
+      kind: "gcs",
+      bucket: "pho0m-content",
+      credentials: { client_email: KEY.client_email, private_key: PRIVATE_KEY, project_id: "kiattiphoom-pho0m" },
+    });
+  });
+
+  it("accepts base64 (also wrapped over several lines) and gives the same result", () => {
+    const fromRaw = parseServiceAccountKey(RAW);
+    expect(parseServiceAccountKey(B64)).toEqual(fromRaw);
+    expect(parseServiceAccountKey(B64.replace(/(.{60})/g, "$1\n"))).toEqual(fromRaw);
+  });
+
+  it("turns literal \\n sequences in the private key into newlines", () => {
+    const doubleEscaped = JSON.stringify({ ...KEY, private_key: PRIVATE_KEY.replace(/\n/g, "\\n") });
+    expect(parseServiceAccountKey(doubleEscaped).private_key).toBe(PRIVATE_KEY);
+  });
+
+  it("rejects junk without echoing it", () => {
+    for (const bad of ["not a key at all!", "{\"client_email\": 1}", Buffer.from("hello").toString("base64"), "{oops"]) {
+      let err: unknown;
+      try {
+        parseServiceAccountKey(bad);
+      } catch (e) {
+        err = e;
+      }
+      expect(err, bad).toBeInstanceOf(ConfigError);
+      expect((err as Error).message).not.toContain(bad);
+    }
+  });
+
+  it("uses Application Default Credentials when only the bucket is set", () => {
+    const c = load({ SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content", ADMIN_PASSWORD: "pw" });
+    expect(c.driver).toEqual({ kind: "gcs", bucket: "pho0m-content", credentials: null });
+    expect(c.sessionSecretSource).toBe("ADMIN_PASSWORD");
+  });
+
+  it("refuses a key without a bucket", () => {
+    expect(() => load({ SERVICE_ACCOUNT_KEY: RAW })).toThrow(/SERVICE_ACCOUNT_BUCKET_NAME/);
+  });
+});
+
+describe("session secret", () => {
+  it("prefers SESSION_SECRET", () => {
+    const c = load({ SESSION_SECRET: "s3cret", SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "b", ADMIN_PASSWORD: "pw" });
+    expect(c.sessionSecret).toBe("s3cret");
+    expect(c.sessionSecretSource).toBe("SESSION_SECRET");
+  });
+
+  it("derives a stable secret from the private key, never the key itself", () => {
+    const a = load({ SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "b", ADMIN_PASSWORD: "pw" });
+    const b = load({ SERVICE_ACCOUNT_KEY: B64, SERVICE_ACCOUNT_BUCKET_NAME: "b", ADMIN_PASSWORD: "other" });
+    expect(a.sessionSecretSource).toBe("service-account-key");
+    expect(a.sessionSecret).toBe(b.sessionSecret);
+    expect(a.sessionSecret).toBe(deriveSecret(PRIVATE_KEY));
+    expect(a.sessionSecret).toMatch(/^[0-9a-f]{64}$/);
+    expect(a.sessionSecret).not.toContain("PRIVATE KEY");
+  });
+
+  it("derives from ADMIN_PASSWORD when there is no key", () => {
+    const c = load({ ADMIN_PASSWORD: "pw" });
+    expect(c.adminPassword).toBe("pw");
+    expect(c.sessionSecret).toBe(deriveSecret("pw"));
+    expect(c.sessionSecret).not.toBe("pw");
+  });
+});
+
+describe("describeConfig", () => {
+  it("never prints secrets", () => {
+    const c = load({ SERVICE_ACCOUNT_KEY: RAW, SERVICE_ACCOUNT_BUCKET_NAME: "pho0m-content", ADMIN_PASSWORD: "hunter2-pw" });
+    const line = describeConfig(c);
+    expect(line).toContain("pho0m-content");
+    expect(line).toContain(KEY.client_email);
+    expect(line).not.toContain("PRIVATE KEY");
+    expect(line).not.toContain("hunter2-pw");
+    expect(line).not.toContain(c.sessionSecret);
+  });
+});

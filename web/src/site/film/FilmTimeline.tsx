@@ -1,0 +1,577 @@
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { frameDateLabel, frameStamp, type Frame } from "@pho0m/content";
+import { FRAME_H, FRAME_W, createImageData, ditherPrint, negativeOf, paint } from "../../lib/pixel.ts";
+import { ui, useLang } from "../../lib/i18n.tsx";
+import { useReducedMotion } from "../hooks.ts";
+import { Tags } from "../ui/bits.tsx";
+import * as M from "./math.ts";
+import { frameSource, type FrameSource } from "./sources.ts";
+import { PrintDialog } from "./PrintDialog.tsx";
+import { Spool } from "./Spool.tsx";
+import "./film.css";
+
+type Slot = { cell: HTMLDivElement | null; pos: HTMLCanvasElement | null; neg: HTMLCanvasElement | null };
+
+/** Mutable animation state, kept out of React so the scroll loop never re-renders. */
+type Engine = {
+  pos: number;
+  target: number;
+  fw: number;
+  raf: number;
+  last: number;
+  onScreen: boolean;
+  started: boolean;
+  states: M.FrameState[];
+  devStart: number[];
+  level: number[];
+  src: (FrameSource | null)[];
+  buf: (ImageData | null)[];
+  opacity: number[];
+  shown: boolean[];
+  leaders: [boolean, boolean];
+  lastFlash: number;
+  index: number;
+  progress: number | null;
+  goal: number | null;
+  metrics: M.ScrollMetrics | null;
+};
+
+function newEngine(n: number): Engine {
+  return {
+    pos: 0,
+    target: 0,
+    fw: 300,
+    raf: 0,
+    last: 0,
+    onScreen: false,
+    started: false,
+    states: M.initialStates(n),
+    devStart: Array.from({ length: n }, () => Number.NaN),
+    level: Array.from({ length: n }, (_, i) => (i === 0 ? 1 : 0)),
+    src: Array.from({ length: n }, () => null),
+    buf: Array.from({ length: n }, () => null),
+    opacity: Array.from({ length: n }, () => -1),
+    shown: Array.from({ length: n }, () => true),
+    leaders: [true, true],
+    lastFlash: 0,
+    index: 0,
+    progress: 1,
+    goal: null,
+    metrics: null,
+  };
+}
+
+export function FilmTimeline({ frames }: { frames: Frame[] }) {
+  const { lang, t } = useLang();
+  const reduced = useReducedMotion();
+  const n = frames.length;
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
+  const reelRefs = useRef<(HTMLDivElement | null)[]>([null, null]);
+  const leaderRefs = useRef<(HTMLDivElement | null)[]>([null, null]);
+  const slots = useRef<Slot[]>([]);
+  const engRef = useRef<Engine | null>(null);
+  if (!engRef.current) engRef.current = newEngine(n);
+  const e = engRef.current;
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
+
+  const [index, setIndex] = useState(0);
+  const [states, setStates] = useState<M.FrameState[]>(() => e.states.slice());
+  const [progress, setProgress] = useState<number | null>(1);
+  const [fw, setFw] = useState(300);
+  const [printOpen, setPrintOpen] = useState(false);
+
+  // ---- painting -------------------------------------------------------------
+  const paintPrint = useCallback(
+    (i: number, level: number) => {
+      const s = slots.current[i];
+      const src = e.src[i];
+      if (!s?.pos || !src) return;
+      const buf = e.buf[i] ?? (e.buf[i] = createImageData(src.data.width, src.data.height));
+      ditherPrint(src.data, { ...src.tone, level }, buf);
+      paint(s.pos, buf);
+      e.level[i] = level;
+    },
+    [e],
+  );
+  const paintNegative = useCallback(
+    (i: number) => {
+      const s = slots.current[i];
+      const src = e.src[i];
+      if (!s?.neg || !src) return;
+      paint(s.neg, negativeOf(ditherPrint(src.data, { ...src.tone, level: 1 })));
+    },
+    [e],
+  );
+
+  // ---- the loop ---------------------------------------------------------------
+  const loop = useRef<{ schedule: () => void; measure: () => void; apply: () => void }>({
+    schedule: () => {},
+    measure: () => {},
+    apply: () => {},
+  });
+
+  useEffect(() => {
+    const measure = () => {
+      const sec = sectionRef.current;
+      if (!sec) return;
+      const r = sec.getBoundingClientRect();
+      e.metrics = { top: r.top + window.scrollY, height: r.height, viewport: window.innerHeight, n };
+      e.target = M.scrollToPos(window.scrollY, e.metrics);
+    };
+
+    const apply = () => {
+      const track = trackRef.current;
+      if (track) track.style.transform = `translate3d(${M.trackX(e.pos, n, e.fw).toFixed(2)}px,0,0)`;
+      for (let i = 0; i < n; i++) {
+        const s = slots.current[i];
+        if (!s?.cell) continue;
+        const vis = M.frameVisible(e.pos, i);
+        if (vis !== e.shown[i]) {
+          s.cell.style.visibility = vis ? "" : "hidden";
+          e.shown[i] = vis;
+        }
+        const op = e.states[i] === "unexposed" ? 0 : Math.round(M.positiveOpacity(e.pos, i) * 100) / 100;
+        if (op !== e.opacity[i] && s.pos) {
+          s.pos.style.opacity = String(op);
+          e.opacity[i] = op;
+        }
+      }
+      // END OF ROLL sits past the newest frame (left); the start leader before frame 0 (right, near the camera).
+      const leaderVis: [boolean, boolean] = [e.pos > n - 1 - 5.5, e.pos < 1.6];
+      leaderVis.forEach((v, k) => {
+        const el = leaderRefs.current[k];
+        if (el && v !== e.leaders[k]) {
+          el.style.visibility = v ? "" : "hidden";
+          e.leaders[k] = v;
+        }
+      });
+      const angle = M.reelAngle(e.pos);
+      const [l, r] = reelRefs.current;
+      if (l) l.style.transform = `rotate(${angle.toFixed(1)}deg)`;
+      if (r) r.style.transform = `rotate(${(angle * 0.8).toFixed(1)}deg)`;
+    };
+
+    const flash = (now: number) => {
+      const el = flashRef.current;
+      if (reducedRef.current || !el || typeof el.animate !== "function") return;
+      // At most ~2 flashes per second, even when scrolling fast.
+      if (now - e.lastFlash < 450) return;
+      e.lastFlash = now;
+      el.animate(
+        [{ opacity: 0 }, { opacity: 0.8, offset: 0.12 }, { opacity: 0 }],
+        { duration: 560, easing: "cubic-bezier(.2,.7,.3,1)" },
+      );
+    };
+
+    const progressOf = (i: number): number | null => {
+      const st = e.states[i];
+      if (st === "developed") return 1;
+      if (st === "developing") return Math.round((e.level[i] ?? 0) * 50) / 50;
+      return null;
+    };
+
+    const busy = () => e.pos !== e.target || e.states.some((s, i) => s === "developing" && e.src[i]);
+
+    const tick = (now: number) => {
+      e.raf = 0;
+      measure();
+      const dt = e.last ? now - e.last : 16;
+      e.last = now;
+      let changed = false;
+      if (!e.started) {
+        // First look at the film: jump straight to where the page is, frames already passed count as developed.
+        e.started = true;
+        e.pos = e.target;
+        M.initialStates(n, e.pos).forEach((s, i) => {
+          if (s === "developed" && e.states[i] !== "developed") {
+            e.states[i] = "developed";
+            e.level[i] = 1;
+            paintPrint(i, 1);
+            paintNegative(i);
+            changed = true;
+          }
+        });
+      }
+      const prev = e.pos;
+      e.pos = reducedRef.current ? e.target : M.damp(e.pos, e.target, dt);
+      if (e.goal !== null && e.pos === e.target && Math.round(e.target) === e.goal) e.goal = null;
+
+      for (let i = 0; i < n; i++) {
+        if (e.states[i] === "unexposed" && M.crossedGate(prev, e.pos, i)) {
+          e.states[i] = "developing";
+          e.devStart[i] = Number.NaN;
+          e.level[i] = 0;
+          changed = true;
+          flash(now);
+        }
+        if (e.states[i] === "developing" && e.src[i]) {
+          if (Number.isNaN(e.devStart[i]!)) {
+            e.devStart[i] = now;
+            paintNegative(i);
+          }
+          const level = reducedRef.current ? 1 : M.developLevel(now - e.devStart[i]!);
+          paintPrint(i, level);
+          if (level >= 1) {
+            e.states[i] = "developed";
+            changed = true;
+          }
+        }
+      }
+      apply();
+      if (changed) setStates(e.states.slice());
+      const idx = Math.round(e.pos);
+      if (idx !== e.index) {
+        e.index = idx;
+        setIndex(idx);
+      }
+      const prog = progressOf(idx);
+      if (prog !== e.progress) {
+        e.progress = prog;
+        setProgress(prog);
+      }
+      if (busy()) schedule();
+      else e.last = 0;
+    };
+
+    const schedule = () => {
+      if (e.raf || !e.onScreen) return;
+      e.raf = requestAnimationFrame(tick);
+    };
+    loop.current = { schedule, measure, apply };
+    apply(); // lay the strip out at rest before the first tick
+
+    const onScroll = () => schedule();
+    // A manual scroll cancels a pending jump from the controls.
+    const onUserScroll = () => {
+      e.goal = null;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("wheel", onUserScroll, { passive: true });
+    window.addEventListener("touchstart", onUserScroll, { passive: true });
+
+    // Run the loop only while the stage is on screen.
+    let ioVisible: IntersectionObserver | null = null;
+    let ioNear: IntersectionObserver | null = null;
+    const loadSources = () =>
+      frames.forEach((f, i) => {
+        void frameSource(f, i, n).then((source) => {
+          e.src[i] = source;
+          if (e.states[i] === "developed") {
+            paintPrint(i, 1);
+            paintNegative(i);
+          } else if (e.states[i] === "developing") schedule();
+        });
+      });
+    const sec = sectionRef.current;
+    if (sec && typeof IntersectionObserver !== "undefined") {
+      ioVisible = new IntersectionObserver((entries) => {
+        const vis = entries.some((x) => x.isIntersecting);
+        e.onScreen = vis;
+        if (vis) schedule();
+        else if (e.raf) {
+          cancelAnimationFrame(e.raf);
+          e.raf = 0;
+          e.last = 0;
+        }
+      });
+      ioVisible.observe(sec);
+      ioNear = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((x) => x.isIntersecting)) {
+            loadSources();
+            ioNear?.disconnect();
+          }
+        },
+        { rootMargin: "100% 0px" },
+      );
+      ioNear.observe(sec);
+    } else {
+      e.onScreen = true;
+      loadSources();
+      schedule();
+    }
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("wheel", onUserScroll);
+      window.removeEventListener("touchstart", onUserScroll);
+      ioVisible?.disconnect();
+      ioNear?.disconnect();
+      if (e.raf) cancelAnimationFrame(e.raf);
+      e.raf = 0;
+    };
+  }, [e, frames, n, paintPrint, paintNegative]);
+
+  // Frame size follows the stage size.
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const update = () => setFw(M.frameWidthFor(view.clientWidth, window.innerHeight));
+    update();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(view);
+    return () => ro.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    e.fw = fw;
+    loop.current.apply();
+  }, [e, fw]);
+
+  // ---- navigation -------------------------------------------------------------
+  const goTo = useCallback(
+    (i: number) => {
+      const k = M.clamp(Math.round(i), 0, n - 1);
+      loop.current.measure();
+      if (!e.metrics) return;
+      e.goal = k;
+      window.scrollTo({ top: Math.round(M.posToScroll(k, e.metrics)), behavior: reducedRef.current ? "instant" : "smooth" });
+    },
+    [e, n],
+  );
+  const base = () => e.goal ?? index;
+
+  const onKeyDown = (ev: KeyboardEvent<HTMLDivElement>) => {
+    if (ev.target !== ev.currentTarget) return;
+    let next: number | null = null;
+    if (ev.key === "ArrowRight" || ev.key === "ArrowDown" || ev.key === "PageDown") next = base() + 1;
+    else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp" || ev.key === "PageUp") next = base() - 1;
+    else if (ev.key === "Home") next = 0;
+    else if (ev.key === "End") next = n - 1;
+    else if (ev.key === "Enter") {
+      ev.preventDefault();
+      setPrintOpen(true);
+      return;
+    }
+    if (next === null) return;
+    ev.preventDefault();
+    goTo(next);
+  };
+
+  const onFrameClick = useCallback(
+    (i: number) => {
+      if (i === e.index) setPrintOpen(true);
+      else goTo(i);
+    },
+    [e, goTo],
+  );
+
+  const registerSlot = useCallback((i: number, slot: Slot) => {
+    slots.current[i] = slot;
+  }, []);
+
+  if (n === 0) return null;
+  const cur = Math.min(index, n - 1);
+  const frame = frames[cur]!;
+  const exposed = states.filter((s) => s !== "unexposed").length;
+  const timer = M.darkroomTimer(progress);
+  const viewStyle = { "--fw": `${fw}px`, "--n": n } as CSSProperties;
+
+  return (
+    <section
+      id="film"
+      ref={sectionRef}
+      className="film"
+      style={{ height: M.sectionHeightCss(n) }}
+      aria-labelledby="film-title"
+    >
+      <div
+        ref={stageRef}
+        className="film-stage"
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        role="group"
+        aria-roledescription={ui(lang, "ม้วนฟิล์ม", "film strip")}
+        aria-labelledby="film-title"
+        aria-describedby="film-help"
+      >
+        <h2 id="film-title" className="sr-only">
+          {ui(lang, "ไทม์ไลน์บนม้วนฟิล์ม", "Timeline on a roll of film")}
+        </h2>
+        <p id="film-help" className="sr-only">
+          {ui(
+            lang,
+            "เลื่อนหน้าหรือกดลูกศรเพื่อเปลี่ยนเฟรม กด Enter เพื่อเปิดภาพ",
+            "Scroll or use the arrow keys to move between frames. Press Enter to open the print.",
+          )}
+        </p>
+
+        <div className="film-hud">
+          <p className="hud-count lcd">
+            <span>FR</span> {M.pad2(cur + 1)}/{M.pad2(n)} <span className="hud-sep">·</span> <span>EXP</span>{" "}
+            {exposed}
+          </p>
+          <div
+            className="hud-timer"
+            role="img"
+            aria-label={`${ui(lang, "ไทเมอร์ห้องมืด", "Darkroom timer")}: ${
+              timer.stage >= 0 ? M.TIMER_STAGES[timer.stage] : ui(lang, "ยังไม่ถ่าย", "not exposed")
+            } ${timer.clock}`}
+          >
+            {M.TIMER_STAGES.map((s, k) => (
+              <span
+                key={s}
+                className="hud-chip lcd"
+                data-on={k < timer.stage ? "done" : k === timer.stage ? "on" : "off"}
+              >
+                {s}
+              </span>
+            ))}
+            <span className="hud-clock lcd" aria-hidden="true">
+              {timer.clock}
+            </span>
+          </div>
+          <p className="hud-iso lcd">
+            ISO 400<span className="hud-iso-x"> · SAFELIGHT</span>
+          </p>
+        </div>
+
+        <div ref={viewRef} className="film-view" style={viewStyle} aria-hidden="true">
+          <div className="reel reel--l">
+            <div className="reel-spin" ref={(el) => void (reelRefs.current[0] = el)}>
+              <Spool />
+            </div>
+          </div>
+          <div className="reel reel--r">
+            <div className="reel-spin" ref={(el) => void (reelRefs.current[1] = el)}>
+              <Spool />
+            </div>
+          </div>
+          <div className="film-plane">
+            <div ref={trackRef} className="film-track">
+              <div className="leader leader--end" ref={(el) => void (leaderRefs.current[0] = el)}>
+                <span className="leader-text lcd">END OF ROLL</span>
+                <span className="leader-sub lcd">PHO0M 400 · {n} EXP</span>
+              </div>
+              {frames.map((f, i) => (
+                <FilmCell
+                  key={f.id}
+                  frame={f}
+                  i={i}
+                  n={n}
+                  state={states[i] ?? "unexposed"}
+                  current={i === cur}
+                  register={registerSlot}
+                  onPick={onFrameClick}
+                />
+              ))}
+              <div className="leader leader--start" ref={(el) => void (leaderRefs.current[1] = el)}>
+                <span className="leader-text lcd">◂ PHO0M 400 · 35MM</span>
+              </div>
+            </div>
+            <div className="gate">
+              <i />
+              <i />
+              <i />
+              <i />
+            </div>
+          </div>
+        </div>
+
+        <div ref={flashRef} className="film-flash" aria-hidden="true" />
+
+        <div className="film-bottom">
+          <div className="film-caption">
+            <div aria-live="polite" aria-atomic="true">
+              <p className="cap-date lcd">
+                <span className="sr-only">{ui(lang, "เฟรม", "Frame")} </span>
+                {M.pad2(cur + 1)} · {frameDateLabel(frame)}
+              </p>
+              <h3 className="cap-title">{t(frame.title)}</h3>
+              <p className="cap-summary">{t(frame.summary)}</p>
+            </div>
+            <div className="cap-foot">
+              <Tags tags={frame.tags} label={ui(lang, "แท็ก", "Tags")} />
+              <button type="button" className="btn btn--paper px" onClick={() => setPrintOpen(true)}>
+                {ui(lang, "เปิดภาพ ▸", "OPEN PRINT ▸")}
+              </button>
+            </div>
+          </div>
+          <nav className="film-controls" aria-label={ui(lang, "เลือกเฟรม", "Choose a frame")}>
+            <button
+              type="button"
+              className="fc-step lcd"
+              onClick={() => goTo(base() - 1)}
+              disabled={cur === 0}
+              aria-label={ui(lang, "เฟรมก่อนหน้า", "Previous frame")}
+            >
+              ◂
+            </button>
+            <ol className="fc-ticks">
+              {frames.map((f, i) => (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    className="fc-tick lcd"
+                    data-state={states[i]}
+                    aria-current={i === cur ? "step" : undefined}
+                    aria-label={`${ui(lang, "เฟรม", "Frame")} ${i + 1}: ${t(f.title)}`}
+                    onClick={() => goTo(i)}
+                  >
+                    {M.pad2(i + 1)}
+                  </button>
+                </li>
+              ))}
+            </ol>
+            <button
+              type="button"
+              className="fc-step lcd"
+              onClick={() => goTo(base() + 1)}
+              disabled={cur === n - 1}
+              aria-label={ui(lang, "เฟรมถัดไป", "Next frame")}
+            >
+              ▸
+            </button>
+          </nav>
+        </div>
+      </div>
+      {printOpen ? <PrintDialog frame={frame} index={cur} n={n} onClose={() => setPrintOpen(false)} /> : null}
+    </section>
+  );
+}
+
+type CellProps = {
+  frame: Frame;
+  i: number;
+  n: number;
+  state: M.FrameState;
+  current: boolean;
+  register: (i: number, slot: Slot) => void;
+  onPick: (i: number) => void;
+};
+
+const FilmCell = memo(function FilmCell({ frame, i, n, state, current, register, onPick }: CellProps) {
+  const cell = useRef<HTMLDivElement>(null);
+  const pos = useRef<HTMLCanvasElement>(null);
+  const neg = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    register(i, { cell: cell.current, pos: pos.current, neg: neg.current });
+  }, [i, register]);
+  const style = { "--k": M.frameLeft(i, n, 1) } as CSSProperties;
+  return (
+    <div
+      ref={cell}
+      className="ff"
+      data-state={state}
+      data-current={current || undefined}
+      style={style}
+      onClick={() => onPick(i)}
+    >
+      <div className="ff-img">
+        <canvas ref={neg} className="ff-neg pixelated" width={FRAME_W} height={FRAME_H} />
+        <canvas ref={pos} className="ff-pos pixelated" width={FRAME_W} height={FRAME_H} />
+        <span className="ff-latent lcd">{i + 1}</span>
+        <span className="ff-stamp lcd">{frameStamp(frame)}</span>
+      </div>
+      <span className="ff-edge lcd">{M.edgePrint(i)}</span>
+    </div>
+  );
+});

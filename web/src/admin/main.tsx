@@ -1,3 +1,11 @@
-// Placeholder — replaced by the admin implementation.
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-createRoot(document.getElementById("root")!).render(<p>admin</p>);
+import "../lib/theme.css";
+import "./admin.css";
+import { App } from "./App.tsx";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

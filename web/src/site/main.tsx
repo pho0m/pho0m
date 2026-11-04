@@ -1,3 +1,12 @@
-// Placeholder — replaced by the site implementation.
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-createRoot(document.getElementById("root")!).render(<p>pho0m</p>);
+import "../lib/theme.css";
+import "./site.css";
+import "./sections.css";
+import { App } from "./App.tsx";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

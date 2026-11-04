@@ -1,0 +1,22 @@
+# Build context for api/Dockerfile (docker build -f api/Dockerfile .).
+# Keep it small: the image only needs the root manifests, packages/content, content/seed.json and api/.
+**/node_modules
+**/dist
+**/.data
+.git
+.github
+.firebase
+web/dist
+assets
+tools
+public
+docs
+coverage
+*.log
+*.tsbuildinfo
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+*.gif
