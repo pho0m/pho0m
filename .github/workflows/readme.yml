@@ -1,0 +1,105 @@
+# Regenerate the profile README (README.md + assets/readme/*.svg) from the live content and
+# commit it when something changed. The WakaTime block is copied over as-is; waka.yml keeps
+# updating it on its own schedule. Setup guide: docs/SETUP.md
+#
+# README_REQUIRE_LIVE_CONTENT=1: when the bucket is set but content/site.json cannot be read
+# (403, 5xx, timeout, invalid JSON, schema mismatch), the generator exits 1 and this run fails
+# instead of committing a README built from content/seed.json. A 404 (nothing saved from /admin
+# yet) and an unset bucket still use the seed, because then the seed is the live content.
+
+name: README
+
+on:
+  schedule:
+    # Daily at 01:17 UTC (08:17 in Bangkok), after waka.yml (00:00 UTC).
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+  # Sent by the admin API after a save (see api/src/redeploy.ts), so the README follows the
+  # live content without waiting for the daily run.
+  repository_dispatch:
+    types: [content-updated]
+  push:
+    branches: [main]
+    paths:
+      - "content/**"
+      - "tools/readme/**"
+      - "packages/content/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme
+  cancel-in-progress: false
+
+jobs:
+  readme:
+    name: Update README
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Read by both "npm run readme" calls below (Generate and the retry in Commit and push).
+      README_REQUIRE_LIVE_CONTENT: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate
+        env:
+          SERVICE_ACCOUNT_BUCKET_NAME: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run readme
+
+      - name: Commit and push
+        env:
+          SERVICE_ACCOUNT_BUCKET_NAME: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          stage() {
+            git add -A -- README.md
+            # -A also stages removed cards; skip the folder when it neither exists nor is tracked.
+            if [ -e assets/readme ] || [ -n "$(git ls-files -- assets/readme)" ]; then
+              git add -A -- assets/readme
+            fi
+          }
+
+          stage
+          if git diff --cached --quiet; then
+            echo "README is already up to date."
+            exit 0
+          fi
+          git commit -m "docs(readme): refresh profile README"
+
+          for attempt in 1 2; do
+            if git pull --rebase origin "$BRANCH" && git push origin "HEAD:$BRANCH"; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            [ "$attempt" = 2 ] && break
+            # Someone else pushed (e.g. waka.yml) and the rebase or push failed:
+            # start again from the new tip and regenerate once.
+            echo "Push failed, regenerating on top of origin/$BRANCH and retrying once."
+            git rebase --abort 2>/dev/null || true
+            git fetch origin "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+            npm run readme
+            stage
+            if git diff --cached --quiet; then
+              echo "README is already up to date on origin/$BRANCH."
+              exit 0
+            fi
+            git commit -m "docs(readme): refresh profile README"
+          done
+          echo "::error::Could not push the README update."
+          exit 1

@@ -1,0 +1,517 @@
+# Deploy from main.
+#
+# Full deploy (push to main, manual run):
+#   check    typecheck, test, build (site + API bundle)
+#   api      admin API → Cloud Run (only when the GCP secrets exist; otherwise skipped with a notice)
+#   web      site + /admin → Firebase Hosting (live)
+#   release  bump the version tag and publish a GitHub release
+#   notify   Discord status (only when DISCORD_WEBHOOK exists)
+#
+# Content refresh (repository_dispatch "content-updated" sent by the admin API after a save,
+# and a daily schedule): rebuild the static site so the baked SEO/AI files (index.html snapshot,
+# JSON-LD, sitemap.xml, llms.txt, llms-full.txt) follow the live content in the bucket.
+#   check    install + build only (the daily run stops here when there is nothing new to bake:
+#            no bucket, nothing saved from /admin yet, or the live site already has the latest
+#            saved content)
+#   api      not redeployed: only looks up the live Cloud Run URL for VITE_API_URL
+#   web      build with the live content and deploy to Firebase Hosting
+#   release  skipped
+#   notify   only when something failed
+# Setup guide: docs/SETUP.md
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    # Pushes that only touch these do not change the site or the API.
+    paths-ignore:
+      - "README.md"
+      - "assets/readme/**"
+      - "docs/**"
+      - ".github/workflows/readme.yml"
+      - ".github/workflows/waka.yml"
+      - ".github/workflows/firebase-hosting-pull-request.yml"
+  workflow_dispatch:
+  # Sent by the admin API (api/src/redeploy.ts) as part of a save, at most once per 2 minutes
+  # (a save inside that window is queued and goes out with the next save; the daily run catches up).
+  repository_dispatch:
+    types: [content-updated]
+  # Daily safety net for saves whose dispatch was lost: 02:41 UTC (09:41 in Bangkok).
+  schedule:
+    - cron: "41 2 * * *"
+
+concurrency:
+  # Content refreshes queue in their own group: a newer refresh may replace a waiting one
+  # (it bakes the same or newer content), but never a waiting full deploy.
+  group: ${{ (github.event_name == 'repository_dispatch' || github.event_name == 'schedule') && 'deploy-content-refresh' || format('deploy-{0}', github.ref) }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FIREBASE_PROJECT: kiattiphoom-pho0m
+  GCP_REGION: asia-southeast1
+  AR_REPOSITORY: pho0m
+  API_SERVICE: pho0m-api
+  SITE_ORIGINS: https://kiattiphoom-pho0m.web.app,https://kiattiphoom-pho0m.firebaseapp.com
+  # "true" for content refreshes (repository_dispatch, schedule); job-level `if`s cannot read env,
+  # so they spell out the same test on github.event_name.
+  REFRESH_ONLY: ${{ (github.event_name == 'repository_dispatch' || github.event_name == 'schedule') && 'true' || 'false' }}
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      # "false" only for a scheduled run that has nothing new to bake (see the first step).
+      needed: ${{ steps.stale.outputs.needed || 'true' }}
+    steps:
+      # The daily run is a safety net for saves whose dispatch was lost. It skips the rebuild when:
+      #   - no bucket is configured: the site only has content/seed.json, and changing that is a
+      #     push to main, which runs a full deploy;
+      #   - content/site.json is 404: nothing has been saved from /admin yet (same as above);
+      #   - the live site was built from the content saved in the bucket (llms-full.txt carries
+      #     "Last updated: <updatedAt>").
+      # Any other answer from the bucket rebuilds, and the build then fails loudly if the bucket
+      # still cannot be read (SEO_REQUIRE_LIVE_CONTENT in the web job).
+      - name: Is the live site behind the content?
+        id: stale
+        if: github.event_name == 'schedule'
+        env:
+          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+        run: |
+          skip() {
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Nothing to refresh::$1"
+            exit 0
+          }
+          if [ -z "$BUCKET" ]; then
+            skip "SERVICE_ACCOUNT_BUCKET_NAME is not set, so the site only has the built-in content, and a push to main deploys that."
+          fi
+
+          body="$(mktemp "${RUNNER_TEMP}/site.XXXXXX.json")"
+          # No -f: the status code decides. A network error gives 000.
+          status="$(curl -sS --max-time 20 -o "$body" -w '%{http_code}' "https://storage.googleapis.com/${BUCKET}/content/site.json" || true)"
+          current=""
+          case "$status" in
+            404)
+              skip "Nothing has been saved from /admin yet (content/site.json does not exist), so the live site already has the built-in content."
+              ;;
+            200)
+              current="$(jq -r '.updatedAt // empty' "$body" 2>/dev/null || true)"
+              ;;
+            *)
+              echo "::warning title=Could not read the content::content/site.json answered HTTP ${status:-000}. Rebuilding; the build fails if the bucket still cannot be read."
+              ;;
+          esac
+
+          site="https://${FIREBASE_PROJECT}.web.app"
+          live="$(curl -fsS --max-time 20 "$site/llms-full.txt" | sed -n 's/.*Last updated: \([^ ]*\) .*/\1/p' | head -n 1 || true)"
+          echo "Live site built with content from: ${live:-unknown}"
+          echo "Content in the bucket saved at:   ${current:-unknown}"
+          if [ -n "$current" ] && [ "$live" = "$current" ]; then
+            skip "The live site already has the content saved at $current."
+          fi
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        if: steps.stale.outputs.needed != 'false'
+
+      - uses: actions/setup-node@v5
+        if: steps.stale.outputs.needed != 'false'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        if: steps.stale.outputs.needed != 'false'
+        run: npm ci
+
+      - name: Typecheck
+        if: env.REFRESH_ONLY != 'true'
+        run: npm run typecheck
+
+      - name: Test
+        if: env.REFRESH_ONLY != 'true'
+        run: npm test
+
+      - name: Build site
+        if: steps.stale.outputs.needed != 'false'
+        run: npm run build
+
+      - name: Build API bundle
+        if: env.REFRESH_ONLY != 'true'
+        run: npm run build:api
+
+  api:
+    name: ${{ (github.event_name == 'repository_dispatch' || github.event_name == 'schedule') && 'Find API URL (Cloud Run)' || 'Deploy API (Cloud Run)' }}
+    needs: check
+    if: needs.check.outputs.needed != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      url: ${{ steps.deploy.outputs.url || steps.lookup.outputs.url }}
+      status: ${{ steps.gate.outputs.enabled != 'true' && 'skipped, no GCP secrets' || (steps.deploy.outputs.url != '' && 'deployed' || (steps.lookup.outputs.url != '' && 'unchanged' || 'not deployed')) }}
+    steps:
+      # Secrets cannot be used in a job-level `if`, so turn "is it set?" into a step output.
+      # Only true/false reaches the shell, never the secret itself.
+      - name: Check GCP secrets
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY != '' }}
+          HAS_BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME != '' }}
+          HAS_PASSWORD: ${{ secrets.ADMIN_PASSWORD != '' }}
+          HAS_DISPATCH: ${{ secrets.DISPATCH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_KEY" = "true" ] && [ "$HAS_BUCKET" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            if [ "$REFRESH_ONLY" = "true" ]; then
+              echo "Content refresh: the API is not redeployed, only its URL is looked up."
+            else
+              if [ "$HAS_PASSWORD" != "true" ]; then
+                echo "::warning title=ADMIN_PASSWORD is not set::The API will deploy, but login on /admin answers 503 until you add the ADMIN_PASSWORD secret and run this workflow again."
+              fi
+              if [ "$HAS_DISPATCH" != "true" ]; then
+                echo "::notice title=No DISPATCH_TOKEN::Saves in /admin reach the SEO/AI files (sitemap.xml, llms.txt, snapshot) at the next deploy or the daily run. Add the DISPATCH_TOKEN secret to rebuild right after each save. See docs/SETUP.md."
+              fi
+            fi
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=API deploy skipped::Add the SERVICE_ACCOUNT_KEY and SERVICE_ACCOUNT_BUCKET_NAME secrets to deploy the admin API to Cloud Run. See docs/SETUP.md."
+          fi
+
+      # Also on refreshes: google-github-actions/auth writes its credentials file into the
+      # workspace and warns when the workspace is empty.
+      - uses: actions/checkout@v5
+        if: steps.gate.outputs.enabled == 'true'
+
+      # Build before authenticating, so the credentials file that auth writes into the
+      # workspace is never part of the Docker build context.
+      - name: Build image
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        run: docker build -f api/Dockerfile -t "pho0m-api:${GITHUB_SHA}" .
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        if: steps.gate.outputs.enabled == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up gcloud
+        if: steps.gate.outputs.enabled == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Read project and service account from the key
+        id: gcp
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          CREDENTIALS_FILE: ${{ steps.auth.outputs.credentials_file_path }}
+        run: |
+          project_id="$(jq -r '.project_id // empty' "$CREDENTIALS_FILE")"
+          client_email="$(jq -r '.client_email // empty' "$CREDENTIALS_FILE")"
+          if [ -z "$project_id" ] || [ -z "$client_email" ]; then
+            echo "::error title=SERVICE_ACCOUNT_KEY::The key has no project_id or client_email. Paste the whole JSON key file into the secret."
+            exit 1
+          fi
+          {
+            echo "project_id=$project_id"
+            echo "client_email=$client_email"
+            echo "registry=${GCP_REGION}-docker.pkg.dev"
+            echo "image=${GCP_REGION}-docker.pkg.dev/${project_id}/${AR_REPOSITORY}/${API_SERVICE}:${GITHUB_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Enable Cloud Run and Artifact Registry
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+        run: |
+          # Safe to repeat. Needs serviceusage permission, which the deploy key may not have;
+          # docs/SETUP.md enables these APIs once by hand, so a failure here is only a warning.
+          if ! gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project "$PROJECT_ID" --quiet; then
+            echo "::warning title=Could not enable APIs::Continuing on the assumption that run.googleapis.com and artifactregistry.googleapis.com are already enabled (docs/SETUP.md, section 3.3)."
+          fi
+
+      - name: Create the Artifact Registry repository if missing
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+        run: |
+          if gcloud artifacts repositories describe "$AR_REPOSITORY" --location "$GCP_REGION" --project "$PROJECT_ID" >/dev/null 2>&1; then
+            echo "Repository $AR_REPOSITORY already exists in $GCP_REGION."
+          else
+            gcloud artifacts repositories create "$AR_REPOSITORY" \
+              --repository-format docker \
+              --location "$GCP_REGION" \
+              --project "$PROJECT_ID" \
+              --description "pho0m admin API images" \
+              --quiet
+          fi
+
+      - name: Push image
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        env:
+          REGISTRY: ${{ steps.gcp.outputs.registry }}
+          IMAGE: ${{ steps.gcp.outputs.image }}
+        run: |
+          gcloud auth configure-docker "$REGISTRY" --quiet
+          docker tag "pho0m-api:${GITHUB_SHA}" "$IMAGE"
+          docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ steps.gcp.outputs.client_email }}
+          IMAGE: ${{ steps.gcp.outputs.image }}
+          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          CREDENTIALS_FILE: ${{ steps.auth.outputs.credentials_file_path }}
+          # GitHub does not allow secret names that start with GITHUB_, so the secret is
+          # DISPATCH_TOKEN and becomes GITHUB_DISPATCH_TOKEN on the service.
+          DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+        run: |
+          # SESSION_SECRET signs admin sessions and is the key for the encrypted drafts and history
+          # in the bucket (private/), so the service always gets one, and the same one on every
+          # deploy. The key file is not passed to the container, so the API cannot derive it itself.
+          #   - the SESSION_SECRET secret when it is set (at least 32 characters, like the API checks);
+          #   - otherwise HMAC-SHA256 of the service-account key's private_key with the message
+          #     "pho0m-admin-session-v1": the value the API derives itself from SERVICE_ACCOUNT_KEY
+          #     (deriveSecret in api/src/config.ts). It changes only when the key is replaced.
+          # The value is never printed.
+          if [ -n "$SESSION_SECRET" ]; then
+            if [ "${#SESSION_SECRET}" -lt 32 ]; then
+              echo "::error title=SESSION_SECRET is too short::Use at least 32 characters (openssl rand -hex 32), or delete the secret to use one derived from the service-account key."
+              exit 1
+            fi
+            echo "SESSION_SECRET: from the SESSION_SECRET secret."
+          else
+            SESSION_SECRET="$(python3 - "$CREDENTIALS_FILE" <<'PY'
+          import hashlib, hmac, json, sys
+          key = json.load(open(sys.argv[1], encoding="utf-8")).get("private_key") or ""
+          if "\\n" in key:
+              key = key.replace("\\n", "\n")  # same clean-up as parseServiceAccountKey
+          if key:
+              print(hmac.new(key.encode("utf-8"), b"pho0m-admin-session-v1", hashlib.sha256).hexdigest(), end="")
+          PY
+            )"
+            if [ -z "$SESSION_SECRET" ]; then
+              echo "::error title=No SESSION_SECRET::The service-account key has no private_key to derive SESSION_SECRET from. Paste the whole JSON key file into SERVICE_ACCOUNT_KEY, or set the SESSION_SECRET secret."
+              exit 1
+            fi
+            echo "::add-mask::$SESSION_SECRET"
+            echo "SESSION_SECRET: derived from the service-account key (no SESSION_SECRET secret)."
+          fi
+
+          # Env vars go through a file so commas, quotes or '=' in the password are safe.
+          # jq writes JSON, which is valid YAML, with every value quoted and escaped.
+          # The file replaces all env vars on the service, so removed secrets really go away.
+          env_file="$(mktemp "${RUNNER_TEMP}/api-env.XXXXXX.yaml")"
+          trap 'rm -f "$env_file"' EXIT
+          chmod 600 "$env_file"
+          jq -n \
+            --arg bucket "$BUCKET" \
+            --arg origins "$SITE_ORIGINS" \
+            --arg password "$ADMIN_PASSWORD" \
+            --arg session "$SESSION_SECRET" \
+            --arg dispatch "$DISPATCH_TOKEN" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            '{SERVICE_ACCOUNT_BUCKET_NAME: $bucket, ALLOWED_ORIGINS: $origins, SESSION_SECRET: $session}
+             + (if $password != "" then {ADMIN_PASSWORD: $password} else {} end)
+             + (if $dispatch != "" then {GITHUB_DISPATCH_TOKEN: $dispatch, GITHUB_REPOSITORY: $repository} else {} end)' > "$env_file"
+
+          # The runtime identity is the same service account, so the API reaches the bucket
+          # through Application Default Credentials; the key is not passed to the container.
+          gcloud run deploy "$API_SERVICE" \
+            --image "$IMAGE" \
+            --project "$PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --allow-unauthenticated \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --port 8080 \
+            --max-instances 1 \
+            --env-vars-file "$env_file" \
+            --quiet
+
+          url="$(gcloud run services describe "$API_SERVICE" --project "$PROJECT_ID" --region "$GCP_REGION" --format 'value(status.url)')"
+          if [ -z "$url" ]; then
+            echo "::error::Cloud Run did not report a URL for $API_SERVICE."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY != 'true'
+        env:
+          API_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if body="$(curl -fsS --max-time 20 "$API_URL/api/health")"; then
+              echo "$body" | jq '{ok, driver, authConfigured}'
+              if [ "$(echo "$body" | jq -r '.driver')" != "gcs" ]; then
+                echo "::warning::The API is not using the bucket (driver is not gcs). Check SERVICE_ACCOUNT_BUCKET_NAME."
+              fi
+              {
+                echo "### Admin API"
+                echo ""
+                echo "- URL: $API_URL"
+                echo "- Health: \`$(echo "$body" | jq -c '{ok, driver, authConfigured}')\`"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed, waiting…"
+            sleep $((attempt * 5))
+          done
+          echo "::error::$API_URL/api/health did not answer."
+          exit 1
+
+      # Content refresh: keep the running API as it is and only read its URL for the site build.
+      - name: Look up the live API URL
+        id: lookup
+        if: steps.gate.outputs.enabled == 'true' && env.REFRESH_ONLY == 'true'
+        env:
+          PROJECT_ID: ${{ steps.gcp.outputs.project_id }}
+          API_URL_VARIABLE: ${{ vars.API_URL }}
+        run: |
+          url="$(gcloud run services describe "$API_SERVICE" --project "$PROJECT_ID" --region "$GCP_REGION" --format 'value(status.url)' || true)"
+          if [ -n "$url" ]; then
+            echo "Live API: $url"
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          elif [ -n "$API_URL_VARIABLE" ]; then
+            echo "::warning title=API not found on Cloud Run::Using the API_URL repository variable instead."
+          else
+            echo "::error title=No API URL::Could not read the URL of Cloud Run service $API_SERVICE and the API_URL variable is empty. Run a full deploy (push to main or run this workflow by hand) first."
+            exit 1
+          fi
+
+  web:
+    name: Deploy site (Firebase Hosting)
+    needs: [check, api]
+    # Runs when the API job succeeded or deployed nothing (no GCP secrets yet).
+    # A failed API deploy stops here, so the site is never rebuilt without its API URL.
+    # A scheduled run whose content is already live stops after the check (both jobs skip).
+    if: ${{ always() && needs.check.result == 'success' && needs.check.outputs.needed != 'false' && (needs.api.result == 'success' || needs.api.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build site
+        env:
+          DEPLOYED_API_URL: ${{ needs.api.outputs.url }}
+          API_STATUS: ${{ needs.api.outputs.status }}
+          API_URL_VARIABLE: ${{ vars.API_URL }}
+          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if { [ "$API_STATUS" = "deployed" ] || [ "$API_STATUS" = "unchanged" ]; } && [ -z "$DEPLOYED_API_URL" ]; then
+            # GitHub drops a job output that contains a secret value, e.g. when the bucket name
+            # or the password is a substring of the Cloud Run URL.
+            echo "::warning title=API URL was dropped::The API URL did not reach this job (it contains a secret value). Set the API_URL repository variable to the Cloud Run URL."
+          fi
+          VITE_API_URL="${DEPLOYED_API_URL:-$API_URL_VARIABLE}"
+          VITE_CONTENT_URL=""
+          if [ -n "$BUCKET" ]; then
+            VITE_CONTENT_URL="https://storage.googleapis.com/${BUCKET}/content/site.json"
+          fi
+          export VITE_API_URL VITE_CONTENT_URL
+
+          if [ -z "$VITE_API_URL" ]; then
+            if [ "$REFRESH_ONLY" = "true" ] && [ "$API_STATUS" != "skipped, no GCP secrets" ]; then
+              # Never replace a working /admin with one that cannot reach its API.
+              echo "::error title=No API URL::A content refresh must not deploy a site whose /admin has no API URL. Set the API_URL repository variable to the Cloud Run URL."
+              exit 1
+            fi
+            echo "::warning title=No API URL::Building without VITE_API_URL, so /admin cannot reach an API. Deploy the API (GCP secrets) or set the API_URL repository variable."
+          fi
+          if [ -z "$VITE_CONTENT_URL" ]; then
+            echo "::notice title=Built-in content only::SERVICE_ACCOUNT_BUCKET_NAME is not set, so the site shows the content from content/seed.json."
+          elif [ "$REFRESH_ONLY" = "true" ]; then
+            # A refresh exists to bake the live content: fail instead of baking the seed when the
+            # bucket cannot be read (a 404 before the first save is fine).
+            export SEO_REQUIRE_LIVE_CONTENT=1
+          fi
+          echo "VITE_API_URL=${VITE_API_URL:-<empty>}"
+          npm run build
+          {
+            echo "### Site"
+            echo ""
+            echo "- Trigger: \`$EVENT\`$([ "$REFRESH_ONLY" = "true" ] && echo " (content refresh, API not redeployed)")"
+            echo "- API: ${API_STATUS:-unknown}"
+            echo "- SEO/AI files: $(cat web/dist/.seo-source 2>/dev/null || echo "see the build log")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KIATTIPHOOM_PHO0M }}
+          channelId: live
+          projectId: ${{ env.FIREBASE_PROJECT }}
+
+  release:
+    name: Release
+    needs: web
+    # Explicit condition: with the default one, a skipped job further up would skip this too.
+    # Content refreshes change no code, so they get no new version.
+    if: ${{ always() && needs.web.result == 'success' && github.ref == 'refs/heads/main' && github.event_name != 'repository_dispatch' && github.event_name != 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Bump version and push tag
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        if: steps.tag.outputs.new_tag != ''
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag.outputs.new_tag }}
+          name: Release ${{ steps.tag.outputs.new_tag }}
+          body: ${{ steps.tag.outputs.changelog }}
+
+  notify:
+    name: Notify Discord
+    needs: [check, api, web, release]
+    # Full deploys always report. Content refreshes (every admin save, daily) only report failures.
+    if: ${{ always() && ((github.event_name != 'repository_dispatch' && github.event_name != 'schedule') || contains(needs.*.result, 'failure')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check webhook
+        id: gate
+        env:
+          HAS_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK != '' }}
+        run: echo "enabled=$HAS_WEBHOOK" >> "$GITHUB_OUTPUT"
+
+      - uses: sarisia/actions-status-discord@v1
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ contains(needs.*.result, 'failure') && 'failure' || (contains(needs.*.result, 'cancelled') && 'cancelled' || 'success') }}
+          title: ${{ env.REFRESH_ONLY == 'true' && 'Content refresh pho0m' || format('Deploy pho0m {0}', needs.release.outputs.tag) }}
+          description: |
+            Site: https://kiattiphoom-pho0m.web.app
+            trigger: ${{ github.event_name }}
+            check: ${{ needs.check.result }} · api: ${{ needs.api.result }} (${{ needs.api.outputs.status }}) · web: ${{ needs.web.result }} · release: ${{ needs.release.result }}

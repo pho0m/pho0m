@@ -1,3 +1,6 @@
+# WakaTime coding stats in README.md (the <!--START_SECTION:waka--> block). readme.yml copies
+# that block over as-is when it regenerates the rest of the README. Setup guide: docs/SETUP.md
+
 name: Waka Readme
 
 on:
@@ -6,11 +9,22 @@ on:
     # Runs at 12am UTC
     - cron: "0 0 * * *"
 
+# Nothing by default; the job below asks only for what it needs.
+permissions: {}
+
 jobs:
   update-readme:
     name: Update this repo's README
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The action commits README.md through the GitHub API with this job's token.
+    permissions:
+      contents: write
     steps:
-      - uses: athul/waka-readme@master
+      # Third-party action pinned to a full commit SHA, so a later push to its branch cannot
+      # change what runs here with write access. This is athul/waka-readme master as of
+      # 2026-10-23 (v0.3.1 plus 22 commits; no newer tag). To update, check the changes, then:
+      #   git ls-remote https://github.com/athul/waka-readme refs/heads/master
+      - uses: athul/waka-readme@8991b596d85696d98ea96f775390a1bbe266c8c9 # master 2026-10-23 (after v0.3.1)
         with:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}

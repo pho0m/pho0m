@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#120303" />
+    <title>pho0m · Kiattiphoom Poonketkit</title>
+    <meta name="description" content="Portfolio of pho0m, CEO of Utotech Co., Ltd." />
+    <meta name="color-scheme" content="dark" />
+    <meta name="author" content="Kiattiphoom Poonketkit" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="pho0m" />
+    <meta property="og:title" content="pho0m · Kiattiphoom Poonketkit" />
+    <meta property="og:description" content="Portfolio of pho0m, CEO of Utotech Co., Ltd." />
+    <meta property="og:url" content="https://kiattiphoom-pho0m.web.app/" />
+    <meta property="og:image" content="https://kiattiphoom-pho0m.web.app/img/profile.jpg" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="/img/favicon.png" />
+    <!--
+      Every font the first screen uses (Latin + Thai, about 95 kB in all), fetched with the
+      HTML. The static snapshot is hidden while the app loads, so without these the fonts
+      would only be found when React renders, swap in late and reflow the hero (CLS).
+      Vite resolves each path to the same hashed file the @fontsource CSS uses. (The dev
+      server cannot serve these paths, so `npm run dev` logs "preloaded but not used".)
+    -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/pixelify-sans/files/pixelify-sans-latin-700-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/pixelify-sans/files/pixelify-sans-latin-500-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/vt323/files/vt323-latin-400-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-latin-400-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-latin-500-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-latin-600-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-latin-700-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-thai-400-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-thai-500-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-thai-600-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="../node_modules/@fontsource/chakra-petch/files/chakra-petch-thai-700-normal.woff2" />
+  </head>
+  <body>
+    <!-- Keep #root empty: the SEO post-step puts a static snapshot here and React replaces it on mount. -->
+    <div id="root"></div>
+    <script type="module" src="/src/site/main.tsx"></script>
+  </body>
+</html>
