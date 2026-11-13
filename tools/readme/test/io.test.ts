@@ -7,7 +7,7 @@ import { parseArgs, run as cli } from "../src/cli.ts";
 import { LiveContentError, contentUrl, loadContent, loadGithubStats } from "../src/load.ts";
 import { createMediaLoader } from "../src/media.ts";
 import { apply, plan } from "../src/write.ts";
-import { README_SAMPLE, ROOT, WAKA_SAMPLE, run } from "./helpers.ts";
+import { README_SAMPLE, ROOT, run } from "./helpers.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -187,7 +187,7 @@ describe("writing and --check", () => {
     expect(() => parseArgs(["--out-dir"])).toThrow();
   });
 
-  it("CLI --check exits 1 when out of date and 0 after generating; the waka block survives", async () => {
+  it("CLI --check exits 1 when out of date and 0 after generating; old sections are replaced", async () => {
     const readme = join(dir, "README.md");
     const outDir = join(dir, "assets", "readme");
     await writeFile(readme, README_SAMPLE);
@@ -199,7 +199,7 @@ describe("writing and --check", () => {
       expect(await cli(args, {})).toBe(0);
       expect(await cli([...args, "--check"], {})).toBe(0);
       const written = await readFile(readme, "utf8");
-      expect(written).toContain(WAKA_SAMPLE);
+      expect(written).not.toContain("SECTION:waka");
       expect(written).toContain('srcset="assets/readme/hero-dark.svg"');
       expect(written).not.toContain("Old intro.");
     } finally {

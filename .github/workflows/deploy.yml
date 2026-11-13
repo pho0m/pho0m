@@ -3,7 +3,7 @@
 # Full deploy (push to main, manual run):
 #   check    typecheck, test, build (site + API bundle)
 #   api      admin API → Cloud Run (only when the GCP secrets exist; otherwise skipped with a notice)
-#   web      site + /admin → Firebase Hosting (live)
+#   web      site + /admin → Cloudflare Pages (production branch "main")
 #   release  bump the version tag and publish a GitHub release
 #   notify   Discord status (only when DISCORD_WEBHOOK exists)
 #
@@ -14,7 +14,7 @@
 #            no bucket, nothing saved from /admin yet, or the live site already has the latest
 #            saved content)
 #   api      not redeployed: only looks up the live Cloud Run URL for VITE_API_URL
-#   web      build with the live content and deploy to Firebase Hosting
+#   web      build with the live content and deploy to Cloudflare Pages
 #   release  skipped
 #   notify   only when something failed
 # Setup guide: docs/SETUP.md
@@ -30,8 +30,7 @@ on:
       - "assets/readme/**"
       - "docs/**"
       - ".github/workflows/readme.yml"
-      - ".github/workflows/waka.yml"
-      - ".github/workflows/firebase-hosting-pull-request.yml"
+      - ".github/workflows/pull-request.yml"
   workflow_dispatch:
   # Sent by the admin API (api/src/redeploy.ts) as part of a save, at most once per 2 minutes
   # (a save inside that window is queued and goes out with the next save; the daily run catches up).
@@ -51,11 +50,17 @@ permissions:
   contents: read
 
 env:
-  FIREBASE_PROJECT: kiattiphoom-pho0m
+  # Cloudflare Pages project (created on the first deploy) and the public URL of the site.
+  # Override with repository variables CF_PAGES_PROJECT and SITE_URL (e.g. a custom domain).
+  CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT || 'kiattiphoom-pho0m' }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
+  # Pinned, called with npx only where it deploys (keeps npm ci small everywhere else).
+  WRANGLER_VERSION: 4.154.0
   GCP_REGION: asia-southeast1
   AR_REPOSITORY: pho0m
   API_SERVICE: pho0m-api
-  SITE_ORIGINS: https://kiattiphoom-pho0m.web.app,https://kiattiphoom-pho0m.firebaseapp.com
+  # Origins allowed to call the admin API: the site URL and the project's pages.dev address.
+  SITE_ORIGINS: ${{ format('{0},https://{1}.pages.dev', vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev', vars.CF_PAGES_PROJECT || 'kiattiphoom-pho0m') }}
   # "true" for content refreshes (repository_dispatch, schedule); job-level `if`s cannot read env,
   # so they spell out the same test on github.event_name.
   REFRESH_ONLY: ${{ (github.event_name == 'repository_dispatch' || github.event_name == 'schedule') && 'true' || 'false' }}
@@ -108,7 +113,7 @@ jobs:
               ;;
           esac
 
-          site="https://${FIREBASE_PROJECT}.web.app"
+          site="${SITE_URL%/}"
           live="$(curl -fsS --max-time 20 "$site/llms-full.txt" | sed -n 's/.*Last updated: \([^ ]*\) .*/\1/p' | head -n 1 || true)"
           echo "Live site built with content from: ${live:-unknown}"
           echo "Content in the bucket saved at:   ${current:-unknown}"
@@ -390,7 +395,7 @@ jobs:
           fi
 
   web:
-    name: Deploy site (Firebase Hosting)
+    name: Deploy site (Cloudflare Pages)
     needs: [check, api]
     # Runs when the API job succeeded or deployed nothing (no GCP secrets yet).
     # A failed API deploy stops here, so the site is never rebuilt without its API URL.
@@ -399,6 +404,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Fail early with a clear message instead of building a site that cannot be uploaded.
+      - name: Check Cloudflare secrets
+        env:
+          HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+          HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ] || [ "$HAS_ACCOUNT" != "true" ]; then
+            echo "::error title=Cloudflare secrets missing::Add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets (docs/SETUP.md, Cloudflare Pages section), then re-run this workflow."
+            exit 1
+          fi
+
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
@@ -451,16 +467,36 @@ jobs:
             echo ""
             echo "- Trigger: \`$EVENT\`$([ "$REFRESH_ONLY" = "true" ] && echo " (content refresh, API not redeployed)")"
             echo "- API: ${API_STATUS:-unknown}"
-            echo "- SEO/AI files: $(cat web/dist/.seo-source 2>/dev/null || echo "see the build log")"
+            echo "- SEO/AI files: $(cat web/.seo-source 2>/dev/null || echo "see the build log")"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KIATTIPHOOM_PHO0M }}
-          channelId: live
-          projectId: ${{ env.FIREBASE_PROJECT }}
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || github.event_name }}
+        run: |
+          wrangler() { npx --yes "wrangler@${WRANGLER_VERSION}" "$@"; }
+          # The first deploy creates the project; afterwards "already exists" is expected.
+          if out="$(wrangler pages project create "$CF_PAGES_PROJECT" --production-branch=main 2>&1)"; then
+            echo "Created Cloudflare Pages project $CF_PAGES_PROJECT."
+          elif printf '%s' "$out" | grep -qi "already exists"; then
+            echo "Cloudflare Pages project $CF_PAGES_PROJECT exists."
+          else
+            printf '%s\n' "$out"
+            exit 1
+          fi
+
+          log="$(mktemp)"
+          message="$(printf '%s' "$COMMIT_MESSAGE" | head -n 1 | cut -c1-200)"
+          # --branch=main is the production branch, so this goes live on the project's domains.
+          wrangler pages deploy web/dist --project-name="$CF_PAGES_PROJECT" --branch=main \
+            --commit-hash="$GITHUB_SHA" --commit-message="$message" --commit-dirty=true 2>&1 | tee "$log"
+          deployment="$(grep -oE 'https://[a-z0-9.-]+\.pages\.dev' "$log" | tail -n 1 || true)"
+          {
+            echo "- Live: ${SITE_URL}"
+            echo "- This deployment: ${deployment:-see the log}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   release:
     name: Release
@@ -512,6 +548,6 @@ jobs:
           status: ${{ contains(needs.*.result, 'failure') && 'failure' || (contains(needs.*.result, 'cancelled') && 'cancelled' || 'success') }}
           title: ${{ env.REFRESH_ONLY == 'true' && 'Content refresh pho0m' || format('Deploy pho0m {0}', needs.release.outputs.tag) }}
           description: |
-            Site: https://kiattiphoom-pho0m.web.app
+            Site: ${{ env.SITE_URL }}
             trigger: ${{ github.event_name }}
             check: ${{ needs.check.result }} · api: ${{ needs.api.result }} (${{ needs.api.outputs.status }}) · web: ${{ needs.web.result }} · release: ${{ needs.release.result }}

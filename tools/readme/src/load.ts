@@ -31,12 +31,36 @@ export function requireLiveContent(env: Env): boolean {
 }
 
 /**
- * Load and validate the live content. No source configured, or HTTP 404 (nothing saved from
- * /admin yet) → the committed seed, which then is the live content. Any other failure (other
- * HTTP status, network error, timeout, bad JSON, schema mismatch) falls back to the seed with a
- * warning, or throws LiveContentError when README_REQUIRE_LIVE_CONTENT=1.
+ * Point the content at where the site is deployed: a non-empty SITE_URL that is an https origin
+ * (https://host or https://host:port; a trailing slash is dropped) replaces content.site.url, so
+ * every README link goes to the deployed site. Anything else is ignored with a warning. The same
+ * rule as the site's own build (web/src/seo/build.ts), so the README and the site agree.
+ * Returns `content` itself when nothing changes.
+ */
+export function withSiteUrl(content: Content, siteUrl: string | undefined, warn: Warn = console.warn): Content {
+  const v = (siteUrl ?? "").trim().replace(/\/+$/, "");
+  if (!v) return content;
+  if (!/^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(v)) {
+    warn(`[readme] SITE_URL "${v}" is not an https origin (like https://example.com); ignoring it and using ${content.site.url}`);
+    return content;
+  }
+  if (v === content.site.url) return content;
+  return { ...content, site: { ...content.site, url: v } };
+}
+
+/**
+ * Load and validate the live content, then apply SITE_URL (see withSiteUrl). No source
+ * configured, or HTTP 404 (nothing saved from /admin yet) → the committed seed, which then is the
+ * live content. Any other failure (other HTTP status, network error, timeout, bad JSON, schema
+ * mismatch) falls back to the seed with a warning, or throws LiveContentError when
+ * README_REQUIRE_LIVE_CONTENT=1.
  */
 export async function loadContent(env: Env, doFetch: Fetch = fetch, warn: Warn = console.warn): Promise<ContentSource> {
+  const loaded = await loadStoredContent(env, doFetch, warn);
+  return { ...loaded, content: withSiteUrl(loaded.content, env.SITE_URL, warn) };
+}
+
+async function loadStoredContent(env: Env, doFetch: Fetch, warn: Warn): Promise<ContentSource> {
   const url = contentUrl(env);
   if (!url) return { content: seed, source: "seed" };
   let problem: string;
@@ -93,18 +117,15 @@ export async function loadGithubStats(
   };
   try {
     const u = await get<GhUser>(`/users/${encodeURIComponent(user)}`);
-    const repoStars: Record<string, number> = {};
     let stars = 0;
     for (let page = 1; page <= 10; page++) {
       const repos = await get<GhRepo[]>(`/users/${encodeURIComponent(user)}/repos?type=owner&per_page=100&page=${page}`);
       for (const r of repos) {
-        if (r.fork) continue;
-        repoStars[r.name.toLowerCase()] = r.stargazers_count;
-        stars += r.stargazers_count;
+        if (!r.fork) stars += r.stargazers_count;
       }
       if (repos.length < 100) break;
     }
-    return { login: u.login, publicRepos: u.public_repos, followers: u.followers, stars, repoStars };
+    return { login: u.login, publicRepos: u.public_repos, followers: u.followers, stars };
   } catch (err) {
     warn(`[readme] GitHub stats unavailable: ${(err as Error).message}. Showing content counts only.`);
     return null;

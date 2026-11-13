@@ -1,6 +1,6 @@
 # Regenerate the profile README (README.md + assets/readme/*.svg) from the live content and
-# commit it when something changed. The WakaTime block is copied over as-is; waka.yml keeps
-# updating it on its own schedule. Setup guide: docs/SETUP.md
+# commit it when something changed. Links point at SITE_URL (repository variable, default the
+# Cloudflare Pages address). Setup guide: docs/SETUP.md
 #
 # README_REQUIRE_LIVE_CONTENT=1: when the bucket is set but content/site.json cannot be read
 # (403, 5xx, timeout, invalid JSON, schema mismatch), the generator exits 1 and this run fails
@@ -11,7 +11,7 @@ name: README
 
 on:
   schedule:
-    # Daily at 01:17 UTC (08:17 in Bangkok), after waka.yml (00:00 UTC).
+    # Daily at 01:17 UTC (08:17 in Bangkok).
     - cron: "17 1 * * *"
   workflow_dispatch:
   # Sent by the admin API after a save (see api/src/redeploy.ts), so the README follows the
@@ -40,6 +40,7 @@ jobs:
     env:
       # Read by both "npm run readme" calls below (Generate and the retry in Commit and push).
       README_REQUIRE_LIVE_CONTENT: "1"
+      SITE_URL: ${{ vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -87,7 +88,7 @@ jobs:
               exit 0
             fi
             [ "$attempt" = 2 ] && break
-            # Someone else pushed (e.g. waka.yml) and the rebase or push failed:
+            # Someone else pushed meanwhile and the rebase or push failed:
             # start again from the new tip and regenerate once.
             echo "Push failed, regenerating on top of origin/$BRANCH and retrying once."
             git rebase --abort 2>/dev/null || true

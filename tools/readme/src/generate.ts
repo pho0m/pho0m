@@ -1,54 +1,38 @@
-import { isSafeUrl, publicProjection, timelineFrames, type Content, type IconName } from "@pho0m/content";
+import { publicProjection, timelineFrames, type Content, type IconName } from "@pho0m/content";
 import { subsetSvgFonts } from "./font/subset.ts";
 import { GIF_BUDGET, filmGif } from "./gif/film.ts";
 import { bitsDataUri, grayDataUri, portraitPrints } from "./image/print.ts";
 import type { MediaLoader } from "./media.ts";
 import {
-  GROUP_LABEL,
-  capRows,
-  clientProjectRows,
-  clientProjects,
-  companyLabel,
-  companyRows,
   en,
   footerLinks,
   heroStats,
   hostOf,
   latestFrames,
   linkHref,
-  ownProjects,
   profileButtons,
-  projectRows,
   sectionUrl,
   skillGroups,
   visibleDocuments,
   type GithubStats,
-  type TableRow,
 } from "./model.ts";
 import { filmPrint, frameSources, gifPrint } from "./prints.ts";
-import { WAKA_END, WAKA_START, cell, extractWaka, html, linkUrl, linked, mdLink, picture } from "./readme.ts";
+import { html, linked, picture } from "./readme.ts";
 import { bandCard } from "./svg/band.ts";
-import { badgeCard, badgeLabel, BADGE_H } from "./svg/badge.ts";
 import { buttonCard, BUTTON_H } from "./svg/button.ts";
 import { filmCard } from "./svg/film.ts";
 import { bioWithoutEcho, heroCard, heroChips, type AvatarImage } from "./svg/hero.ts";
 import { panelCards } from "./svg/panels.ts";
-import { rollEndCard } from "./svg/rollend.ts";
 import { skillsCard } from "./svg/skills.ts";
 import { FILM, THEMES, type Theme } from "./svg/theme.ts";
-import { utotechCard } from "./svg/utotech.ts";
 
 export type GenerateInput = {
   /** The content as stored; only its publicProjection() ever reaches the output. */
   content: Content;
   github: GithubStats | null;
   media: MediaLoader;
-  /** Current README.md (for the WakaTime block), or null when there is none. */
-  currentReadme: string | null;
   /** Path of the asset folder as seen from README.md, e.g. "assets/readme". */
   assetPath: string;
-  /** Rows per project table before the README links to the site for the rest (default 12). */
-  maxRows?: number;
   warn?: (message: string) => void;
 };
 
@@ -60,10 +44,13 @@ export type Output = {
   readme: string;
 };
 
-/** Every file this tool writes into its output folder matches this (used to clean up stale ones). */
+/**
+ * Every file this tool writes into its output folder matches this (used to clean up stale ones).
+ * It also keeps the prefixes of cards the README no longer has (utotech-*, badge-*, roll-end-*),
+ * so their old files in the folder are deleted as stale instead of being left behind.
+ */
 export const GENERATED_FILE = /^(?:(hero|btn|band|film|utotech|badge|skills|panel|roll|link)(-[a-z0-9-]+)?-(dark|light)\.svg|film(-[a-z0-9-]+)?\.gif)$/;
 
-export const MAX_TABLE_ROWS = 12;
 /** Frames in the film card's loop (the newest 5 show when it is still). */
 export const FILM_CARD_FRAMES = 8;
 /** Frames in the GIF. */
@@ -111,43 +98,18 @@ async function logoImage(input: GenerateInput, warn: (m: string) => void): Promi
   return `data:${media.mime};base64,${Buffer.from(media.bytes).toString("base64")}`;
 }
 
-/** "a", "a and b", "a, b, and c" */
-function andList(items: string[]): string {
-  if (items.length < 2) return items[0] ?? "";
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
-}
-
 function bandText(content: Content) {
   const frames = timelineFrames(content);
   const first = frames[0];
   const last = frames[frames.length - 1];
-  const c = content.company;
-  const own = ownProjects(content);
-  const companyWork = c.projects.filter((p) => p.published).length;
-  const client = clientProjects(content).length;
-  const groups = [...new Set(own.map((p) => GROUP_LABEL[p.group].toLowerCase()))];
   const tiers = skillGroups(content)
     .filter((g, i, all) => all.findIndex((x) => x.level === g.level) === i)
     .map((g) => en(g.title));
-  const company = companyLabel(content);
   return {
     film:
       first && last
         ? `${frames.length} frames on one roll, from ${first.date.slice(0, 4)} to ${last.dateLabel.trim() || last.date.slice(0, 4)}. On the site the film runs to the right as you scroll.`
         : "The timeline, frame by frame.",
-    utotech: [en(c.tagline) + (c.founded ? `, founded in ${c.founded}` : ""), en(c.role) ? `My role: ${en(c.role)}.` : ""]
-      .filter(Boolean)
-      .join(". ")
-      .replace(/\.\./g, "."),
-    projects:
-      andList(
-        [
-          companyWork ? `${companyWork} ${company} projects` : "",
-          client ? `${client} client projects` : "",
-          own.length ? `${own.length} of my own${groups.length ? ` (${groups.join(", ")})` : ""}` : "",
-        ].filter(Boolean),
-      ) + ".",
     skills: tiers.length ? `Rated on a ${tiers.length}-step scale: ${tiers.join(" · ")}.` : "Tools I use.",
   };
 }
@@ -157,7 +119,6 @@ export async function generate(raw: GenerateInput): Promise<Output> {
   const input: GenerateInput = { ...raw, content: publicProjection(raw.content) };
   const { content, github } = input;
   const warn = input.warn ?? ((m: string) => console.warn(m));
-  const maxRows = input.maxRows ?? MAX_TABLE_ROWS;
   const files = new Map<string, string>();
   const binaries = new Map<string, Uint8Array>();
   const base = input.assetPath.replace(/\/+$/, "");
@@ -172,7 +133,7 @@ export async function generate(raw: GenerateInput): Promise<Output> {
   const md: string[] = [];
 
   md.push(
-    "<!-- Generated by tools/readme (`npm run readme`) from the portfolio content. Edit the content, not this file. The WakaTime block is kept as is. -->",
+    "<!-- Generated by tools/readme (`npm run readme`) from the portfolio content. Edit the content, not this file. -->",
   );
 
   // hero ------------------------------------------------------------------------------------
@@ -249,71 +210,12 @@ export async function generate(raw: GenerateInput): Promise<Output> {
     md.push(linked(sectionUrl(content, "film"), picture({ ...render("film-latest", (t) => filmCard(prints, p.handle || "film", t)), alt: filmAlt })));
   }
 
-  // utotech -----------------------------------------------------------------------------------
-  const companyName = en(c.name);
-  const companyShort = c.shortName || companyName;
-  md.push(band("utotech", 2, companyShort, bands.utotech, "brief", "utotech"));
-  const publishedClient = c.projects.filter((x) => x.published).length;
-  const utoData = {
-    name: companyName,
-    shortName: companyShort,
-    tagline: en(c.tagline),
-    slogan: en(c.slogan),
-    role: en(c.role),
-    logo,
-    stats: [
-      { label: "Founded", value: c.founded },
-      { label: "Team", value: c.teamSize },
-      { label: "Projects", value: publishedClient ? String(publishedClient) : "" },
-      { label: "Customers", value: c.customers.length ? String(c.customers.length) : "" },
-    ].filter((s) => s.value),
-    customers: c.customers.map((x) => x.name),
-    services: c.services.map((s) => ({ title: en(s.title), subtitle: en(s.subtitle), price: en(s.price) })),
-  };
-  const utoAlt = [
-    sentence(`${companyName} — ${utoData.tagline}`),
-    utoData.stats.map((s) => `${s.label}: ${s.value}`).join(", ") + ".",
-    utoData.services.length ? `Services: ${utoData.services.map((s) => `${s.title} (${s.price})`).join("; ")}.` : "",
-    utoData.customers.length ? `Customers include ${utoData.customers.join(", ")}.` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // The company card, the project tables and the end-of-roll strip were removed on request:
+  // the README keeps the hero, the film, skills and the two panels; the site has the rest.
   const companyHref = linkHref(content, c.links.find((l) => l.kind === "website")?.url ?? "");
-  const companySite = companyHref || sectionUrl(content, "utotech");
-  md.push(linked(companySite, picture({ ...render("utotech", (t) => utotechCard(utoData, t)), alt: utoAlt })));
-
-  // projects ----------------------------------------------------------------------------------
-  md.push(band("projects", 3, "Projects", bands.projects, "code", "projects"));
-  // Two columns on purpose: GitHub tables shrink images in a narrow third column to nothing,
-  // so each badge sits on its own line at the top of the wide "About" cell.
-  const table = (rows: TableRow[]) => {
-    const lines = ["| Project | About |", "| :-- | :-- |"];
-    for (const r of rows) {
-      const nameCell = `**${mdLink(r.name, r.url)}**`;
-      const about = [cell(r.about), ...r.extras.filter((e) => isSafeUrl(e.url)).map((e) => mdLink(e.label, e.url))].filter(Boolean).join(" · ");
-      const badge = picture({ ...render(`badge-${r.id}`, (t) => badgeCard(r.badge, t)), alt: badgeLabel(r.badge), height: BADGE_H });
-      lines.push(`| ${nameCell} | ${badge}<br>${about} |`);
-    }
-    return lines.join("\n");
-  };
-  // Long lists are capped; the README says how many more there are and links to the site.
-  const capped = (rows: TableRow[], noun: string, section: Parameters<typeof sectionUrl>[1]) => {
-    const { shown, more } = capRows(rows, maxRows);
-    const out = [table(shown)];
-    if (more) out.push(`**+${more} more** ${noun} not listed here — [see all ${rows.length} on the site →](${linkUrl(sectionUrl(content, section))})`);
-    return out;
-  };
-  // The company's own project list, then work for clients, then my own: each counted and headed for what it is.
-  const companyProjectRows = companyRows(content);
-  const companyNoun = `${companyLabel(content)} projects`;
-  if (companyProjectRows.length) md.push(`**${cell(companyNoun)}**`, ...capped(companyProjectRows, cell(companyNoun), "utotech"));
-  const clientRows = clientProjectRows(content);
-  if (clientRows.length) md.push("**Client work** — built for clients, described in text only.", ...capped(clientRows, "client projects", "projects"));
-  const ownRows = projectRows(content, github);
-  if (ownRows.length) md.push("**My own projects**", ...capped(ownRows, "projects", "projects"));
 
   // skills ------------------------------------------------------------------------------------
-  md.push(band("skills", 4, "Skills", bands.skills, "star", "skills"));
+  md.push(band("skills", 2, "Skills", bands.skills, "star", "skills"));
   for (const g of skillGroups(content)) {
     const alt = `${en(g.title)} (level ${g.level} of 3): ${g.items.map((i) => i.name).join(", ")}`;
     md.push(picture({ ...render(`skills-${g.id}`, (t) => skillsCard(g, t)), alt }));
@@ -355,19 +257,13 @@ export async function generate(raw: GenerateInput): Promise<Output> {
     ].join("\n"),
   );
 
-  // waka + footer -----------------------------------------------------------------------------
-  const waka = extractWaka(input.currentReadme);
-  md.push(["<details>", "<summary>Current languages (WakaTime)</summary>", "", waka, "", "</details>"].join("\n"));
-  const total = timelineFrames(content).length;
-  const endLabel = `END OF ROLL · ${total} FRAMES · ${(p.handle || "film").toUpperCase()} 400`;
-  md.push(picture({ ...render("roll-end", (t) => rollEndCard(endLabel, t)), alt: "" }));
+  // footer ----------------------------------------------------------------------------------
   const links = footerLinks(content).map((l) =>
     linked(l.url, picture({ ...render(l.id, (t) => buttonCard(l, t, { style: "link", logo })), alt: l.label, height: BUTTON_H })),
   );
   md.push(["<p>", ...links.map((l) => `  ${l}`), "</p>"].join("\n"));
 
   const readme = md.join("\n\n") + "\n";
-  if (!readme.includes(WAKA_START) || !readme.includes(WAKA_END)) throw new Error("WakaTime markers were lost");
   // Each card embeds only the glyphs it draws (cards are built with whole fonts, then subset).
   for (const [name, svg] of files) files.set(name, await subsetSvgFonts(svg));
   return { files, binaries, readme };

@@ -33,8 +33,7 @@ describe("loadConfig defaults", () => {
     expect(c.adminPassword).toBeNull();
     expect(c.allowedOrigins).toEqual([...DEFAULT_ALLOWED_ORIGINS]);
     expect(c.allowedOrigins).toEqual([
-      "https://kiattiphoom-pho0m.web.app",
-      "https://kiattiphoom-pho0m.firebaseapp.com",
+      "https://kiattiphoom-pho0m.pages.dev",
       "http://localhost:5173",
       "http://localhost:4173",
     ]);

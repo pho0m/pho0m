@@ -7,19 +7,8 @@ import { repoRoot } from "../src/paths.ts";
 
 export const ROOT = repoRoot();
 
-export const WAKA_SAMPLE = [
-  "<!--START_SECTION:waka-->",
-  "",
-  "```txt",
-  "Markdown     6 hrs 9 mins          ████████████░░░░░░░░░░░░░   47.57 %",
-  "TypeScript   1 hr 26 mins          ██▓░░░░░░░░░░░░░░░░░░░░░░   11.19 %   ",
-  "Weird        <b>&amp;</b> | * _ `  ░░░░░░░░░░░░░░░░░░░░░░░░░   00.01 %",
-  "```",
-  "",
-  "<!--END_SECTION:waka-->",
-].join("\n");
-
-export const README_SAMPLE = `# Hi\n\nOld intro.\n\n${WAKA_SAMPLE}\n\nOld footer.\n`;
+/** An old README with a leftover WakaTime block: regenerating must replace all of it. */
+export const README_SAMPLE = `# Hi\n\nOld intro.\n\n<!--START_SECTION:waka-->\nold stats\n<!--END_SECTION:waka-->\n\nOld footer.\n`;
 
 export function clone(content: Content = seed): Content {
   return structuredClone(content);
@@ -31,7 +20,6 @@ export async function run(overrides: Partial<GenerateInput> = {}): Promise<Outpu
     content,
     github: null,
     media: createMediaLoader({ publicDir: join(ROOT, "web", "public"), siteUrl: content.site.url, warn: () => {} }),
-    currentReadme: README_SAMPLE,
     assetPath: "assets/readme",
     warn: () => {},
     ...overrides,

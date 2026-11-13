@@ -100,7 +100,7 @@ export function linkIcon(kind: Link["kind"]): LinkIcon {
   return icon ? { type: "brand", icon } : { type: "glyph", glyph: KIND_GLYPH[kind] };
 }
 
-/** 5x7 dot-matrix font (LED readout) for tiny badges, so they need no embedded font file. */
+/** 5x7 dot-matrix font (LED readout) for the film GIF's captions, drawn pixel by pixel with no font file. */
 const FONT5X7: Record<string, readonly string[]> = {
   A: [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
   B: ["####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."],
@@ -166,23 +166,4 @@ const FONT5X7: Record<string, readonly string[]> = {
 /** The 5x7 rows of one character ("#" = lit), or undefined when the font lacks it. */
 export function dotGlyph(c: string): readonly string[] | undefined {
   return FONT5X7[c];
-}
-
-/** Normalise text to what the 5x7 font can draw (upper case; unknown characters → "?"). */
-export function dotMatrixText(value: string): string {
-  return Array.from(value.toUpperCase().normalize("NFKD").replace(/[̀-ͯ]/g, ""))
-    .map((c) => (FONT5X7[c] ? c : /\s/.test(c) ? " " : "?"))
-    .join("");
-}
-
-/** Rows ("#" = lit) of a dot-matrix string, glyphs 5 px wide with 1 px between them. */
-export function dotMatrixRows(value: string): string[] {
-  const glyphs = Array.from(dotMatrixText(value)).map((c) => FONT5X7[c]!);
-  return [0, 1, 2, 3, 4, 5, 6].map((y) => glyphs.map((g) => g[y]!).join("."));
-}
-
-/** Width in font pixels of a dot-matrix string. */
-export function dotMatrixWidth(value: string): number {
-  const count = Array.from(dotMatrixText(value)).length;
-  return count ? count * 6 - 1 : 0;
 }

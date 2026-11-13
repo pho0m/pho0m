@@ -7,7 +7,7 @@ import { decodeJpegLuma } from "../src/image/jpeg.ts";
 import { decodePngLuma, encodeTwoTonePng } from "../src/image/png.ts";
 import { portraitPrints, sniffMime } from "../src/image/print.ts";
 import { categoryParts } from "../src/model.ts";
-import { cell, extractWaka, linkUrl } from "../src/readme.ts";
+import { cell, linkUrl } from "../src/readme.ts";
 import { dotMatrixText, dotMatrixWidth, monogramLetters } from "../src/svg/glyphs.ts";
 import { bioWithoutEcho } from "../src/svg/hero.ts";
 import { esc, n } from "../src/svg/xml.ts";
@@ -32,11 +32,6 @@ describe("markdown helpers", () => {
   });
   it("encodes characters that would break a markdown link", () => {
     expect(linkUrl("https://x.y/a b(c)")).toBe("https://x.y/a%20b%28c%29");
-  });
-  it("extracts the waka block including its markers", () => {
-    const md = "x\n<!--START_SECTION:waka-->\n  keep  \n<!--END_SECTION:waka-->\ny";
-    expect(extractWaka(md)).toBe("<!--START_SECTION:waka-->\n  keep  \n<!--END_SECTION:waka-->");
-    expect(extractWaka("<!--END_SECTION:waka--> <!--START_SECTION:waka-->")).toBe("<!--START_SECTION:waka-->\n<!--END_SECTION:waka-->");
   });
 });
 
