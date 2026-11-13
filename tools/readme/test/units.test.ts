@@ -6,9 +6,8 @@ import { autoLevels, BAYER8, ditherBits } from "../src/image/gray.ts";
 import { decodeJpegLuma } from "../src/image/jpeg.ts";
 import { decodePngLuma, encodeTwoTonePng } from "../src/image/png.ts";
 import { portraitPrints, sniffMime } from "../src/image/print.ts";
-import { categoryParts } from "../src/model.ts";
-import { cell, linkUrl } from "../src/readme.ts";
-import { dotMatrixText, dotMatrixWidth, monogramLetters } from "../src/svg/glyphs.ts";
+import { html } from "../src/readme.ts";
+import { monogramLetters } from "../src/svg/glyphs.ts";
 import { bioWithoutEcho } from "../src/svg/hero.ts";
 import { esc, n } from "../src/svg/xml.ts";
 import { ROOT } from "./helpers.ts";
@@ -26,12 +25,9 @@ describe("xml helpers", () => {
   });
 });
 
-describe("markdown helpers", () => {
-  it("makes table cells safe", () => {
-    expect(cell("a | b\n<script>* _x_ [y]")).toBe("a \\| b &lt;script&gt;\\* \\_x\\_ \\[y\\]");
-  });
-  it("encodes characters that would break a markdown link", () => {
-    expect(linkUrl("https://x.y/a b(c)")).toBe("https://x.y/a%20b%28c%29");
+describe("README helpers", () => {
+  it("escapes text for HTML attributes", () => {
+    expect(html(`a & b <script> "c"`)).toBe("a &amp; b &lt;script&gt; &quot;c&quot;");
   });
 });
 
@@ -69,19 +65,10 @@ describe("font metrics and text fitting", () => {
 });
 
 describe("pixel glyphs", () => {
-  it("normalises dot-matrix text and measures it", () => {
-    expect(dotMatrixText("Web app · 2023")).toBe("WEB APP · 2023");
-    expect(dotMatrixText("café ไทย")).toBe("CAFE ???");
-    expect(dotMatrixWidth("AB")).toBe(11);
-    expect(dotMatrixWidth("")).toBe(0);
-  });
   it("builds monogram letters", () => {
     expect(monogramLetters("Power BI")).toBe("PB");
     expect(monogramLetters("AWS")).toBe("AW");
     expect(monogramLetters("")).toBe("?");
-  });
-  it("shortens categories for badges", () => {
-    expect(categoryParts("Platform / Mobile Application / Web Application")).toEqual(["Platform", "Mobile app", "Web app"]);
   });
 });
 

@@ -27,7 +27,7 @@ deploy ครั้งแรก, ใช้หน้าหลังบ้าน `
 ## 1. ภาพรวมระบบ
 
 ```text
-ผู้เข้าชม ─────────► Cloudflare Pages  (kiattiphoom-pho0m.pages.dev หรือโดเมนของคุณ)
+ผู้เข้าชม ─────────► Cloudflare Workers "pho0m"  (workers.dev หรือโดเมนของคุณ)
                      ├─ /        หน้าเว็บหลัก ภาษาไทยก่อน (ฟิล์ม 35mm) ← web/dist/index.html
                      ├─ /en/     หน้าเดียวกัน ภาษาอังกฤษก่อน          ← web/dist/en/index.html
                      └─ /admin   หน้าหลังบ้าน                         ← web/dist/admin.html
@@ -65,7 +65,8 @@ GitHub Actions
 | `packages/content/` | schema ของเนื้อหาและสัญญา API ที่ทุกส่วนใช้ร่วมกัน |
 | `content/seed.json` | เนื้อหาตั้งต้นที่ฝังมากับเว็บ |
 | `tools/readme/` | ตัวสร้าง README ของโปรไฟล์ GitHub |
-| `web/public/_headers`, `web/public/_redirects` | header และ rewrite ของ Cloudflare Pages (คัดลอกไปที่ `web/dist` ตอน build) |
+| `wrangler.jsonc` | ตั้งค่า Cloudflare Worker `pho0m` (เสิร์ฟ `web/dist`) ใช้ตอน Cloudflare build จาก `main` |
+| `web/public/_headers`, `web/public/_redirects` | header และ rewrite (คัดลอกไปที่ `web/dist` ตอน build) |
 
 ---
 
@@ -81,7 +82,7 @@ GitHub Actions
   API นี้ใช้เฉพาะตอนแก้เนื้อหา และ scale ลงเหลือ 0 เมื่อไม่มีคนใช้ จึงมักไม่เสียเงิน
 - **Artifact Registry** เก็บ image ของ API ฟรีประมาณ 0.5 GB ทุกครั้งที่ deploy จะเพิ่ม image ใหม่
   ถ้าใกล้เต็มให้ลบ image เก่าในหน้า Artifact Registry หรือตั้ง cleanup policy
-- **Cloudflare Pages** (หน้าเว็บ) แผนฟรีพอสำหรับเว็บนี้: traffic ไม่จำกัด และ build/deploy ได้หลายร้อยครั้งต่อเดือน
+- **Cloudflare Workers** (หน้าเว็บ) แผนฟรีพอสำหรับเว็บนี้: ไฟล์เว็บ (static assets) เสิร์ฟฟรีไม่จำกัด และ Workers Builds มีนาที build ฟรีรายเดือน
 
 Cloud Run และ Artifact Registry ต้องผูกบัญชีเรียกเก็บเงิน (billing account) กับโปรเจกต์ก่อน แม้จะใช้ไม่เกินโควตาฟรี
 แนะนำให้ตั้ง **Budget alert** (เช่น 50 บาท) ที่หน้า
@@ -226,16 +227,16 @@ rm cors.json
 | `SERVICE_ACCOUNT_BUCKET_NAME` | ชื่อ bucket เช่น `kiattiphoom-pho0m-content` (ไม่มี `gs://`) | ต้องมี ถึงจะ deploy API และให้เว็บอ่านเนื้อหาจาก bucket |
 | `ADMIN_PASSWORD` | รหัสผ่านเข้าหน้า `/admin` | ต้องมี (ไม่ตั้ง = login ไม่ได้) |
 | `SESSION_SECRET` | สตริงสุ่มอย่างน้อย 32 ตัวอักษร ใช้เซ็น token การ login และเป็นกุญแจเข้ารหัสฉบับร่างกับประวัติ | ไม่บังคับ (ไม่ตั้ง = สร้างจาก `SERVICE_ACCOUNT_KEY` ให้ ดู 5.1) |
-| `CLOUDFLARE_API_TOKEN` | API token ของ Cloudflare สิทธิ์ **Account → Cloudflare Pages → Edit** (วิธีสร้างในหัวข้อ 5.2) | ต้องมี ถึงจะ deploy เว็บ |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID ของ Cloudflare (หัวข้อ 5.2) | ต้องมี ถึงจะ deploy เว็บ |
+| `CLOUDFLARE_API_TOKEN` | API token ของ Cloudflare (template **Edit Cloudflare Workers** วิธีสร้างในหัวข้อ 5.2) | ไม่บังคับ: ใช้ build เว็บใหม่หลังบันทึกใน `/admin` และรอบรายวัน (push เข้า `main` Cloudflare deploy เอง) |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID ของ Cloudflare (หัวข้อ 5.2) | ไม่บังคับ: ใช้คู่กับ `CLOUDFLARE_API_TOKEN` |
 | `DISCORD_WEBHOOK` | URL ของ Discord webhook | ไม่บังคับ (ไม่ตั้ง = ไม่แจ้งเตือน) |
 | `DISPATCH_TOKEN` | fine-grained token ของ GitHub ที่ให้ API สั่ง build เว็บใหม่หลังบันทึก (วิธีสร้างในหัวข้อ 9) | ไม่บังคับ (ไม่ตั้ง = ไฟล์ SEO อัปเดตรอบ deploy หรือรอบรายวัน) |
 
 | Variable | ค่า | ใช้เมื่อ |
 | --- | --- | --- |
 | `API_URL` | URL ของ Cloud Run เช่น `https://pho0m-api-xxxxxxxxxx-as.a.run.app` | ไม่บังคับ: เป็นค่าสำรองตอนที่ job API ไม่ได้ deploy และใช้กับ preview ของ PR |
-| `SITE_URL` | URL จริงของเว็บ เช่น `https://kiattiphoom-pho0m.pages.dev` หรือโดเมนของคุณ | ไม่บังคับ (ค่าเริ่มต้น `https://kiattiphoom-pho0m.pages.dev`) ใช้ทำ canonical, sitemap, OG, `llms.txt`, ลิงก์ใน README และ origin ที่ API ยอมรับ |
-| `CF_PAGES_PROJECT` | ชื่อโปรเจกต์ Cloudflare Pages | ไม่บังคับ (ค่าเริ่มต้น `kiattiphoom-pho0m`) |
+| `SITE_URL` | URL จริงของเว็บ เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev` หรือโดเมนของคุณ | ควรตั้ง: ใช้ทำลิงก์ใน README, ไฟล์ SEO ตอน build ใน GitHub และ origin ที่ API ยอมรับ (ตั้งค่าเดียวกันใน Build variables ของ Cloudflare ด้วย หัวข้อ 5.2) |
+| `API_ORIGINS` | รายการ origin คั่นด้วยจุลภาค | ไม่บังคับ: ใช้เมื่อ `/admin` ต้องเปิดได้จากหลาย URL (ค่าเริ่มต้น = `SITE_URL`) |
 
 ตั้งด้วย GitHub CLI ได้เลย (รันในโฟลเดอร์รีโป):
 
@@ -277,18 +278,50 @@ API ใช้ค่านี้สองงาน: เซ็น token ตอน 
 
 ---
 
-### 5.2 ตั้งค่า Cloudflare Pages (หน้าเว็บ)
+### 5.2 Cloudflare Workers: auto deploy เมื่อ push เข้า main
 
-หน้าเว็บ deploy ขึ้น Cloudflare Pages ทุกครั้งที่ push เข้า `main` (job **Deploy site** ใน `deploy.yml`)
-ไม่ต้องสร้างโปรเจกต์ใน dashboard เอง: deploy รอบแรกสร้างโปรเจกต์ `kiattiphoom-pho0m` (production branch `main`) ให้
+หน้าเว็บอยู่บน Cloudflare Workers ชื่อ `pho0m` (เว็บล้วน ไม่มีโค้ดฝั่ง Worker) ที่ผูกกับรีโปนี้ผ่าน **Workers Builds**
+ทุกครั้งที่มี commit เข้า `main` Cloudflare จะ clone → `npm run build` → `npx wrangler deploy` ให้เอง
+ค่าของ Worker อยู่ใน `wrangler.jsonc` ที่ root (ชื่อ `pho0m`, เสิร์ฟ `web/dist`)
 
-1. **Account ID** — เข้า https://dash.cloudflare.com แล้วเลือกบัญชี Account ID อยู่ในหน้า Overview ของโดเมนใดก็ได้
-   หรือในเมนู **Workers & Pages** (กล่องด้านขวา) คัดลอกไว้
-2. **API token** — ไปที่ **My Profile → API Tokens → Create Token → Create Custom Token**
-   - Permissions: **Account → Cloudflare Pages → Edit**
-   - Account Resources: เลือกบัญชีของคุณ
-   - กด Create แล้วคัดลอก token (แสดงครั้งเดียว)
-3. ใส่เป็น GitHub secrets:
+**ขั้นตอนตั้ง auto deploy (ทำครั้งเดียว)**
+
+1. เข้า https://dash.cloudflare.com → **Workers & Pages** → **Create** → แท็บ **Workers** → **Import a repository**
+   (ถ้าสร้าง Worker `pho0m` ไว้แล้ว ให้ไปที่ `pho0m` → **Settings** → **Build** → **Connect** แทน)
+2. เลือก GitHub → อนุญาตให้ Cloudflare เข้าถึงรีโป `pho0m/pho0m`
+3. ตั้งค่า build ให้ตรงนี้
+
+   | ช่อง | ค่า |
+   | --- | --- |
+   | Project / Worker name | `pho0m` (ต้องตรงกับ `"name"` ใน `wrangler.jsonc`) |
+   | Production branch | `main` |
+   | Build command | `npm run build` |
+   | Deploy command | `npx wrangler deploy` |
+   | Root directory | `/` |
+
+4. **Build variables** (Settings → Build → Variables and secrets) ใส่อย่างน้อย `SITE_URL` = URL จริงของเว็บ
+   เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev` หรือโดเมนของคุณ (ใช้ทำ canonical, sitemap, OG, `llms.txt`)
+   เมื่อมี API และ bucket แล้ว ให้เพิ่ม `VITE_API_URL` (URL ของ Cloud Run) และ
+   `VITE_CONTENT_URL` = `https://storage.googleapis.com/<bucket>/content/site.json`
+5. กด **Save and Deploy** หรือ push อะไรก็ได้เข้า `main` ดูผลได้ที่แท็บ **Deployments**
+6. (ไม่บังคับ) **Preview ของ branch อื่น** — Settings → Build → **Branch control** → เปิด builds for non-production branches
+   แต่ละ branch/PR จะได้ URL preview ของตัวเอง
+7. (ไม่บังคับ) **โดเมนของตัวเอง** — Settings → **Domains & Routes** → Add → Custom domain
+   แล้วเปลี่ยน `SITE_URL` (ทั้งใน Cloudflare และใน GitHub variable) เป็นโดเมนนั้น
+
+**ขอ API token (สำหรับ GitHub Actions)**
+
+ไม่ต้องใช้กับการ deploy ปกติ (Cloudflare ทำเอง) แต่จำเป็นถ้าอยากให้การกดบันทึกใน `/admin` และรอบรายวัน
+build เว็บใหม่พร้อมไฟล์ SEO/`llms.txt` จากเนื้อหาล่าสุด (job **Redeploy site with live content** ใน `deploy.yml`)
+
+1. **Account ID** — เข้า https://dash.cloudflare.com แล้วดู URL ในแถบที่อยู่: `dash.cloudflare.com/<ACCOUNT_ID>/…`
+   หรือ Workers & Pages → หน้า Overview กล่อง **Account details** ด้านขวา → คัดลอก **Account ID**
+2. **API token** — คลิกไอคอนรูปคนมุมขวาบน → **My Profile** → **API Tokens** → **Create Token**
+   - เลือก template **Edit Cloudflare Workers** → **Use template**
+   - Account Resources: **Include** → บัญชีของคุณ
+   - Zone Resources: **All zones** (หรือเฉพาะโดเมนที่ใช้)
+   - กด **Continue to summary** → **Create Token** แล้วคัดลอก token ทันที (แสดงครั้งเดียว)
+3. ใส่เป็น GitHub secrets (Settings → Secrets and variables → Actions → New repository secret) หรือใช้ CLI:
 
 ```bash
 gh secret set CLOUDFLARE_ACCOUNT_ID --repo pho0m/pho0m --body "<ACCOUNT_ID>"
@@ -298,27 +331,18 @@ gh secret set CLOUDFLARE_ACCOUNT_ID --repo pho0m/pho0m --body "<ACCOUNT_ID>"
 gh secret set CLOUDFLARE_API_TOKEN --repo pho0m/pho0m   # วาง token ตอนถูกถาม
 ```
 
-4. สั่ง deploy (หรือ push อะไรก็ได้เข้า `main`):
+4. ตั้ง GitHub variable `SITE_URL` ให้ตรงกับ URL จริง (ใช้ทั้งลิงก์ใน README และ origin ที่ API ยอมให้เรียก):
 
 ```bash
-gh workflow run deploy.yml --repo pho0m/pho0m --ref main
+gh variable set SITE_URL --repo pho0m/pho0m --body "https://pho0m.<ชื่อบัญชี>.workers.dev"
 ```
 
-เว็บจะขึ้นที่ `https://kiattiphoom-pho0m.pages.dev` ถ้าชื่อนี้ถูกใช้ไปแล้ว Cloudflare จะต่อท้ายชื่อให้
-(ดู URL จริงได้ในหน้าโปรเจกต์ หรือในหน้า Summary ของ run) ถ้าไม่ตรงกับค่าเริ่มต้น ให้ตั้ง variable `SITE_URL`:
+ถ้าเว็บมีหลาย URL (เช่น workers.dev กับโดเมนของตัวเอง) และอยากให้ `/admin` ใช้ได้ทั้งคู่ ให้ตั้ง `API_ORIGINS`
+เป็นรายการคั่นด้วยจุลภาค เช่น `https://pho0m.dev,https://pho0m.<ชื่อบัญชี>.workers.dev`
 
-```bash
-gh variable set SITE_URL --repo pho0m/pho0m --body "https://<ชื่อจริง>.pages.dev"
-```
-
-**ใช้โดเมนของตัวเอง** — ใน Cloudflare: Workers & Pages → `kiattiphoom-pho0m` → Custom domains → Set up a custom domain
-เสร็จแล้วตั้ง `SITE_URL` เป็นโดเมนนั้น (เช่น `https://pho0m.dev`) และ deploy อีกรอบ ค่านี้ใช้ทั้ง canonical, sitemap,
-OG, `llms.txt`, ลิงก์ใน README และรายชื่อ origin ที่ API ยอมให้เรียก (ต้อง deploy API ใหม่ด้วยการ push เข้า `main`)
-ถ้าอยากให้หน้า `/admin` แสดง URL เดียวกัน ให้แก้ **ตั้งค่าเว็บ → URL** ในหลังบ้านด้วย
-
-**header และ rewrite** อยู่ที่ `web/public/_headers` และ `web/public/_redirects`
-(cache ไฟล์ใน `/assets` 1 ปี, `/media` และ `/img` 1 วัน, `/admin` ห้าม index และห้ามฝังใน iframe,
-`/admin/*` และ `/en/*` เปิดหน้าเดียวกัน ส่วน path อื่นที่ไม่มีไฟล์จะได้ `index.html`)
+**header และ rewrite** อยู่ที่ `web/public/_headers` และ `web/public/_redirects` (Workers อ่านไฟล์เหล่านี้จาก `web/dist`):
+cache ไฟล์ใน `/assets` 1 ปี, `/media` และ `/img` 1 วัน, `/admin` ห้าม index และห้ามฝังใน iframe,
+`/admin/*` และ `/en/*` เปิดหน้าเดียวกัน ส่วน path อื่นที่ไม่มีไฟล์จะได้ `index.html` (`not_found_handling` ใน `wrangler.jsonc`)
 
 **เว็บเก่าที่ `kiattiphoom-pho0m.web.app`** ยังเป็นเว็บเดิมบน Firebase Hosting อยู่ เพราะ deploy ใหม่ไม่ได้
 (service account ใน secret `FIREBASE_SERVICE_ACCOUNT_KIATTIPHOOM_PHO0M` ไม่มีสิทธิ์ในโปรเจกต์แล้ว)
@@ -340,10 +364,11 @@ gh run watch --repo pho0m/pho0m
    build image จาก `api/Dockerfile` → สร้าง Artifact Registry `pho0m` ใน `asia-southeast1` (ถ้ายังไม่มี)
    → push → `gcloud run deploy pho0m-api` (ส่ง `SESSION_SECRET` ให้ทุกครั้ง หัวข้อ 5.1) → ตรวจ `/api/health`
    ถ้าไม่มี secret สองตัวนี้ job จะข้ามพร้อมข้อความแจ้ง
-3. **Deploy site** — build เว็บโดยใส่ `VITE_API_URL` (URL ของ API ที่เพิ่ง deploy หรือ variable `API_URL`)
-   และ `VITE_CONTENT_URL=https://storage.googleapis.com/<bucket>/content/site.json` แล้ว deploy ขึ้น Cloudflare Pages
-   (branch `main` = production) ได้ทั้ง `/` และ `/en/` รอบแรกจะสร้างโปรเจกต์ Pages ให้เอง
-   ถ้ายังไม่ได้ตั้ง `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` job นี้จะล้มพร้อมบอกว่าขาดอะไร
+3. **หน้าเว็บ** — push เข้า `main` แล้ว **Cloudflare Workers Builds** build และ deploy เอง (หัวข้อ 5.2)
+   ไม่ได้ทำใน GitHub Actions ค่า `VITE_API_URL`, `VITE_CONTENT_URL` และ `SITE_URL` ของ build นั้น
+   ตั้งที่ Build variables ใน Cloudflare ส่วน job **Redeploy site with live content** ใน `deploy.yml`
+   ทำงานเฉพาะรอบ content refresh และตอนสั่งรันเอง (ต้องมี `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`
+   ไม่มีจะข้ามพร้อมข้อความแจ้ง)
 4. **Release** — เพิ่มเลขเวอร์ชัน สร้าง tag และ GitHub release
 5. **Notify** — ส่งสถานะไป Discord (ถ้ามี `DISCORD_WEBHOOK`)
 
@@ -366,18 +391,16 @@ curl -s "<API_URL>/api/health"
 gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 ```
 
-จากนั้นเข้า `https://kiattiphoom-pho0m.pages.dev/admin` (หรือ `SITE_URL` ของคุณ) แล้วกด “บันทึก” หนึ่งครั้ง เพื่อสร้าง `content/site.json` ใน bucket
+จากนั้นเข้า `<SITE_URL>/admin` (เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev/admin`) แล้วกด “บันทึก” หนึ่งครั้ง เพื่อสร้าง `content/site.json` ใน bucket
 
 ### Pull request
 
-`pull-request.yml` (workflow ชื่อ **Pull request**) มีสอง job
+`pull-request.yml` (workflow ชื่อ **Pull request**) มี job เดียว
 
 - **Check** — `npm ci`, typecheck, test, build เว็บ (เนื้อหาในตัว) และ build API รันกับ**ทุก PR รวม PR จาก fork**
   ไม่ใช้ secret และได้ token แบบอ่านอย่างเดียว
-- **Deploy preview** — รันหลัง Check ผ่าน เฉพาะ PR จาก branch ในรีโปนี้ (fork ไม่มีสิทธิ์อ่าน secret)
-  build ด้วยเนื้อหาสดจาก bucket แล้ว deploy เป็น preview ของ Cloudflare Pages ที่
-  `https://pr-<เลข PR>.kiattiphoom-pho0m.pages.dev` (ลิงก์อยู่ในหน้า Summary ของ run)
-  ถ้ายังไม่ได้ตั้ง secret ของ Cloudflare job นี้จะข้ามพร้อมข้อความแจ้ง โดย PR ยังตรวจตามปกติ
+- **Preview** — Cloudflare Workers Builds ทำให้เอง ถ้าเปิด Branch control สำหรับ branch อื่นที่ไม่ใช่ `main` (หัวข้อ 5.2)
+  ลิงก์ preview จะขึ้นในหน้า Deployments ของ Worker `pho0m` (และเป็น check บน PR)
 
 ถ้าตั้ง branch protection ให้เลือก check ชื่อ `Check` เป็น required จะได้ไม่ merge PR ที่ build ไม่ผ่าน
 
@@ -385,7 +408,7 @@ gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 
 ## 7. ใช้งานหน้าหลังบ้าน /admin
 
-- **เข้าสู่ระบบ** — เปิด `https://kiattiphoom-pho0m.pages.dev/admin` (หรือ `SITE_URL` ของคุณ) ใส่ `ADMIN_PASSWORD`
+- **เข้าสู่ระบบ** — เปิด `<SITE_URL>/admin` (เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev/admin`) ใส่ `ADMIN_PASSWORD`
   กล่องสถานะด้านบนบอกว่า API ออนไลน์ไหม และใช้ storage แบบไหน เซสชันอยู่ได้ 12 ชั่วโมง
   ใส่รหัสผิด 5 ครั้งใน 10 นาทีจากเครื่องเดียวกัน ต้องรอสักพักก่อนลองใหม่
   และถ้ามีคนใส่ผิดรวมกันเกิน 30 ครั้งใน 10 นาที (เช่นโดนสุ่มรหัส) ระบบจะไม่รับ login ชั่วคราว
@@ -481,7 +504,7 @@ npm run readme -- --check
 - โปรเจกต์แบ่งกลุ่มเหมือนบนเว็บ งานลูกค้า (`client`) เป็นข้อความอย่างเดียว ไม่มีรูป
 - `web/public/_headers` ส่ง `llms.txt` และ `llms-full.txt` เป็น `text/plain; charset=utf-8` และให้ cache ไฟล์ทั้งสี่ได้ 1 ชั่วโมง
   `X-Robots-Tag: noindex` มีเฉพาะ `/admin` ส่วน `/en` และ `/en/…` เปิด `en/index.html` (`web/public/_redirects`)
-  preview ของ PR บน Cloudflare ได้ `noindex` อัตโนมัติ
+  
 - รูปใน `web/public/media` (`/media/…`) cache 1 วัน เพราะชื่อไฟล์ไม่เปลี่ยนเมื่อแทนรูป
   (ไฟล์ใน `/assets/` มี hash ในชื่อ จึง cache ได้ 1 ปี)
 
@@ -568,7 +591,7 @@ token หมดอายุเมื่อไหร่ การบันทึ�
 ### ตรวจด้วย curl
 
 ```bash
-SITE=https://kiattiphoom-pho0m.pages.dev   # หรือ SITE_URL ของคุณ
+SITE=https://pho0m.<ชื่อบัญชี>.workers.dev   # หรือ SITE_URL ของคุณ
 curl -sI "$SITE/llms.txt" | grep -i -E "^HTTP|^content-type|^cache-control"
 curl -sI "$SITE/robots.txt" | grep -i -E "^HTTP|^cache-control"
 curl -s "$SITE/robots.txt" | grep -E "GPTBot|ClaudeBot|PerplexityBot|Google-Extended|Sitemap"
@@ -645,9 +668,8 @@ docker run --rm -p 8080:8080 -e ADMIN_PASSWORD=change-me pho0m-api
 ## 11. แก้ปัญหา
 
 **`/admin` ขึ้น CORS error ใน console (`blocked by CORS policy`)**
-- API รับเฉพาะ origin ใน `ALLOWED_ORIGINS` ซึ่ง `deploy.yml` ตั้งเป็น `SITE_URL` กับ
-  `https://<CF_PAGES_PROJECT>.pages.dev` (ค่าเริ่มต้น `https://kiattiphoom-pho0m.pages.dev`)
-- ใช้โดเมนอื่น (เช่นโดเมนของตัวเอง) ให้ตั้ง variable `SITE_URL` (หัวข้อ 5.2) แล้ว push เข้า `main` เพื่อ deploy API ใหม่
+- API รับเฉพาะ origin ใน `ALLOWED_ORIGINS` ซึ่ง `deploy.yml` ตั้งจาก variable `API_ORIGINS` หรือ `SITE_URL`
+- ตั้ง `SITE_URL` (หรือ `API_ORIGINS` ถ้ามีหลาย URL) ให้ตรงกับ URL ที่เปิด `/admin` (หัวข้อ 5.2) แล้ว push เข้า `main` เพื่อ deploy API ใหม่
 - หน้า `/admin` บน preview ของ PR เรียก API ไม่ได้ เพราะ URL ของ preview ไม่อยู่ในรายการ (ตั้งใจไว้แบบนี้)
 - ถ้าเห็น error ว่า JSON ผิดรูปแบบ (`Unexpected token <`) แปลว่าเว็บถูก build โดยไม่มี `VITE_API_URL`
   ดู warning “No API URL” ใน run ของ Deploy แล้ว deploy API หรือตั้ง variable `API_URL`
@@ -672,7 +694,7 @@ docker run --rm -p 8080:8080 -e ADMIN_PASSWORD=change-me pho0m-api
   รัน `npm run setup:bucket -w api` อีกครั้ง (หัวข้อ 4) แล้วตรวจ:
 
 ```bash
-curl -sI -H "Origin: https://kiattiphoom-pho0m.pages.dev" "https://storage.googleapis.com/${BUCKET}/content/site.json" | grep -i -E "^HTTP|access-control"
+curl -sI -H "Origin: $SITE" "https://storage.googleapis.com/${BUCKET}/content/site.json" | grep -i -E "^HTTP|access-control"
 ```
 
 - ต้องเห็น `access-control-allow-origin` ถ้าได้ **403** แปลว่ายังไม่เปิด public read

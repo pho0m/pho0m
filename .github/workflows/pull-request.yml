@@ -1,9 +1,8 @@
 # Pull requests.
 #   check    typecheck, test, build the site and the API bundle. Runs for every pull request,
 #            forks included: it uses no secrets and only a read-only token.
-#   preview  deploy the site to a Cloudflare Pages preview (pr-<number>.<project>.pages.dev; the
-#            URL is in the job summary). Only for branches of this repository, because forks have
-#            no access to the secrets; skipped with a notice when the Cloudflare secrets are not set.
+# Previews: Cloudflare Workers Builds can build every non-production branch and post a preview
+# URL (Cloudflare dashboard → pho0m → Settings → Build → Branch control). No secrets needed here.
 # Setup guide: docs/SETUP.md
 
 name: Pull request
@@ -45,89 +44,3 @@ jobs:
       # Built-in content (content/seed.json): the same code path as production, without secrets.
       - name: Build site
         run: npm run build
-
-  preview:
-    name: Deploy preview
-    needs: check
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    env:
-      CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT || 'kiattiphoom-pho0m' }}
-      SITE_URL: ${{ vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
-      WRANGLER_VERSION: 4.154.0
-    steps:
-      # A preview is a nice-to-have: without the Cloudflare secrets the PR still gets its checks.
-      - name: Check Cloudflare secrets
-        id: gate
-        env:
-          HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-          HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-        run: |
-          if [ "$HAS_TOKEN" = "true" ] && [ "$HAS_ACCOUNT" = "true" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=No preview::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to get a preview URL for each pull request."
-          fi
-
-      - uses: actions/checkout@v5
-        if: steps.gate.outputs.enabled == 'true'
-
-      - uses: actions/setup-node@v5
-        if: steps.gate.outputs.enabled == 'true'
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install
-        if: steps.gate.outputs.enabled == 'true'
-        run: npm ci
-
-      # Same content source as production, so the preview shows the live content. Canonical links
-      # keep pointing at the live site, and Cloudflare marks preview deployments noindex.
-      # The admin page on a preview URL is not in the API's ALLOWED_ORIGINS, so its calls are blocked.
-      - name: Build site
-        if: steps.gate.outputs.enabled == 'true'
-        env:
-          VITE_API_URL: ${{ vars.API_URL }}
-          BUCKET: ${{ secrets.SERVICE_ACCOUNT_BUCKET_NAME }}
-        run: |
-          VITE_CONTENT_URL=""
-          if [ -n "$BUCKET" ]; then
-            VITE_CONTENT_URL="https://storage.googleapis.com/${BUCKET}/content/site.json"
-          fi
-          export VITE_CONTENT_URL
-          npm run build
-
-      - name: Deploy preview to Cloudflare Pages
-        if: steps.gate.outputs.enabled == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          wrangler() { npx --yes "wrangler@${WRANGLER_VERSION}" "$@"; }
-          if out="$(wrangler pages project create "$CF_PAGES_PROJECT" --production-branch=main 2>&1)"; then
-            echo "Created Cloudflare Pages project $CF_PAGES_PROJECT."
-          elif printf '%s' "$out" | grep -qi "already exists"; then
-            echo "Cloudflare Pages project $CF_PAGES_PROJECT exists."
-          else
-            printf '%s\n' "$out"
-            exit 1
-          fi
-
-          log="$(mktemp)"
-          # Any branch other than "main" is a preview; its alias URL is pr-<number>.<project>.pages.dev.
-          wrangler pages deploy web/dist --project-name="$CF_PAGES_PROJECT" --branch="pr-${PR_NUMBER}" \
-            --commit-hash="$HEAD_SHA" --commit-message="Pull request #${PR_NUMBER}" --commit-dirty=true 2>&1 | tee "$log"
-          url="$(grep -oE 'https://[a-z0-9.-]+\.pages\.dev' "$log" | tail -n 1 || true)"
-          {
-            echo "### Preview"
-            echo ""
-            echo "- Branch alias: https://pr-${PR_NUMBER}.${CF_PAGES_PROJECT}.pages.dev"
-            echo "- This deployment: ${url:-see the log}"
-          } >> "$GITHUB_STEP_SUMMARY"

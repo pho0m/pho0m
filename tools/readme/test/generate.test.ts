@@ -159,7 +159,7 @@ describe("README.md", () => {
 
   it("has no Utotech card, no Projects section and no end-of-roll strip", () => {
     const c = clone();
-    for (const gone of ["/#utotech", "/#projects", "| Project |", "**Client work**", "**My own projects**", `**${c.company.shortName} projects**`, "more** projects", "END OF ROLL", "badge-", "roll-end-", "utotech-dark.svg", "band-projects-", "band-utotech-", 'alt="Projects —', 'alt="Utotech —']) {
+    for (const gone of ["/#utotech", "/#projects", "| Project |", "**Client work**", "**My own projects**", `**${c.company.shortName} projects**`, "more** projects", "END OF ROLL", "assets/readme/badge-", "assets/readme/roll-end-", "assets/readme/utotech-", "assets/readme/band-projects-", "assets/readme/band-utotech-", 'alt="Projects —', 'alt="Utotech —']) {
       expect(out.readme, gone).not.toContain(gone);
     }
     expect(out.readme).not.toMatch(/\*\*\+\d+ more\*\*/);
