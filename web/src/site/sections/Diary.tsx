@@ -1,24 +1,14 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { Diary as DiaryT, Profile } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { LinkRow, SectionHead } from "../ui/bits.tsx";
-import { Print } from "../ui/Print.tsx";
-import { hostOf, paragraphs } from "../util.ts";
+import { hostOf } from "../util.ts";
 
 export function Diary({ diary: d, profile }: { diary: DiaryT; profile: Profile }) {
   const { lang, t } = useLang();
   const base = useId();
-  const [open, setOpen] = useState<Set<string>>(() => new Set(d.entries[0] ? [d.entries[0].id] : []));
   const co = d.company;
   const dream = t(profile.dream);
-
-  const toggle = (id: string) =>
-    setOpen((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
 
   const coLinks = [
     co.website ? { kind: "website" as const, label: hostOf(co.website), url: co.website } : null,
@@ -96,55 +86,6 @@ export function Diary({ diary: d, profile }: { diary: DiaryT; profile: Profile }
             </div>
           ) : null}
         </div>
-
-        {d.entries.length ? (
-          <div className="entries">
-            <h3 className="sub-title">{ui(lang, "บันทึกรายเดือน", "Month by month")}</h3>
-            {d.entries.map((e, i) => {
-              const isOpen = open.has(e.id);
-              const btn = `${base}-${e.id}-btn`;
-              const panel = `${base}-${e.id}-panel`;
-              return (
-                <div key={e.id} className="entry" data-open={isOpen || undefined}>
-                  <h4 className="entry-h">
-                    <button
-                      id={btn}
-                      type="button"
-                      className="entry-btn"
-                      aria-expanded={isOpen}
-                      aria-controls={panel}
-                      onClick={() => toggle(e.id)}
-                    >
-                      <span className="entry-no lcd" aria-hidden="true">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span className="entry-month">{t(e.month)}</span>
-                      <span className="entry-title">{t(e.title)}</span>
-                      {e.period ? <span className="entry-period lcd">{e.period}</span> : null}
-                      <span className="entry-icon lcd" aria-hidden="true">
-                        {isOpen ? "−" : "+"}
-                      </span>
-                    </button>
-                  </h4>
-                  <div id={panel} role="region" aria-labelledby={btn} className="entry-body" hidden={!isOpen}>
-                    {paragraphs(t(e.body)).map((p, k) => (
-                      <p key={k}>{p}</p>
-                    ))}
-                    {e.images.length ? (
-                      <ul className="entry-imgs" role="list">
-                        {e.images.map((img, k) => (
-                          <li key={`${img.url}-${k}`}>
-                            <Print image={img} width={160} aspect={4 / 3} reveal />
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
 
         {docLinks.length ? (
           <div className="diary-docs">

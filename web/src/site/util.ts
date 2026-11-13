@@ -9,11 +9,6 @@ export function imgSize(image: Pick<ImageRef, "width" | "height">): { width?: nu
   return image.width && image.height ? { width: image.width, height: image.height } : {};
 }
 
-/** CSS aspect ratio of an image whose size the content records, else `fallback`. */
-export function imgRatio(image: Pick<ImageRef, "width" | "height">, fallback: string): string {
-  return image.width && image.height ? `${image.width} / ${image.height}` : fallback;
-}
-
 /** Split a body text into paragraphs (blank lines or single newlines). */
 export function paragraphs(text: string): string[] {
   return text

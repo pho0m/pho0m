@@ -253,10 +253,12 @@ export const SkillItem = z.object({
   /** simple-icons slug; empty → monogram badge. */
   slug: z.string().default(""),
 });
+/** Highest skill level: 4 = expert, 3 = work-ready, 2 = side-project ready, 1 = have tried. */
+export const SKILL_LEVEL_MAX = 4;
 export const SkillGroup = z.object({
   id,
-  /** 3 = work-ready, 2 = side-project ready, 1 = have tried. */
-  level: z.number().int().min(1).max(3),
+  /** 1 … SKILL_LEVEL_MAX (4 = expert, 3 = work-ready, 2 = side-project ready, 1 = have tried). */
+  level: z.number().int().min(1).max(SKILL_LEVEL_MAX),
   title: Localized,
   description: Localized.default(emptyL),
   items: z.array(SkillItem).default([]),
@@ -307,7 +309,7 @@ export const Site = z.object({
   defaultLang: z.enum(LANGS).default("th"),
   url: z
     .string()
-    .default("https://kiattiphoom-pho0m.pages.dev")
+    .default("https://pho0m.kiattiphoom.workers.dev")
     .refine((v) => /^https:\/\/[^/]+/.test(v), "use https://…"),
   title: Localized,
   description: Localized,

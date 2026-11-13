@@ -42,7 +42,7 @@ ADMIN_PASSWORD=test npm run start -w api
 | `SERVICE_ACCOUNT_BUCKET_NAME` | — | GCS bucket. Missing → local driver. |
 | `SERVICE_ACCOUNT_KEY` | — | Service-account key: raw JSON or base64 of it. Missing with a bucket → Application Default Credentials (Cloud Run's service account). Never logged. |
 | `SESSION_SECRET` | see notes | Server secret, at least 32 characters (`openssl rand -hex 32`); shorter → the server refuses to start. Signs session tokens (HS256) and, through HKDF, encrypts the private copy of the content. Missing → derived from the key's `private_key` when `SERVICE_ACCOUNT_KEY` is set, otherwise **random per process** (startup warning: sessions and encrypted drafts do not survive a restart). Never derived from `ADMIN_PASSWORD`. Set it in production; `deploy.yml` passes it to Cloud Run. Changing it logs everyone out and makes saved drafts unreadable (see below). |
-| `ALLOWED_ORIGINS` | https://kiattiphoom-pho0m.pages.dev + localhost:5173/4173 | Comma list; replaces the defaults. deploy.yml sets it from `SITE_URL` and the Pages project. |
+| `ALLOWED_ORIGINS` | https://pho0m.kiattiphoom.workers.dev + localhost:5173/4173 | Comma list; replaces the defaults. deploy.yml sets it from `API_ORIGINS` or `SITE_URL`. |
 | `PORT` | `8787` | Cloud Run sets `8080`. |
 | `PUBLIC_BASE_URL` | `http://localhost:PORT` | Base of local-driver file URLs. |
 | `DATA_DIR` | `api/.data` | Local driver folder. |

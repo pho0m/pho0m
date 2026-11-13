@@ -235,7 +235,7 @@ rm cors.json
 | Variable | ค่า | ใช้เมื่อ |
 | --- | --- | --- |
 | `API_URL` | URL ของ Cloud Run เช่น `https://pho0m-api-xxxxxxxxxx-as.a.run.app` | ไม่บังคับ: เป็นค่าสำรองตอนที่ job API ไม่ได้ deploy และใช้กับ preview ของ PR |
-| `SITE_URL` | URL จริงของเว็บ เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev` หรือโดเมนของคุณ | ควรตั้ง: ใช้ทำลิงก์ใน README, ไฟล์ SEO ตอน build ใน GitHub และ origin ที่ API ยอมรับ (ตั้งค่าเดียวกันใน Build variables ของ Cloudflare ด้วย หัวข้อ 5.2) |
+| `SITE_URL` | URL จริงของเว็บ เช่น `https://pho0m.kiattiphoom.workers.dev` หรือโดเมนของคุณ | ควรตั้ง: ใช้ทำลิงก์ใน README, ไฟล์ SEO ตอน build ใน GitHub และ origin ที่ API ยอมรับ (ตั้งค่าเดียวกันใน Build variables ของ Cloudflare ด้วย หัวข้อ 5.2) |
 | `API_ORIGINS` | รายการ origin คั่นด้วยจุลภาค | ไม่บังคับ: ใช้เมื่อ `/admin` ต้องเปิดได้จากหลาย URL (ค่าเริ่มต้น = `SITE_URL`) |
 
 ตั้งด้วย GitHub CLI ได้เลย (รันในโฟลเดอร์รีโป):
@@ -300,7 +300,7 @@ API ใช้ค่านี้สองงาน: เซ็น token ตอน 
    | Root directory | `/` |
 
 4. **Build variables** (Settings → Build → Variables and secrets) ใส่อย่างน้อย `SITE_URL` = URL จริงของเว็บ
-   เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev` หรือโดเมนของคุณ (ใช้ทำ canonical, sitemap, OG, `llms.txt`)
+   เช่น `https://pho0m.kiattiphoom.workers.dev` หรือโดเมนของคุณ (ใช้ทำ canonical, sitemap, OG, `llms.txt`)
    เมื่อมี API และ bucket แล้ว ให้เพิ่ม `VITE_API_URL` (URL ของ Cloud Run) และ
    `VITE_CONTENT_URL` = `https://storage.googleapis.com/<bucket>/content/site.json`
 5. กด **Save and Deploy** หรือ push อะไรก็ได้เข้า `main` ดูผลได้ที่แท็บ **Deployments**
@@ -334,11 +334,11 @@ gh secret set CLOUDFLARE_API_TOKEN --repo pho0m/pho0m   # วาง token ตอ
 4. ตั้ง GitHub variable `SITE_URL` ให้ตรงกับ URL จริง (ใช้ทั้งลิงก์ใน README และ origin ที่ API ยอมให้เรียก):
 
 ```bash
-gh variable set SITE_URL --repo pho0m/pho0m --body "https://pho0m.<ชื่อบัญชี>.workers.dev"
+gh variable set SITE_URL --repo pho0m/pho0m --body "https://pho0m.kiattiphoom.workers.dev"
 ```
 
 ถ้าเว็บมีหลาย URL (เช่น workers.dev กับโดเมนของตัวเอง) และอยากให้ `/admin` ใช้ได้ทั้งคู่ ให้ตั้ง `API_ORIGINS`
-เป็นรายการคั่นด้วยจุลภาค เช่น `https://pho0m.dev,https://pho0m.<ชื่อบัญชี>.workers.dev`
+เป็นรายการคั่นด้วยจุลภาค เช่น `https://pho0m.dev,https://pho0m.kiattiphoom.workers.dev`
 
 **header และ rewrite** อยู่ที่ `web/public/_headers` และ `web/public/_redirects` (Workers อ่านไฟล์เหล่านี้จาก `web/dist`):
 cache ไฟล์ใน `/assets` 1 ปี, `/media` และ `/img` 1 วัน, `/admin` ห้าม index และห้ามฝังใน iframe,
@@ -391,7 +391,7 @@ curl -s "<API_URL>/api/health"
 gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 ```
 
-จากนั้นเข้า `<SITE_URL>/admin` (เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev/admin`) แล้วกด “บันทึก” หนึ่งครั้ง เพื่อสร้าง `content/site.json` ใน bucket
+จากนั้นเข้า `<SITE_URL>/admin` (เช่น `https://pho0m.kiattiphoom.workers.dev/admin`) แล้วกด “บันทึก” หนึ่งครั้ง เพื่อสร้าง `content/site.json` ใน bucket
 
 ### Pull request
 
@@ -408,7 +408,7 @@ gh variable set API_URL --repo pho0m/pho0m --body "<API_URL>"
 
 ## 7. ใช้งานหน้าหลังบ้าน /admin
 
-- **เข้าสู่ระบบ** — เปิด `<SITE_URL>/admin` (เช่น `https://pho0m.<ชื่อบัญชี>.workers.dev/admin`) ใส่ `ADMIN_PASSWORD`
+- **เข้าสู่ระบบ** — เปิด `<SITE_URL>/admin` (เช่น `https://pho0m.kiattiphoom.workers.dev/admin`) ใส่ `ADMIN_PASSWORD`
   กล่องสถานะด้านบนบอกว่า API ออนไลน์ไหม และใช้ storage แบบไหน เซสชันอยู่ได้ 12 ชั่วโมง
   ใส่รหัสผิด 5 ครั้งใน 10 นาทีจากเครื่องเดียวกัน ต้องรอสักพักก่อนลองใหม่
   และถ้ามีคนใส่ผิดรวมกันเกิน 30 ครั้งใน 10 นาที (เช่นโดนสุ่มรหัส) ระบบจะไม่รับ login ชั่วคราว
@@ -457,7 +457,7 @@ gh workflow run readme.yml --repo pho0m/pho0m
   ถ้าตั้ง bucket ไว้แต่อ่านไม่ได้ (403, 5xx, หมดเวลา, ข้อมูลไม่ผ่าน schema) run จะล้มเหลวและไม่ commit
   ไม่เอา README จาก seed ไปทับของจริง (`README_REQUIRE_LIVE_CONTENT=1` ใน `readme.yml`)
   ตัวเลข GitHub (ดาว, รีโป, ผู้ติดตาม) มาจาก `GITHUB_TOKEN` ที่ Actions ให้มา
-- ลิงก์ใน README ชี้ไปที่ `SITE_URL` (variable ในหัวข้อ 5 ค่าเริ่มต้น `https://kiattiphoom-pho0m.pages.dev`)
+- ลิงก์ใน README ชี้ไปที่ `SITE_URL` (variable ในหัวข้อ 5 ค่าเริ่มต้น `https://pho0m.kiattiphoom.workers.dev`)
 - README มีแค่ hero, ปุ่มลิงก์, GIF ฟิล์ม, การ์ดฟิล์ม, ทักษะ, การ์ดบันทึกสหกิจ/เอกสาร และลิงก์ท้าย
   (ส่วน Utotech, ตารางโปรเจกต์, WakaTime และแถบ END OF ROLL ถูกถอดออกแล้ว ดูรายละเอียดได้บนเว็บ)
 - รันหลังบันทึกใน `/admin` (event `repository_dispatch` ชื่อ `content-updated`) ถ้าตั้ง `DISPATCH_TOKEN` ไว้ (หัวข้อ 9)
@@ -591,7 +591,7 @@ token หมดอายุเมื่อไหร่ การบันทึ�
 ### ตรวจด้วย curl
 
 ```bash
-SITE=https://pho0m.<ชื่อบัญชี>.workers.dev   # หรือ SITE_URL ของคุณ
+SITE=https://pho0m.kiattiphoom.workers.dev   # หรือ SITE_URL ของคุณ
 curl -sI "$SITE/llms.txt" | grep -i -E "^HTTP|^content-type|^cache-control"
 curl -sI "$SITE/robots.txt" | grep -i -E "^HTTP|^cache-control"
 curl -s "$SITE/robots.txt" | grep -E "GPTBot|ClaudeBot|PerplexityBot|Google-Extended|Sitemap"

@@ -47,7 +47,7 @@ export const DEFAULT_PORT = 8787;
 export const MIN_SESSION_SECRET_LENGTH = 32;
 export const TOKEN_TTL_SECONDS = 12 * 60 * 60;
 export const DEFAULT_ALLOWED_ORIGINS = [
-  "https://kiattiphoom-pho0m.pages.dev",
+  "https://pho0m.kiattiphoom.workers.dev",
   "http://localhost:5173",
   "http://localhost:4173",
 ] as const;

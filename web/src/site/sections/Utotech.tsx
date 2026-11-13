@@ -3,7 +3,6 @@ import { ui, useLang } from "../../lib/i18n.tsx";
 import { LinkRow, SectionHead } from "../ui/bits.tsx";
 import { Print } from "../ui/Print.tsx";
 import { paragraphs, telHref } from "../util.ts";
-import { CompanyProjects, Customers, Services, WorkWithUs } from "./UtotechParts.tsx";
 
 export function Utotech({ company: c, profile }: { company: Company; profile: Profile }) {
   const { lang, t } = useLang();
@@ -128,28 +127,6 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
                 ))}
               </article>
             ))}
-          </div>
-        ) : null}
-
-        <WorkWithUs items={c.workWithUs} />
-        <Services services={c.services} />
-        <CompanyProjects projects={projects} />
-        <Customers customers={c.customers} />
-
-        {/* gallery */}
-        {c.gallery.length ? (
-          <div className="ut-block">
-            <h3 className="sub-title">{ui(lang, "แกลเลอรี", "Gallery")}</h3>
-            <ul className="contact-sheet" role="list">
-              {c.gallery.map((img, i) => (
-                <li key={`${img.url}-${i}`} className="cs-frame">
-                  <Print image={img} width={160} aspect={4 / 3} reveal />
-                  <span className="cs-no lcd" aria-hidden="true">
-                    ▸{i + 1}A
-                  </span>
-                </li>
-              ))}
-            </ul>
           </div>
         ) : null}
 

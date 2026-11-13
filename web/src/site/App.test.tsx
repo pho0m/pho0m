@@ -1,13 +1,12 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { t, timelineFrames, type Project } from "@pho0m/content";
+import { canvaEmbedUrl, SKILL_LEVEL_MAX, t, timelineFrames, type Project } from "@pho0m/content";
 import { seed } from "@pho0m/content/seed";
 import { LangProvider } from "../lib/i18n.tsx";
 import { EMBEDDED_CONTENT_ID, initialContent } from "../lib/content.ts";
 import { pageUrl } from "../seo/build.ts";
 import { App } from "./App.tsx";
 import { Projects } from "./sections/Projects.tsx";
-import { CompanyProjects, Customers } from "./sections/UtotechParts.tsx";
 import { groupLabel } from "./util.ts";
 
 // Everything below is derived from content/seed.json: the seed grows (frames, projects,
@@ -46,12 +45,38 @@ describe("public site", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(t(seed.profile.name, lang));
     // one film cell per published frame
     expect(container.querySelectorAll(".ff")).toHaveLength(timelineFrames(seed).length);
-    // only documents with a url are listed
-    expect(container.querySelectorAll(".doc")).toHaveLength(seed.documents.filter((d) => d.url).length);
-    // every published Utotech project gets a card
-    expect(container.querySelectorAll(".cp-card")).toHaveLength(
-      seed.company.projects.filter((p) => p.published).length,
-    );
+    // Canva documents play in place; other documents with a link are buttons under the player
+    const canva = seed.documents.filter((d) => d.url && canvaEmbedUrl(d.url));
+    expect(canva.length).toBeGreaterThan(0);
+    const frames = [...container.querySelectorAll<HTMLIFrameElement>("#documents iframe")];
+    expect(frames.map((f) => f.getAttribute("src"))).toEqual(canva.map((d) => canvaEmbedUrl(d.url)));
+    for (const f of frames) expect(f.getAttribute("loading")).toBe("lazy");
+    const others = seed.documents.filter((d) => d.url && !canvaEmbedUrl(d.url));
+    expect(container.querySelectorAll("#documents .linkrow li")).toHaveLength(others.length);
+  });
+
+  it("leaves out the sections that were taken off the page", () => {
+    const { container } = render(<App initial={seed} />);
+    // headings only: the company's own about text may still say "ลูกค้าของเรา" in a sentence
+    const text = [...container.querySelectorAll("h2, h3, h4, .sec-kicker")].map((h) => h.textContent).join("\n");
+    for (const gone of ["ทำงานกับเรา", "บริการและราคา", "ผลงานของ Utotech", "ลูกค้าของเรา", "แกลเลอรี", "บันทึกรายเดือน", "ไฟล์และลิงก์"])
+      expect(text, gone).not.toContain(gone);
+    expect(container.querySelector(".entry, .cp-card, .logo-wall, .pricelist, .tabs")).toBeNull();
+  });
+
+  it("rates skills on the 4-step scale, expert tier first", () => {
+    const { container } = render(<App initial={seed} />);
+    const tiers = [...container.querySelectorAll<HTMLElement>("#skills .tier")];
+    expect(tiers).toHaveLength(seed.skills.length);
+    for (const [i, tier] of tiers.entries()) {
+      const g = seed.skills[i]!;
+      expect(tier.dataset.level).toBe(String(g.level));
+      expect(tier.querySelectorAll(".dot")).toHaveLength(SKILL_LEVEL_MAX);
+      expect(tier.querySelectorAll(".dot.on")).toHaveLength(g.level);
+    }
+    const top = tiers[0]!;
+    expect(top.querySelector(".tier-dots")!.getAttribute("aria-label")).toBe(`ระดับ ${SKILL_LEVEL_MAX} จาก ${SKILL_LEVEL_MAX}`);
+    expect([...top.querySelectorAll(".skill-name")].map((n) => n.textContent)).toEqual(["Go", "NestJS", "AI"]);
   });
 
   it("only shows the profile phone when it is marked visible", () => {
@@ -132,15 +157,6 @@ describe("public site", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Zine 1$/ }));
     expect(container.querySelectorAll(".pcard")).toHaveLength(1);
     expect(container.querySelector(".nda-note")).toBeNull();
-  });
-
-  it("opens a Utotech project with its features", () => {
-    render(<App initial={seed} />);
-    const p = seed.company.projects.find((x) => x.published)!;
-    fireEvent.click(screen.getByRole("button", { name: new RegExp(`ดูรายละเอียด ${p.name}`) }));
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByRole("heading", { level: 2 }).textContent).toBe(p.name);
-    expect(dialog.querySelectorAll(".pj-feature")).toHaveLength(p.features.length);
   });
 
   it("marks #root as mounted so the head script keeps the snapshot hidden", () => {
@@ -228,26 +244,8 @@ describe("public site", () => {
     expect(imgs.length).toBeGreaterThan(0);
     for (const img of imgs) {
       const sized = img.hasAttribute("width") && img.hasAttribute("height");
-      const boxed = !!img.closest(".imgbox, .logo-tile, .print-frame") || !!img.style.aspectRatio;
+      const boxed = !!img.closest(".imgbox, .print-frame") || !!img.style.aspectRatio;
       expect(sized || boxed, img.getAttribute("src") ?? "").toBe(true);
     }
-    // Utotech covers keep their 16:10 box whatever the logo's shape
-    for (const cover of container.querySelectorAll(".cp-cover")) expect(cover.classList.contains("imgbox")).toBe(true);
-  });
-
-  it("passes a known image size on to the <img>", () => {
-    const logo = { url: "/logo.webp", alt: { th: "โลโก้", en: "Logo" }, width: 400, height: 200 };
-    const { container } = render(
-      <LangProvider defaultLang="th">
-        <Customers customers={[{ name: "ACME", url: "", logo }]} />
-        <CompanyProjects
-          projects={[{ ...seed.company.projects[0]!, published: true, cover: { ...logo, width: undefined, height: undefined } }]}
-        />
-      </LangProvider>,
-    );
-    const [tileImg, coverImg] = [...container.querySelectorAll("img")];
-    expect([tileImg!.getAttribute("width"), tileImg!.getAttribute("height")]).toEqual(["400", "200"]);
-    expect(coverImg!.hasAttribute("width")).toBe(false);
-    expect(coverImg!.closest(".imgbox")).not.toBeNull();
   });
 });

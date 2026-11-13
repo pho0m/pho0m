@@ -1,4 +1,4 @@
-import type { SkillGroup } from "@pho0m/content";
+import { SKILL_LEVEL_MAX, type SkillGroup } from "@pho0m/content";
 import { fit, measure } from "../font/fonts.ts";
 import { en } from "../model.ts";
 import { brandIcon } from "./glyphs.ts";
@@ -17,8 +17,8 @@ export function skillsCard(g: SkillGroup, t: Theme): string {
   let s = "";
   s += text(pad, 50, fit(title, "px7", 26, 420), { font: "px7", size: 26, fill: t.text });
   const dotsX = pad + Math.min(420, measure(title, "px7", 26)) + 18;
-  s += levelDots(g.level, 3, dotsX, 33, 13, 5, t);
-  s += text(dotsX + 3 * 18 + 10, 46, `LV ${g.level}/3`, { font: "led", size: 18, fill: t.led, spacing: 1 });
+  s += levelDots(g.level, SKILL_LEVEL_MAX, dotsX, 33, 13, 5, t);
+  s += text(dotsX + SKILL_LEVEL_MAX * 18 + 10, 46, `LV ${g.level}/${SKILL_LEVEL_MAX}`, { font: "led", size: 18, fill: t.led, spacing: 1 });
   const count = `${g.items.length} ${g.items.length === 1 ? "ITEM" : "ITEMS"}`;
   s += text(CARD_W - pad, 46, count, { font: "led", size: 18, fill: t.muted, anchor: "end", spacing: 1 });
   if (desc) s += text(pad, 76, fit(desc, "b4", 14, CARD_W - 2 * pad), { font: "b4", size: 14, fill: t.muted });

@@ -105,3 +105,18 @@ describe("safe urls + public projection", async () => {
     expect(m.parseContent(p).ok).toBe(true);
   });
 });
+
+describe("canvaEmbedUrl", async () => {
+  const { canvaEmbedUrl } = await import("../src/index.ts");
+  it("turns a Canva view link into its embed URL and rejects anything else", () => {
+    expect(canvaEmbedUrl("https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view")).toBe(
+      "https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view?embed",
+    );
+    expect(canvaEmbedUrl("https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view?utm_content=x&utm_source=y")).toBe(
+      "https://www.canva.com/design/DAF-2N6H19s/en6L8oxUA0kbrUClRS8ROA/view?embed",
+    );
+    for (const bad of ["https://evil.com/design/a/b/view", "http://www.canva.com/design/a/b/view", "https://www.canva.com/design/a\"onload=x/b/view", "https://docs.google.com/spreadsheets/d/x/edit", ""]) {
+      expect(canvaEmbedUrl(bad), bad).toBeNull();
+    }
+  });
+});

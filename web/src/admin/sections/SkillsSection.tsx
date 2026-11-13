@@ -5,6 +5,7 @@ import { ListEditor } from "../fields/ListEditor.tsx";
 import { Chip, SectionHead } from "./common.tsx";
 
 const LEVELS = [
+  { value: 4, label: "4 · เชี่ยวชาญ (expert)" },
   { value: 3, label: "3 · ใช้ทำงานจริง (work-ready)" },
   { value: 2, label: "2 · ทำโปรเจกต์ส่วนตัวได้ (side projects)" },
   { value: 1, label: "1 · เคยลองใช้ (tried)" },
@@ -15,7 +16,7 @@ function GroupEditor({ value, onChange, path }: { value: SkillGroup; onChange: (
   return (
     <>
       <Grid>
-        <Select label="ระดับ" options={LEVELS} value={value.level as 1 | 2 | 3} onChange={(level) => onChange({ ...value, level })} />
+        <Select label="ระดับ" options={LEVELS} value={value.level as 1 | 2 | 3 | 4} onChange={(level) => onChange({ ...value, level })} />
         <IdField auto={autoId(value.title.en, "skills")} {...f("id")} />
       </Grid>
       <LocalizedField label="ชื่อกลุ่ม" required {...f("title")} />
@@ -68,7 +69,7 @@ export function SkillsSection({ value, onChange }: { value: SkillGroup[]; onChan
         collapsed={false}
         title={(g) => (
           <>
-            {g.title.th || g.title.en} <Chip tone={g.level === 3 ? "ok" : g.level === 2 ? "warn" : "muted"}>LV {g.level}</Chip>{" "}
+            {g.title.th || g.title.en} <Chip tone={g.level >= 3 ? "ok" : g.level === 2 ? "warn" : "muted"}>LV {g.level}</Chip>{" "}
             <small className="muted">{g.items.length} ทักษะ</small>
           </>
         )}
