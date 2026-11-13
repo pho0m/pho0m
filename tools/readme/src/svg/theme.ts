@@ -28,7 +28,6 @@ export type Theme = {
   stripHole: string;
   stripText: string;
   stripMuted: string;
-  stripEdge: string;
 };
 
 export const FILM = {
@@ -62,7 +61,6 @@ export const DARK: Theme = {
   stripHole: DARKROOM.hole,
   stripText: "#efe2d6",
   stripMuted: DARKROOM.muted,
-  stripEdge: DARKROOM.led,
 };
 
 export const LIGHT: Theme = {
@@ -85,7 +83,6 @@ export const LIGHT: Theme = {
   stripHole: DARKROOM.paper,
   stripText: DARKROOM.ink,
   stripMuted: "#6b4f45",
-  stripEdge: DARKROOM.redDeep,
 };
 
 export const THEMES = [DARK, LIGHT] as const;

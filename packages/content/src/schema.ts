@@ -307,7 +307,7 @@ export const Site = z.object({
   defaultLang: z.enum(LANGS).default("th"),
   url: z
     .string()
-    .default("https://kiattiphoom-pho0m.web.app")
+    .default("https://kiattiphoom-pho0m.pages.dev")
     .refine((v) => /^https:\/\/[^/]+/.test(v), "use https://…"),
   title: Localized,
   description: Localized,

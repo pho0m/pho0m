@@ -992,3 +992,16 @@ export function buildSiteFiles(html: string, content: Content): Record<string, s
     "llms-full.txt": buildLlmsFull(c),
   };
 }
+
+/**
+ * Point the content at where the site is deployed: a non-empty SITE_URL (https only) replaces
+ * content.site.url. Anything else leaves the content as it is and explains why.
+ */
+export function withSiteUrl(content: Content, siteUrl: string | undefined): { content: Content; warning?: string } {
+  const v = (siteUrl ?? "").trim().replace(/\/+$/, "");
+  if (!v) return { content };
+  if (!/^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(v)) {
+    return { content, warning: `SITE_URL "${v}" is not an https origin (like https://example.com); using ${content.site.url}` };
+  }
+  return { content: { ...content, site: { ...content.site, url: v } } };
+}

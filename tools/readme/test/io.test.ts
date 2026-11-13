@@ -4,10 +4,10 @@ import { join } from "node:path";
 import { seed } from "@pho0m/content/seed";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseArgs, run as cli } from "../src/cli.ts";
-import { LiveContentError, contentUrl, loadContent, loadGithubStats } from "../src/load.ts";
+import { LiveContentError, contentUrl, loadContent, loadGithubStats, withSiteUrl } from "../src/load.ts";
 import { createMediaLoader } from "../src/media.ts";
 import { apply, plan } from "../src/write.ts";
-import { README_SAMPLE, ROOT, WAKA_SAMPLE, run } from "./helpers.ts";
+import { README_SAMPLE, ROOT, run } from "./helpers.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -72,6 +72,45 @@ describe("content source", () => {
   });
 });
 
+describe("SITE_URL", () => {
+  it("replaces site.url with an https origin (trailing slash dropped) and leaves the seed untouched", () => {
+    const warn = vi.fn();
+    const before = seed.site.url;
+    const c = withSiteUrl(seed, " https://example.pages.dev/ ", warn);
+    expect(c.site.url).toBe("https://example.pages.dev");
+    expect(c.site.title).toEqual(seed.site.title);
+    expect(withSiteUrl(seed, "https://pho0m.dev:8443", warn).site.url).toBe("https://pho0m.dev:8443");
+    expect(seed.site.url).toBe(before);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("ignores anything that is not an https origin, with a warning, and does nothing when unset", () => {
+    for (const bad of ["http://example.dev", "javascript:alert(1)", "//example.dev", "example.dev", "https://", "https://x.dev/path", "https://x.dev?q=1", "https://user@x.dev"]) {
+      const warn = vi.fn();
+      expect(withSiteUrl(seed, bad, warn), bad).toBe(seed);
+      expect(warn, bad).toHaveBeenCalledOnce();
+      expect(String(warn.mock.calls[0]![0])).toContain("SITE_URL");
+    }
+    const warn = vi.fn();
+    for (const unset of [undefined, "", "   "]) expect(withSiteUrl(seed, unset, warn)).toBe(seed);
+    expect(withSiteUrl(seed, seed.site.url, warn)).toBe(seed);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("is applied to whatever content loads: the seed and live content", async () => {
+    const fromSeed = await loadContent({ SITE_URL: "https://example.pages.dev" }, vi.fn() as unknown as typeof fetch, () => {});
+    expect(fromSeed).toEqual({ content: expect.objectContaining({ site: expect.objectContaining({ url: "https://example.pages.dev" }) }), source: "seed" });
+    const live = structuredClone(seed);
+    live.site.url = "https://old.example";
+    const r = await loadContent({ CONTENT_URL: "https://x.test/c.json", SITE_URL: "https://example.pages.dev" }, (async () => json(live)) as unknown as typeof fetch, () => {});
+    expect(r.content.site.url).toBe("https://example.pages.dev");
+    const warn = vi.fn();
+    const ignored = await loadContent({ SITE_URL: "http://example.pages.dev" }, vi.fn() as unknown as typeof fetch, warn);
+    expect(ignored.content).toBe(seed);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+});
+
 describe("GitHub stats", () => {
   it("needs a token", async () => {
     const f = vi.fn();
@@ -89,9 +128,7 @@ describe("GitHub stats", () => {
       return json(url.endsWith("&page=1") ? page1 : page2);
     };
     const stats = await loadGithubStats({ GITHUB_TOKEN: "t", GITHUB_USER: "someone" }, "pho0m", f as unknown as typeof fetch);
-    expect(stats).toEqual(expect.objectContaining({ login: "someone", publicRepos: 101, followers: 3, stars: 99 + 5 }));
-    expect(stats!.repoStars["seyes-app"]).toBe(5);
-    expect(stats!.repoStars.r0).toBeUndefined();
+    expect(stats).toEqual({ login: "someone", publicRepos: 101, followers: 3, stars: 99 + 5 });
     expect(urls).toHaveLength(3);
   });
 
@@ -187,7 +224,7 @@ describe("writing and --check", () => {
     expect(() => parseArgs(["--out-dir"])).toThrow();
   });
 
-  it("CLI --check exits 1 when out of date and 0 after generating; the waka block survives", async () => {
+  it("CLI --check exits 1 when out of date and 0 after generating; old sections are replaced", async () => {
     const readme = join(dir, "README.md");
     const outDir = join(dir, "assets", "readme");
     await writeFile(readme, README_SAMPLE);
@@ -199,9 +236,34 @@ describe("writing and --check", () => {
       expect(await cli(args, {})).toBe(0);
       expect(await cli([...args, "--check"], {})).toBe(0);
       const written = await readFile(readme, "utf8");
-      expect(written).toContain(WAKA_SAMPLE);
+      expect(written).not.toContain("SECTION:waka");
       expect(written).toContain('srcset="assets/readme/hero-dark.svg"');
       expect(written).not.toContain("Old intro.");
+    } finally {
+      log.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  it("CLI points every site link at SITE_URL", async () => {
+    const readme = join(dir, "README.md");
+    const outDir = join(dir, "assets", "readme");
+    const args = ["--out-dir", outDir, "--readme", readme];
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const env = { SITE_URL: "https://example.pages.dev/" };
+    try {
+      expect(await cli(args, env)).toBe(0);
+      expect(await cli([...args, "--check"], env)).toBe(0);
+      // without it the links would go back to the content's own site.url
+      expect(await cli([...args, "--check"], {})).toBe(1);
+      const written = await readFile(readme, "utf8");
+      for (const id of ["top", "film", "skills", "diary", "documents"]) expect(written).toContain(`href="https://example.pages.dev/#${id}"`);
+      expect(written).toContain('href="https://example.pages.dev"');
+      expect(written).not.toContain(seed.site.url);
+      expect(written).not.toContain(new URL(seed.site.url).host);
+      expect(await readFile(join(outDir, "link-site-dark.svg"), "utf8")).toContain("example.pages.dev");
+      expect(log.mock.calls.flat().join("\n")).toContain("site: https://example.pages.dev;");
     } finally {
       log.mockRestore();
       err.mockRestore();

@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { generate } from "./generate.ts";
@@ -22,6 +21,8 @@ Environment:
                                 (neither set → content/seed.json)
   README_REQUIRE_LIVE_CONTENT=1 exit 1 and write nothing when that content can't be used
                                 (HTTP 404 = nothing saved yet → the seed is still fine)
+  SITE_URL                      https origin of the deployed site (e.g. https://example.pages.dev);
+                                replaces the content's site.url in every link (anything else is ignored)
   GITHUB_TOKEN, GITHUB_USER     add GitHub stars/repos/followers (user defaults to the profile handle)
 `;
 
@@ -78,19 +79,13 @@ export async function run(argv: string[], env: Record<string, string | undefined
   const { content, source } = loaded;
   const github = await loadGithubStats(env, content.profile.handle);
   const media = createMediaLoader({ publicDir: join(root, "web", "public"), siteUrl: content.site.url });
-  let currentReadme: string | null = null;
-  try {
-    currentReadme = await readFile(readmePath, "utf8");
-  } catch {
-    currentReadme = null;
-  }
   const assetPath = toPosix(relative(dirname(readmePath), outDir)) || ".";
-  const out = await generate({ content, github, media, currentReadme, assetPath });
+  const out = await generate({ content, github, media, assetPath });
 
   const rel = (p: string) => toPosix(relative(base, p)) || p;
   const kb = (bytes: number) => `${Math.round(bytes / 1024)} KB`;
   const gifs = [...out.binaries].map(([name, data]) => `${name} ${kb(data.byteLength)}`);
-  const summary = `content: ${source}; github stats: ${github ? `@${github.login}` : "off"}; ${out.files.size} SVGs${gifs.length ? ` + ${gifs.join(", ")}` : ""}`;
+  const summary = `content: ${source}; site: ${content.site.url}; github stats: ${github ? `@${github.login}` : "off"}; ${out.files.size} SVGs${gifs.length ? ` + ${gifs.join(", ")}` : ""}`;
   if (args.check) {
     const p = await plan(out, outDir, readmePath);
     if (!p.changed.length && !p.removed.length) {

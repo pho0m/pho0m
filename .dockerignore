@@ -5,7 +5,6 @@
 **/.data
 .git
 .github
-.firebase
 web/dist
 # The image never copies the site sources either.
 web

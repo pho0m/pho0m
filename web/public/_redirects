@@ -1,0 +1,6 @@
+# Cloudflare Pages rewrites (status 200 = serve that page, keep the URL).
+# /admin and /en/ are real files (admin.html, en/index.html); deeper paths load the same page.
+# Any other unknown path gets index.html automatically (no 404.html = single-page app mode).
+# Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+/admin/*  /admin  200
+/en/*     /en/    200

@@ -5,7 +5,7 @@ import { FONT_KEYS, fontFile, type FontKey } from "../src/font/fonts.ts";
 import { subsetSvgFonts, usedText } from "../src/font/subset.ts";
 import { readWoff2Metrics } from "../src/font/woff2.ts";
 import { linkHref } from "../src/model.ts";
-import { linked, mdLink } from "../src/readme.ts";
+import { linked } from "../src/readme.ts";
 import { clone, run } from "./helpers.ts";
 
 const unescape = (v: string) => v.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
@@ -31,8 +31,14 @@ describe("links (sec-4)", () => {
 
   it("only writes links that pass isSafeUrl", () => {
     const targets = linkTargets(normal.readme);
-    expect(targets.length).toBeGreaterThan(40);
+    // hero, profile buttons, GIF, film band and card, skills band, the two panels, footer links
+    const site = clone().site.url;
+    expect(targets.length).toBe((normal.readme.match(/<a /g) ?? []).length);
+    expect(targets.length).toBeGreaterThanOrEqual(12);
     for (const url of targets) expect(isSafeUrl(url), url).toBe(true);
+    for (const id of ["top", "film", "skills", "diary", "documents"]) expect(targets).toContain(`${site}/#${id}`);
+    expect(targets).toContain("https://github.com/pho0m");
+    expect(targets.filter((u) => u.startsWith("mailto:"))).toHaveLength(1);
   });
 
   it("drops unsafe URLs even when the content skipped validation, falling back to the site or to plain text", async () => {
@@ -40,29 +46,40 @@ describe("links (sec-4)", () => {
     const site = c.site.url;
     c.profile.links.push({ kind: "website", label: "Evil", url: "javascript:alert(document.domain)" });
     c.profile.links.push({ kind: "website", label: "Evil 2", url: "JaVaScRiPt:alert(1)" });
+    c.profile.links.push({ kind: "website", label: "Evil 3", url: "//evil.example/x" });
+    c.profile.links.push({ kind: "website", label: "Evil 4", url: " data:text/html,<script>alert(5)</script>" });
+    c.profile.links.push({ kind: "website", label: "CV", url: "/media/cv.pdf" });
+    c.profile.links = c.profile.links.filter((l) => l.label !== c.company.shortName); // leave only the company's own link to it
+    c.company.links = c.company.links.map((l) => (l.kind === "website" ? { ...l, url: "vbscript:msgbox(1)" } : l));
+    c.diary.company.website = "javascript:alert(4)";
+    // project links no longer reach the README at all, but must not leak through anything else either
     const companyProject = c.company.projects.find((p) => p.published)!;
     companyProject.url = "data:text/html,<script>alert(1)</script>";
-    c.company.links = c.company.links.map((l) => (l.kind === "website" ? { ...l, url: "vbscript:msgbox(1)" } : l));
     const own = c.projects.find((p) => p.published && p.group !== "client")!;
     own.repo = "javascript:alert(2)";
-    own.url = "//evil.example/x";
+    own.url = "//evil.example/y";
     const client = c.projects.find((p) => p.published && p.group === "client")!;
     client.url = " javascript:alert(3)";
-    c.diary.company.website = "javascript:alert(4)";
     const o = await run({ content: c });
-    expect(allText(o)).not.toMatch(/javascript:|vbscript:|data:text|evil\.example|alert\(/i);
-    for (const url of linkTargets(o.readme)) expect(isSafeUrl(url), url).toBe(true);
-    // the rows still link to their section of the site
-    expect(o.readme).toContain(`**[${companyProject.name}](${site}/#utotech)**`);
-    expect(o.readme).toContain(`**[${own.name}](${site}/#projects)**`);
-    expect(o.readme).toContain(`**[${client.name}](${site}/#projects)**`);
-    // no button for the bad profile links, and no company button or footer link without a safe URL
-    expect(o.readme).not.toContain('alt="Evil"');
-    expect(o.files.has("btn-evil-dark.svg")).toBe(false);
+    expect(allText(o)).not.toMatch(/javascript:|vbscript:|data:text|evil\.example|alert\(|msgbox/i);
+    const targets = linkTargets(o.readme);
+    for (const url of targets) expect(isSafeUrl(url), url).toBe(true);
+    // a site-relative profile link becomes a link to the site
+    expect(targets).toContain(`${site}/media/cv.pdf`);
+    expect(o.readme).toContain('alt="CV"');
+    // no button for the bad profile links, and no company button, footer link or "work" contact without a safe URL
+    for (const label of ["Evil", "Evil 2", "Evil 3", "Evil 4"]) expect(o.readme, label).not.toContain(`alt="${label}"`);
+    expect([...o.files.keys()].filter((name) => name.startsWith("btn-evil"))).toEqual([]);
+    expect(o.files.has(`btn-${c.company.shortName.toLowerCase()}-dark.svg`)).toBe(false);
     expect(o.files.has("link-company-dark.svg")).toBe(false);
+    expect(o.readme).not.toMatch(/Documents &amp; contact — [^"]*\bwork /);
+    // the panels fall back to plain text (no diary website) and still link to their sections of the site
+    expect(o.files.get("panel-diary-dark.svg")).not.toContain("JAVASCRIPT");
+    expect(targets).toContain(`${site}/#diary`);
+    expect(targets).toContain(`${site}/#documents`);
   });
 
-  it("linkHref, linked() and mdLink() refuse unsafe targets", () => {
+  it("linkHref and linked() refuse unsafe targets", () => {
     const c = clone();
     expect(linkHref(c, "/media/x.pdf")).toBe(`${c.site.url}/media/x.pdf`);
     expect(linkHref(c, "https://github.com/pho0m")).toBe("https://github.com/pho0m");
@@ -70,9 +87,9 @@ describe("links (sec-4)", () => {
     for (const bad of ["javascript:alert(1)", "data:text/html,x", "//evil.example", "vbscript:x", ""]) expect(linkHref(c, bad), bad).toBe("");
     expect(linked("javascript:alert(1)", "<img>")).toBe("<img>");
     expect(linked("https://x.test/", "<img>")).toBe('<a href="https://x.test/"><img></a>');
-    expect(mdLink("Name [1]", "javascript:alert(1)")).toBe("Name \\[1\\]");
-    expect(mdLink("Name", "https://x.test/a b")).toBe("Name");
-    expect(mdLink("Name", "https://x.test/a(b)")).toBe("[Name](https://x.test/a%28b%29)");
+    expect(linked("", "<img>")).toBe("<img>");
+    expect(linked(undefined, "<img>")).toBe("<img>");
+    expect(linked('https://x.test/?a="b"&c=<d>', "x")).toBe('<a href="https://x.test/?a=&quot;b&quot;&amp;c=&lt;d&gt;">x</a>');
   });
 });
 

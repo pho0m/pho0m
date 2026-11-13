@@ -1,0 +1,17 @@
+// Cloudflare Workers config for the website (static assets only, no Worker script).
+// Used by Workers Builds (Cloudflare dashboard → Workers & Pages → pho0m → Settings → Build):
+//   build command   npm run build      (writes web/dist, including the SEO/AI files)
+//   deploy command  npx wrangler deploy
+// "name" must match the Worker's name in the dashboard.
+{
+  "$schema": "https://unpkg.com/wrangler@4.154.0/config-schema.json",
+  "name": "pho0m",
+  "compatibility_date": "2026-10-27",
+  "assets": {
+    "directory": "./web/dist",
+    // Unknown paths get index.html (the site handles #sections itself).
+    "not_found_handling": "single-page-application",
+    // /admin serves admin.html, /en redirects to /en/.
+    "html_handling": "auto-trailing-slash"
+  }
+}

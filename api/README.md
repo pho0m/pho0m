@@ -42,7 +42,7 @@ ADMIN_PASSWORD=test npm run start -w api
 | `SERVICE_ACCOUNT_BUCKET_NAME` | — | GCS bucket. Missing → local driver. |
 | `SERVICE_ACCOUNT_KEY` | — | Service-account key: raw JSON or base64 of it. Missing with a bucket → Application Default Credentials (Cloud Run's service account). Never logged. |
 | `SESSION_SECRET` | see notes | Server secret, at least 32 characters (`openssl rand -hex 32`); shorter → the server refuses to start. Signs session tokens (HS256) and, through HKDF, encrypts the private copy of the content. Missing → derived from the key's `private_key` when `SERVICE_ACCOUNT_KEY` is set, otherwise **random per process** (startup warning: sessions and encrypted drafts do not survive a restart). Never derived from `ADMIN_PASSWORD`. Set it in production; `deploy.yml` passes it to Cloud Run. Changing it logs everyone out and makes saved drafts unreadable (see below). |
-| `ALLOWED_ORIGINS` | site + firebaseapp + localhost:5173/4173 | Comma list; replaces the defaults. |
+| `ALLOWED_ORIGINS` | https://kiattiphoom-pho0m.pages.dev + localhost:5173/4173 | Comma list; replaces the defaults. deploy.yml sets it from `SITE_URL` and the Pages project. |
 | `PORT` | `8787` | Cloud Run sets `8080`. |
 | `PUBLIC_BASE_URL` | `http://localhost:PORT` | Base of local-driver file URLs. |
 | `DATA_DIR` | `api/.data` | Local driver folder. |
@@ -132,7 +132,7 @@ POST https://api.github.com/repos/<GITHUB_REPOSITORY>/dispatches
 ```
 
 which runs `.github/workflows/deploy.yml` (site only: build with the live content, deploy to
-Firebase Hosting; no API deploy, no release) and `.github/workflows/readme.yml`.
+Cloudflare Pages; no API deploy, no release) and `.github/workflows/readme.yml`.
 
 - **Part of the save request**: the API waits for GitHub (at most 4 s) before it answers, and
   reports the result as `redeploy` in the `PUT` response: `sent` (GitHub accepted it),

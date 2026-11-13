@@ -5,7 +5,6 @@ import {
   slugify,
   t,
   timelineFrames,
-  type CompanyProject,
   type Content,
   type Frame,
   type Link,
@@ -24,34 +23,15 @@ export type GithubStats = {
   followers: number;
   /** Sum of stargazers over the user's own (non-fork) repos. */
   stars: number;
-  /** lower-case repo name → stars */
-  repoStars: Record<string, number>;
 };
 
 /** A hero chip: big LED value + short label; `alt` is the same fact as a phrase for alt text. */
 export type Stat = { value: string; label: string; alt: string };
 export type LinkItem = { id: string; label: string; url: string; kind: Link["kind"]; company?: boolean };
 export type FilmFrame = { frame: Frame; number: number; title: string; date: string };
-export type TableRow = {
-  id: string;
-  name: string;
-  url: string;
-  about: string;
-  extras: { label: string; url: string }[];
-  badge: { segments: BadgeSegment[]; stars: number | null };
-};
-export type BadgeSegment = { text: string; tone: "led" | "text" | "accent" };
 
-export const GROUP_LABEL: Record<Project["group"], string> = {
-  utotech: "Utotech",
-  client: "Client",
-  personal: "Personal",
-  teaching: "Teaching",
-  school: "School",
-  coop: "Co-op",
-};
-
-export const SECTIONS = ["top", "film", "utotech", "projects", "skills", "diary", "documents", "contact"] as const;
+/** Sections of the site the README links to. */
+export const SECTIONS = ["top", "film", "skills", "diary", "documents"] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export function sectionUrl(content: Content, id: SectionId): string {
@@ -167,109 +147,14 @@ export function footerLinks(content: Content): LinkItem[] {
   return out;
 }
 
-function repoName(repoUrl: string, login: string | undefined): string | null {
-  const m = /^https?:\/\/github\.com\/([^/]+)\/([^/#?]+)/i.exec(repoUrl);
-  if (!m || !login || m[1]!.toLowerCase() !== login.toLowerCase()) return null;
-  return m[2]!.replace(/\.git$/, "").toLowerCase();
-}
-
-const byFeatured = <T extends { featured: boolean }>(list: T[]) =>
-  list
-    .map((item, i) => ({ item, i }))
-    .sort((a, b) => Number(b.item.featured) - Number(a.item.featured) || a.i - b.i)
-    .map(({ item }) => item);
-
-/** "Platform / Web Application" → ["Platform", "Web app"] (badge text only; the table keeps the full words). */
-export function categoryParts(category: string): string[] {
-  return category
-    .split("/")
-    .map((part) => part.trim().replace(/\bapplications?\b/i, "app"))
-    .filter(Boolean);
-}
-
-export function companyRows(content: Content): TableRow[] {
-  return byFeatured(content.company.projects.filter((p: CompanyProject) => p.published)).map((p) => {
-    const segments: BadgeSegment[] = [];
-    if (p.featured) segments.push({ text: "Featured", tone: "accent" });
-    for (const part of categoryParts(p.category)) segments.push({ text: part, tone: "text" });
-    if (!segments.length) segments.push({ text: content.company.shortName || "Client", tone: "text" });
-    return {
-      id: `utotech-${p.id}`,
-      name: p.name,
-      url: linkHref(content, p.url) || sectionUrl(content, "utotech"),
-      about: en(p.summary),
-      extras: [],
-      badge: { segments, stars: null },
-    };
-  });
-}
-
-/** Published projects done for clients (group "client"; often under NDA, so text only). */
+/** Published projects done for clients (group "client"). The README only counts them (hero chips). */
 export function clientProjects(content: Content): Project[] {
   return content.projects.filter((p) => p.published && p.group === "client");
 }
 
-/** Published projects of my own (every group except "client"). */
+/** Published projects of my own (every group except "client"). The README only counts them (hero chips). */
 export function ownProjects(content: Content): Project[] {
   return content.projects.filter((p) => p.published && p.group !== "client");
-}
-
-/** Rows for client projects from the projects list: text only, every badge says "Client". */
-export function clientProjectRows(content: Content): TableRow[] {
-  return byFeatured(clientProjects(content)).map((p) => {
-    return {
-      id: `client-${p.id}`,
-      name: p.name,
-      url: linkHref(content, p.url) || linkHref(content, p.repo) || sectionUrl(content, "projects"),
-      about: [en(p.description), p.tags.join(", ")].filter(Boolean).join(" · "),
-      extras: [],
-      badge: {
-        segments: [{ text: "Client", tone: "accent" as const }, ...(p.year ? [{ text: p.year, tone: "led" as const }] : [])],
-        stars: null,
-      },
-    };
-  });
-}
-
-/** First `max` rows and how many were left out (so the README can say so). */
-export function capRows<T>(rows: T[], max: number): { shown: T[]; more: number } {
-  const limit = Math.max(1, Math.floor(max));
-  return { shown: rows.slice(0, limit), more: Math.max(0, rows.length - limit) };
-}
-
-export function projectRows(content: Content, gh: GithubStats | null): TableRow[] {
-  const list = ownProjects(content);
-  const sorted = list
-    .map((item, i) => ({ item, i }))
-    .sort(
-      (a, b) =>
-        Number(b.item.featured) - Number(a.item.featured) ||
-        (b.item.year || "").localeCompare(a.item.year || "") ||
-        a.i - b.i,
-    )
-    .map(({ item }) => item);
-  return sorted.map((p) => {
-    const repo = repoName(p.repo, gh?.login);
-    const stars = repo && gh ? (gh.repoStars[repo] ?? null) : null;
-    const main = linkHref(content, p.repo) || linkHref(content, p.url) || sectionUrl(content, "projects");
-    const extras: TableRow["extras"] = [];
-    const demo = linkHref(content, p.url);
-    if (demo && demo !== main) extras.push({ label: "demo", url: demo });
-    return {
-      id: `project-${p.id}`,
-      name: p.name,
-      url: main,
-      about: [en(p.description), p.tags.join(", ")].filter(Boolean).join(" · "),
-      extras,
-      badge: {
-        segments: [
-          ...(p.year ? [{ text: p.year, tone: "led" as const }] : []),
-          { text: GROUP_LABEL[p.group], tone: "text" as const },
-        ],
-        stars,
-      },
-    };
-  });
 }
 
 /** Skill groups, most confident first (stable for equal levels). */

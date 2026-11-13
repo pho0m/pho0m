@@ -154,11 +154,11 @@ describe("login", () => {
         ...(origin !== undefined ? { Origin: origin } : {}),
       },
     });
-    for (const origin of ["https://evil.example", "null", "https://kiattiphoom-pho0m.web.app.evil.example"]) {
+    for (const origin of ["https://evil.example", "null", "https://kiattiphoom-pho0m.pages.dev.evil.example"]) {
       const res = await h.app.request("/api/auth/login", req(origin));
       expect(res.status, origin).toBe(403);
     }
-    expect((await h.app.request("/api/auth/login", req("https://kiattiphoom-pho0m.web.app"))).status).toBe(200);
+    expect((await h.app.request("/api/auth/login", req("https://kiattiphoom-pho0m.pages.dev"))).status).toBe(200);
     expect((await h.app.request("/api/auth/login", req("http://localhost:5173"))).status).toBe(200);
     expect((await h.app.request("/api/auth/login", req())).status).toBe(200);
   });
@@ -846,8 +846,8 @@ describe("CORS", () => {
     expect(ok.headers.get("access-control-expose-headers")).toContain("Retry-After");
     expect(ok.headers.get("vary")).toContain("Origin");
 
-    const prod = await h.app.request("/api/health", { headers: { Origin: "https://kiattiphoom-pho0m.web.app" } });
-    expect(prod.headers.get("access-control-allow-origin")).toBe("https://kiattiphoom-pho0m.web.app");
+    const prod = await h.app.request("/api/health", { headers: { Origin: "https://kiattiphoom-pho0m.pages.dev" } });
+    expect(prod.headers.get("access-control-allow-origin")).toBe("https://kiattiphoom-pho0m.pages.dev");
 
     const evil = await h.app.request("/api/health", { headers: { Origin: "https://evil.example" } });
     expect(evil.status).toBe(200);
@@ -859,13 +859,13 @@ describe("CORS", () => {
     const res = await h.app.request("/api/content", {
       method: "OPTIONS",
       headers: {
-        Origin: "https://kiattiphoom-pho0m.firebaseapp.com",
+        Origin: "https://kiattiphoom-pho0m.pages.dev",
         "Access-Control-Request-Method": "PUT",
         "Access-Control-Request-Headers": "authorization,content-type",
       },
     });
     expect(res.status).toBe(204);
-    expect(res.headers.get("access-control-allow-origin")).toBe("https://kiattiphoom-pho0m.firebaseapp.com");
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://kiattiphoom-pho0m.pages.dev");
     expect(res.headers.get("access-control-allow-methods")).toContain("PUT");
     expect(res.headers.get("access-control-allow-headers")?.toLowerCase()).toContain("authorization");
     expect(res.headers.get("access-control-allow-credentials")).toBeNull();

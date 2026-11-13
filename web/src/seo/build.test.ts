@@ -701,3 +701,18 @@ describe("no doubled full stops in generated text", () => {
     expect(ld).not.toMatch(/[A-Za-z)]\.\.(?!\.)/);
   });
 });
+
+describe("SITE_URL override", async () => {
+  const { withSiteUrl, buildSitemap: sm } = await import("./build.ts");
+  it("replaces site.url with an https origin and ignores anything else", () => {
+    expect(withSiteUrl(seed, "https://example.pages.dev/").content.site.url).toBe("https://example.pages.dev");
+    expect(sm(withSiteUrl(seed, "https://pho0m.dev").content)).toContain("<loc>https://pho0m.dev/</loc>");
+    for (const bad of ["http://x.dev", "javascript:alert(1)", "https://x.dev/path"]) {
+      const r = withSiteUrl(seed, bad);
+      expect(r.content.site.url).toBe(seed.site.url);
+      expect(r.warning).toBeTruthy();
+    }
+    expect(withSiteUrl(seed, "").content).toBe(seed);
+    expect(withSiteUrl(seed, undefined).warning).toBeUndefined();
+  });
+});

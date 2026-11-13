@@ -6,6 +6,9 @@
  * otherwise content/seed.json — so CI builds bake in the latest edits. Only the public projection
  * of that content is baked (buildSiteFiles applies publicProjection).
  *
+ * SITE_URL (e.g. https://kiattiphoom-pho0m.pages.dev or a custom domain) overrides content.site.url, so
+ * canonical, hreflang, Open Graph, sitemap.xml and llms.txt point at where the site is deployed.
+ *
  * SEO_REQUIRE_LIVE_CONTENT=1 (set by deploy.yml for content refreshes) turns "could not read the
  * live content" into a failed build instead of quietly baking the seed. A 404 is not a failure:
  * nothing has been saved from /admin yet, so the seed is the live content.
@@ -15,7 +18,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseContent, type Content } from "@pho0m/content";
 import { seed } from "@pho0m/content/seed";
-import { buildSiteFiles } from "./build.ts";
+import { buildSiteFiles, withSiteUrl } from "./build.ts";
 
 const dist = fileURLToPath(new URL("../../dist/", import.meta.url));
 const FETCH_TIMEOUT_MS = 20_000;
@@ -47,7 +50,11 @@ async function loadContent(): Promise<Loaded> {
   return { content: seed, source: "content/seed.json (live content unavailable)", problem };
 }
 
-const { content, source, problem } = await loadContent();
+const loaded = await loadContent();
+const { source, problem } = loaded;
+const site = withSiteUrl(loaded.content, process.env.SITE_URL);
+if (site.warning) console.warn(`[seo] ${site.warning}`);
+const content = site.content;
 if (problem) {
   if (process.env.SEO_REQUIRE_LIVE_CONTENT === "1") {
     console.error(`[seo] ${problem}`);
@@ -65,7 +72,7 @@ for (const [path, text] of Object.entries(files)) {
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, text);
 }
-// For the CI run summary only; dot files are not deployed (firebase.json "ignore": "**/.*").
-const note = `${source}, content updatedAt ${content.updatedAt || "unknown"}`;
-await writeFile(`${dist}.seo-source`, `${note}\n`);
+// For the CI run summary only. Written next to dist (not inside it) so it is never deployed.
+const note = `${source}, site ${content.site.url}, content updatedAt ${content.updatedAt || "unknown"}`;
+await writeFile(fileURLToPath(new URL("../../.seo-source", import.meta.url)), `${note}\n`);
 console.log(`[seo] wrote ${Object.keys(files).join(", ")} (content: ${note})`);

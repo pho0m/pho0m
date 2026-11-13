@@ -5,17 +5,16 @@ import { join } from "node:path";
 import { XMLValidator } from "fast-xml-parser";
 import { spritePixels, timelineFrames, type IconName } from "@pho0m/content";
 import { beforeAll, describe, expect, it } from "vitest";
-import { FILM_CARD_FRAMES, FILM_GIF_FRAMES, GENERATED_FILE, MAX_TABLE_ROWS, SVG_BUDGET, type Output } from "../src/generate.ts";
+import { FILM_CARD_FRAMES, FILM_GIF_FRAMES, GENERATED_FILE, SVG_BUDGET, type Output } from "../src/generate.ts";
 import { heroStats, type GithubStats } from "../src/model.ts";
 import { heroChips } from "../src/svg/hero.ts";
 import { PANEL_GUTTER, PANEL_W } from "../src/svg/panels.ts";
 import { GIF_BUDGET, GIF_H, GIF_W, gifTimeline } from "../src/gif/film.ts";
-import { WAKA_END, WAKA_START } from "../src/readme.ts";
 import { MOTION_QUERY } from "../src/svg/motion.ts";
 import { apply } from "../src/write.ts";
-import { README_SAMPLE, WAKA_SAMPLE, clone, outsideMotionQuery, parseGif, referencedAssets, run, styleOf } from "./helpers.ts";
+import { clone, outsideMotionQuery, parseGif, referencedAssets, run, styleOf } from "./helpers.ts";
 
-const GH: GithubStats = { login: "pho0m", publicRepos: 42, followers: 37, stars: 43, repoStars: {} };
+const GH: GithubStats = { login: "pho0m", publicRepos: 42, followers: 37, stars: 43 };
 
 let out: Output;
 beforeAll(async () => {
@@ -30,8 +29,20 @@ describe("generated SVGs", () => {
       const twin = name.endsWith("-dark.svg") ? name.replace(/-dark\.svg$/, "-light.svg") : name.replace(/-light\.svg$/, "-dark.svg");
       expect(out.files.has(twin), `${name} has no ${twin}`).toBe(true);
     }
-    for (const base of ["hero", "film-latest", "utotech", "band-film", "band-utotech", "band-projects", "band-skills", "panel-diary", "panel-docs", "roll-end"]) {
+    for (const base of ["hero", "film-latest", "band-film", "band-skills", "panel-diary", "panel-docs"]) {
       expect(out.files.has(`${base}-dark.svg`), base).toBe(true);
+    }
+  });
+
+  it("no longer makes the company card, the project bands and badges, or the end-of-roll strip", () => {
+    for (const base of ["utotech", "band-utotech", "band-projects", "roll-end"]) {
+      expect(out.files.has(`${base}-dark.svg`), base).toBe(false);
+      expect(out.files.has(`${base}-light.svg`), base).toBe(false);
+    }
+    for (const name of out.files.keys()) expect(name, name).not.toMatch(/^(utotech|badge|roll)-/);
+    // the old names still match GENERATED_FILE, so leftovers in the folder are cleaned up as stale
+    for (const old of ["utotech-dark.svg", "band-projects-light.svg", "badge-project-seyes-dark.svg", "roll-end-light.svg"]) {
+      expect(GENERATED_FILE.test(old), old).toBe(true);
     }
   });
 
@@ -54,7 +65,9 @@ describe("generated SVGs", () => {
     }
     expect(out.files.get("hero-dark.svg")).toContain("data:image/png;base64,");
     expect(out.files.get("hero-dark.svg")).toContain("data:font/woff2;base64,");
-    expect(out.files.get("utotech-light.svg")).toContain("data:image/webp;base64,");
+    // the company logo is embedded in its pill button and footer link
+    expect(out.files.get("btn-utotech-light.svg")).toContain("data:image/webp;base64,");
+    expect(out.files.get("link-company-light.svg")).toContain("data:image/webp;base64,");
   });
 
   it("gives the light and dark variants different palettes", () => {
@@ -73,7 +86,7 @@ describe("generated SVGs", () => {
         groups++;
       }
     }
-    expect(groups).toBe(4);
+    expect(groups).toBe(2); // film and skills
   });
 
   it("prints the latest frames on the film card as clear duotone prints with their developing dithers", () => {
@@ -91,33 +104,38 @@ describe("generated SVGs", () => {
     const content = clone();
     const last = timelineFrames(content).at(-1)!;
     last.title = { th: "", en: `A & B <C> "D"` };
-    content.projects[0]!.name = `Pipe | <b>bold</b> & co`;
-    content.company.name.en = `Uto & <Tech>`;
+    content.profile.role = { th: "", en: `CEO & <Boss>` };
+    content.skills[0]!.items[0]!.name = `Pipe | <b>bold</b> & co`;
+    content.diary.entries[0]!.title = { th: "", en: `Uto & <Tech>` };
+    content.documents.find((d) => d.url.trim())!.title = { th: "", en: `Slides "v2" <final>` };
+    content.profile.links.push({ kind: "website", label: `Blog "<i>x</i>"`, url: "https://blog.example/" });
     const o = await run({ content });
     for (const [name, svg] of o.files) expect(XMLValidator.validate(svg), name).toBe(true);
+    // the cards
     const film = o.files.get("film-latest-light.svg")!;
     expect(film).toContain("A &amp; B &lt;C&gt; &quot;D&quot;");
     expect(film).not.toContain("<C>");
-    expect(o.files.get("utotech-dark.svg")).toContain("Uto &amp; &lt;Tech&gt;");
-    expect(o.readme).not.toContain("<C>");
-    expect(o.readme).not.toContain("<b>bold</b>");
-    expect(o.readme).toContain("Pipe \\| &lt;b&gt;bold&lt;/b&gt; &amp; co");
+    expect(o.files.get("hero-dark.svg")).toContain("CEO &amp; &lt;Boss&gt;");
+    const skills = [...o.files].filter(([name]) => name.startsWith("skills-")).map(([, svg]) => svg).join("");
+    expect(skills).toContain("&lt;b&gt;bold&lt;/b&gt; &amp; co");
+    expect(skills).not.toContain("<b>bold</b>");
+    expect(o.files.get("panel-diary-dark.svg")).toContain("Uto &amp; &lt;Tech&gt;");
+    expect(o.files.get("panel-docs-dark.svg")).toContain("Slides &quot;v2&quot; &lt;final&gt;");
+    expect(o.files.get("btn-blog-i-x-i-dark.svg")).toContain("Blog &quot;&lt;i&gt;x&lt;/i&gt;&quot;");
+    // the README: every piece of content text sits in an attribute, escaped
+    for (const raw of ["<C>", "<Boss>", "<b>bold</b>", "<Tech>", "<final>", "<i>x</i>"]) expect(o.readme, raw).not.toContain(raw);
+    expect(o.readme).toContain("A &amp; B &lt;C&gt; &quot;D&quot;"); // GIF and film card alt
+    expect(o.readme).toContain("CEO &amp; &lt;Boss&gt;"); // hero alt
+    expect(o.readme).toContain("Pipe | &lt;b&gt;bold&lt;/b&gt; &amp; co"); // skills alt
+    expect(o.readme).toContain("Uto &amp; &lt;Tech&gt;"); // diary alt
+    expect(o.readme).toContain("Slides &quot;v2&quot; &lt;final&gt;"); // documents alt
+    expect(o.readme).toContain('alt="Blog &quot;&lt;i&gt;x&lt;/i&gt;&quot;"'); // profile button
   });
 });
 
 describe("README.md", () => {
-  it("keeps the WakaTime block byte-for-byte inside a <details>", () => {
-    expect(README_SAMPLE).toContain(WAKA_SAMPLE);
-    expect(out.readme).toContain(`<details>\n<summary>Current languages (WakaTime)</summary>\n\n${WAKA_SAMPLE}\n\n</details>`);
-    expect(out.readme.split(WAKA_START)).toHaveLength(2);
-    expect(out.readme.split(WAKA_END)).toHaveLength(2);
-  });
-
-  it("creates an empty WakaTime block when the markers are missing", async () => {
-    for (const currentReadme of [null, "# Hello\n\nno markers here\n"]) {
-      const o = await run({ currentReadme });
-      expect(o.readme).toContain(`${WAKA_START}\n${WAKA_END}`);
-    }
+  it("has no WakaTime block (WakaTime was removed)", () => {
+    expect(out.readme).not.toMatch(/SECTION:waka|WakaTime/);
   });
 
   it("uses <picture> with a dark source and a light <img> for every card", () => {
@@ -128,58 +146,50 @@ describe("README.md", () => {
     }
   });
 
-  it("links sections of the live site and lists every published project when the tables are not capped", async () => {
+  it("links the sections of the live site that the README shows, in order", () => {
     const site = clone().site.url;
-    for (const id of ["top", "film", "projects", "skills", "diary", "documents"]) expect(out.readme).toContain(`${site}/#${id}`);
-    const c = clone();
-    const all = await run({ maxRows: 1000 });
-    for (const p of c.projects.filter((x) => x.published)) expect(all.readme).toContain(`[${p.name}]`);
-    for (const p of c.company.projects.filter((x) => x.published)) expect(all.readme).toContain(`[${p.name}]`);
-    expect(all.readme).not.toMatch(/\*\*\+\d+ more\*\*/);
+    const ids = ["top", "film", "skills", "diary", "documents"];
+    for (const id of ids) expect(out.readme).toContain(`${site}/#${id}`);
+    const at = ids.map((id) => out.readme.indexOf(`${site}/#${id}"`));
+    expect(at).toEqual([...at].sort((a, b) => a - b));
+    // the skills band is now section 02, right after the film
+    expect(out.files.get("band-skills-dark.svg")).toContain(">02</text>");
+    expect(out.files.get("band-film-dark.svg")).toContain(">01</text>");
   });
 
-  it("caps long project tables and says how many more there are, with a link to the site", async () => {
+  it("has no Utotech card, no Projects section and no end-of-roll strip", () => {
+    const c = clone();
+    for (const gone of ["/#utotech", "/#projects", "| Project |", "**Client work**", "**My own projects**", `**${c.company.shortName} projects**`, "more** projects", "END OF ROLL", "assets/readme/badge-", "assets/readme/roll-end-", "assets/readme/utotech-", "assets/readme/band-projects-", "assets/readme/band-utotech-", 'alt="Projects —', 'alt="Utotech —']) {
+      expect(out.readme, gone).not.toContain(gone);
+    }
+    expect(out.readme).not.toMatch(/\*\*\+\d+ more\*\*/);
+    // no markdown tables or markdown links at all: the README is cards and <a> links only
+    expect(out.readme).not.toMatch(/^\|/m);
+    expect(out.readme).not.toMatch(/\]\(/);
+    // services, prices and customers stay on the site
+    for (const { name } of c.company.customers) expect(out.readme, name).not.toContain(name);
+  });
+
+  it("never lists projects, however many there are (the hero only counts them)", async () => {
     const c = clone();
     const own = c.projects.filter((x) => x.published && x.group !== "client");
-    const client = c.projects.filter((x) => x.published && x.group === "client");
-    // grow the content well past the cap
-    for (let i = 0; i < 30; i++) c.projects.push({ ...structuredClone(own[0]!), id: `extra-${i}`, name: `Extra ${i}`, featured: false });
+    for (let i = 0; i < 30; i++) c.projects.push({ ...structuredClone(own[0]!), id: `extra-${i}`, name: `Extra project ${i}`, featured: false });
     const o = await run({ content: c });
-    const tables = o.readme.split("\n\n").filter((b) => b.startsWith("| Project |"));
-    for (const t of tables) expect(t.split("\n").length - 2).toBeLessThanOrEqual(MAX_TABLE_ROWS);
-    const ownTotal = own.length + 30;
-    expect(o.readme).toContain(`**+${ownTotal - MAX_TABLE_ROWS} more** projects not listed here — [see all ${ownTotal} on the site →](${c.site.url}/#projects)`);
-    if (client.length > MAX_TABLE_ROWS) expect(o.readme).toContain(`**+${client.length - MAX_TABLE_ROWS} more** client projects`);
-    // featured projects always make the cut
-    for (const p of own.filter((x) => x.featured).slice(0, MAX_TABLE_ROWS)) expect(o.readme).toContain(`[${p.name}]`);
+    expect(o.readme).not.toContain("Extra project");
+    expect([...o.files.keys()].filter((name) => /extra/.test(name))).toEqual([]);
+    expect(o.readme).toContain(`${own.length + 30} own projects`);
   });
 
-  it("labels client work clearly and shows it as text only", () => {
-    const c = clone();
-    const client = c.projects.filter((x) => x.published && x.group === "client");
-    if (!client.length) return;
-    expect(out.readme).toContain("**Client work** — built for clients, described in text only.");
-    const section = out.readme.slice(out.readme.indexOf("**Client work**"), out.readme.indexOf("**My own projects**"));
-    expect(section).toContain(`[${client[0]!.name}]`);
-    expect(section).not.toMatch(/\.(png|jpe?g|webp)/i);
-    const badge = out.files.get(`badge-client-${client[0]!.id}-dark.svg`)!;
-    expect(badge).toBeTruthy();
-    expect(badge).toMatch(/client/i);
-  });
-
-  it("counts the company's project list, client work and my own projects separately, each under its own name", () => {
+  it("counts the company's project list, client work and my own projects separately in the hero, each under its own name", () => {
     const c = clone();
     const company = c.company.shortName;
     const companyWork = c.company.projects.filter((x) => x.published);
     const client = c.projects.filter((x) => x.published && x.group === "client");
     const own = c.projects.filter((x) => x.published && x.group !== "client");
-    // the company's list is headed as such, never as client work
-    expect(out.readme).toContain(`**${company} projects**\n\n| Project |`);
     expect(out.readme).not.toMatch(/Client work at|client works|more client/i);
-    const companySection = out.readme.slice(out.readme.indexOf(`**${company} projects**`), out.readme.indexOf("**Client work**"));
-    for (const p of companyWork.slice(0, MAX_TABLE_ROWS)) expect(companySection).toContain(`[${p.name}]`);
-    // band text and hero chips: one number per kind, none of them a sum
-    expect(out.readme).toContain(`Projects — ${companyWork.length} ${company} projects, ${client.length} client projects, and ${own.length} of my own (`);
+    // hero chips and their alt text: one number per kind, none of them a sum
+    expect(out.readme).toContain(`${companyWork.length} ${company} projects, ${client.length} client projects`);
+    expect(out.readme).toContain(`${own.length} own projects`);
     const hero = out.files.get("hero-light.svg")!;
     expect(hero).toContain(`>${companyWork.length}</text>`);
     expect(hero).toContain(`>${company.toUpperCase()} PROJECTS</text>`);
@@ -215,12 +225,14 @@ describe("README.md", () => {
 
   it("shows GitHub numbers only when they are known", async () => {
     expect(out.files.get("hero-dark.svg")).not.toMatch(/STARS|FOLLOWERS/);
-    const o = await run({
-      github: { login: "pho0m", publicRepos: 42, followers: 7, stars: 99, repoStars: { "seyes-app": 5 } },
-    });
+    expect(out.readme).not.toContain("GitHub stars");
+    const o = await run({ github: { login: "pho0m", publicRepos: 42, followers: 7, stars: 99 } });
     expect(o.files.get("hero-dark.svg")).toContain(">99</text>");
     expect(o.files.get("hero-dark.svg")).toContain("STARS");
-    expect(o.readme).toContain("5 GitHub stars");
+    // the hero alt says the same, and it is the only place GitHub numbers appear in the README
+    const heroAlt = o.readme.match(/srcset="assets\/readme\/hero-dark\.svg"><img [^>]*alt="([^"]*)"/)![1]!;
+    expect(heroAlt).toContain("99 GitHub stars");
+    expect(o.readme.match(/GitHub stars/g)).toHaveLength(1);
   });
 
   it("draws the hero chips in a fixed order (company and content numbers before GitHub) and its alt lists exactly those", async () => {
@@ -367,7 +379,7 @@ describe("card animations", () => {
       const outside = outsideMotionQuery(css);
       expect(outside, name).not.toMatch(/@keyframes|animation/);
     }
-    expect(animated).toBeGreaterThanOrEqual(2 + 4 * 2); // hero + film (x2 themes) + the four bands (x2)
+    expect(animated).toBeGreaterThanOrEqual(2 * 2 + 2 * 2); // hero + film, and the film and skills bands, each in two themes
   });
 
   it("animates the hero, the film strip and the band sprites", () => {
