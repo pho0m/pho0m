@@ -130,8 +130,49 @@
   top: -24px;
 }
 .hanger .hang-paper {
+  position: relative;
   padding: 10px;
   transition: box-shadow 0.3s ease;
+}
+/* fresh prints still drip: two drops under each one (the prints themselves hang straight, see .hang) */
+.hanger .hang-paper::before,
+.hanger .hang-paper::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  width: 3px;
+  height: 5px;
+  background: var(--led);
+  box-shadow: 0 0 6px rgba(255, 138, 118, 0.6);
+  opacity: 0;
+  animation: drip 3.8s ease-in infinite;
+  pointer-events: none;
+}
+.hanger .hang-paper::before {
+  left: 32%;
+  animation-delay: calc(var(--i, 0) * -1.3s);
+}
+.hanger .hang-paper::after {
+  left: 71%;
+  animation-delay: calc(var(--i, 0) * -1.3s - 2.1s);
+}
+@keyframes drip {
+  0% {
+    opacity: 0;
+    transform: translateY(-3px) scaleY(0.5);
+  }
+  14% {
+    opacity: 0.95;
+    transform: translateY(0) scaleY(1);
+  }
+  52% {
+    opacity: 0.95;
+    transform: translateY(1px) scaleY(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(34px) scaleY(1);
+  }
 }
 .hanger:hover .hang-paper,
 .hanger:focus-within .hang-paper {
@@ -392,6 +433,152 @@
   margin-top: 2px;
 }
 
+/* ---- darkroom bench (concept A): trays + drying line beside the list ------------------------ */
+.pj-darkroom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.bench {
+  position: sticky;
+  top: calc(var(--bar-h) + env(safe-area-inset-top, 0px) + 16px);
+  z-index: 2;
+}
+.bench-stage {
+  position: relative;
+  background: #0d0202;
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 0 0 4px #0a0101,
+    0 24px 60px rgba(255, 74, 50, 0.1);
+}
+.bench-canvas {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+.bench-timer,
+.bench-count {
+  position: absolute;
+  top: 2.5%;
+  font-size: clamp(16px, 1.7vw, 22px);
+  line-height: 1;
+  color: var(--led);
+  text-shadow: var(--led-glow);
+  pointer-events: none;
+}
+.bench-timer {
+  left: 3%;
+}
+.bench-count {
+  right: 3%;
+}
+.bench-pile {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: clamp(14px, 1.4vw, 19px);
+  line-height: 1;
+  color: var(--paper);
+  pointer-events: none;
+}
+.bench-tray {
+  position: absolute;
+  transform: translateX(-50%);
+  padding-top: 2px;
+  font-size: clamp(13px, 1.3vw, 17px);
+  line-height: 1;
+  color: #7a3a2e;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+.bench-tray[data-on] {
+  color: var(--led);
+  text-shadow: var(--led-glow);
+}
+.bench-now {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 1.6em;
+  margin: 12px 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.bench-group {
+  flex: none;
+  font-size: 18px;
+  color: var(--led);
+}
+.bench-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--paper);
+}
+.pgrid--darkroom {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+/* the card follows its print: still in the box (ahead), on the bench (active), dried (dry) */
+.pgrid--darkroom .pcard {
+  transition:
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+.pgrid--darkroom .pcard[data-state="ahead"] {
+  background: #150303;
+  border-color: #33100c;
+}
+.pgrid--darkroom .pcard[data-state="ahead"] .pcard-name {
+  color: var(--led);
+}
+.pgrid--darkroom .pcard[data-state="active"] {
+  border-color: var(--red);
+  box-shadow:
+    0 0 0 1px var(--red),
+    0 0 32px rgba(255, 74, 50, 0.16);
+}
+.pcard-stages {
+  display: inline-flex;
+  gap: 6px;
+  color: #6b2f25;
+}
+.pcard[data-stage="dev"] .stg--dev,
+.pcard[data-stage="stop"] .stg--stop,
+.pcard[data-stage="fix"] .stg--fix,
+.pcard[data-stage="dry"] .stg--dry,
+.pcard:not([data-state]) .stg--dry {
+  color: var(--led);
+  text-shadow: var(--led-glow);
+}
+.pcard[data-state="active"] .stg {
+  transition: color 0.2s ease;
+}
+@media (max-width: 899px) {
+  .pj-darkroom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  /* a short strip that stays under the top bar while the cards scroll beneath it */
+  .bench {
+    top: calc(var(--bar-h) + env(safe-area-inset-top, 0px));
+    margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter));
+    padding: 8px var(--gutter-r) 8px var(--gutter);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  /* the highlighted card right under the strip already says which project is on the bench */
+  .bench-now {
+    display: none;
+  }
+}
+
 /* ---- skills tier list ---------------------------------------------------------------------- */
 .tiers {
   display: grid;
@@ -431,13 +618,37 @@
   gap: 4px;
   margin: 0 0 8px;
 }
+/* level vials: each "on" vial fills from the bottom, one after another, when the list comes into view */
 .dot {
-  width: 12px;
-  height: 12px;
+  position: relative;
+  width: 11px;
+  height: 17px;
+  overflow: hidden;
   border: 2px solid var(--tier-ink);
 }
-.dot.on {
+.dot.on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
   background: var(--tier-ink);
+}
+.tiers.is-out .dot.on::after {
+  height: 0;
+}
+.tiers.is-in .dot.on::after {
+  animation: vial-fill 0.5s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  animation-delay: calc(var(--row, 0) * 0.12s + var(--k, 1) * 0.16s);
+}
+@keyframes vial-fill {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
 }
 .tier-title {
   margin: 0;
@@ -589,6 +800,88 @@
 .co-card .linkbtn:hover {
   background: var(--red-deep);
 }
+.duties-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* the darkroom timer: its hand runs once round while the duties light up in turn */
+.duty-dial {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #0d0202;
+  box-shadow:
+    inset 0 0 0 2px var(--line-2),
+    0 0 12px rgba(255, 74, 50, 0.2);
+}
+.duty-dial::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px;
+  background: var(--paper);
+}
+.duty-dial i {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 2px;
+  height: 11px;
+  margin-left: -1px;
+  background: var(--red);
+  transform-origin: 50% 100%;
+}
+.duties.is-in .duty-dial i {
+  animation: dial-sweep 3s linear both 0.3s;
+}
+@keyframes dial-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.duties.is-out .duty {
+  opacity: 0.5;
+}
+.duties.is-in .duty {
+  animation: duty-on 0.9s ease both;
+  animation-delay: calc(0.4s + var(--i, 0) * 0.85s);
+}
+.duties.is-in .duty-no {
+  animation: duty-led 0.9s ease both;
+  animation-delay: calc(0.4s + var(--i, 0) * 0.85s);
+}
+@keyframes duty-on {
+  0% {
+    opacity: 0.5;
+  }
+  35% {
+    opacity: 1;
+    border-color: var(--red);
+    box-shadow: 0 0 22px rgba(255, 74, 50, 0.2);
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes duty-led {
+  0% {
+    color: var(--muted);
+    text-shadow: none;
+  }
+  100% {
+    color: var(--led);
+    text-shadow: var(--led-glow);
+  }
+}
 .duty-list {
   display: grid;
   gap: 12px;
@@ -638,7 +931,87 @@
 /* ---- documents --------------------------------------------------------------------------- */
 /* Canva slides shown in place, framed like a projector screen in the darkroom. */
 .slides {
-  margin: 0 0 28px;
+  margin: 22px 0 28px;
+}
+/* the enlarger head over the screen; its lamp warms up and the slide comes into focus once */
+.slides-lamp {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  z-index: 1;
+  width: 84px;
+  height: 14px;
+  margin-left: -42px;
+  background: linear-gradient(#4a1812, #2a0b08);
+  box-shadow:
+    inset 0 -3px 0 var(--led),
+    0 0 0 1px var(--line-2),
+    0 6px 18px rgba(255, 138, 118, 0.35);
+}
+.slides.is-out .slides-lamp {
+  box-shadow:
+    inset 0 -3px 0 #5a1a12,
+    0 0 0 1px var(--line-2);
+}
+.slides.is-in .slides-lamp {
+  animation: lamp-head 1.3s ease-out both;
+}
+@keyframes lamp-head {
+  0%,
+  28% {
+    box-shadow:
+      inset 0 -3px 0 #5a1a12,
+      0 0 0 1px var(--line-2);
+  }
+  18% {
+    box-shadow:
+      inset 0 -3px 0 var(--led),
+      0 0 0 1px var(--line-2),
+      0 6px 18px rgba(255, 138, 118, 0.35);
+  }
+  100% {
+    box-shadow:
+      inset 0 -3px 0 var(--led),
+      0 0 0 1px var(--line-2),
+      0 6px 18px rgba(255, 138, 118, 0.35);
+  }
+}
+.slides.is-out .slides-screen::before {
+  opacity: 0;
+}
+.slides.is-in .slides-screen::before {
+  animation: lamp-on 1.3s ease-out both;
+}
+.slides.is-out .slides-frame {
+  filter: blur(6px) brightness(0.35);
+}
+.slides.is-in .slides-frame {
+  animation: enlarger-focus 1.6s ease-out both 0.25s;
+}
+@keyframes lamp-on {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.7;
+  }
+  28% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes enlarger-focus {
+  0% {
+    filter: blur(6px) brightness(0.35);
+  }
+  60% {
+    filter: blur(1.5px) brightness(0.9);
+  }
+  100% {
+    filter: none;
+  }
 }
 .slides-screen {
   position: relative;
@@ -755,4 +1128,45 @@
 .admin-link:hover,
 .admin-link:focus-visible {
   color: var(--led);
+}
+
+/* Reduced motion: every darkroom touch rests in its finished state. Last in the file so it wins the cascade. */
+@media (prefers-reduced-motion: reduce) {
+  .pgrid--darkroom .pcard {
+    transition: none;
+  }
+  .tiers.is-out .dot.on::after,
+  .tiers.is-in .dot.on::after {
+    height: 100%;
+    animation: none;
+  }
+  .hanger .hang-paper::before,
+  .hanger .hang-paper::after {
+    animation: none;
+  }
+  .duties.is-out .duty,
+  .duties.is-in .duty,
+  .duties.is-in .duty-no,
+  .duties.is-in .duty-dial i {
+    opacity: 1;
+    animation: none;
+  }
+  .slides.is-out .slides-screen::before,
+  .slides.is-in .slides-screen::before {
+    opacity: 1;
+    animation: none;
+  }
+  .slides.is-out .slides-frame,
+  .slides.is-in .slides-frame {
+    filter: none;
+    animation: none;
+  }
+  .slides.is-out .slides-lamp,
+  .slides.is-in .slides-lamp {
+    box-shadow:
+      inset 0 -3px 0 var(--led),
+      0 0 0 1px var(--line-2),
+      0 6px 18px rgba(255, 138, 118, 0.35);
+    animation: none;
+  }
 }

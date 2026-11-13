@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Company, Profile } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { LinkRow, SectionHead } from "../ui/bits.tsx";
@@ -99,7 +100,7 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
               <span className="hang-line" aria-hidden="true" />
               <ul className="hangers" role="list">
                 {c.highlights.map((h, i) => (
-                  <li key={i} className="hanger">
+                  <li key={i} className="hanger" style={{ "--i": i } as CSSProperties}>
                     <span className="peg" aria-hidden="true" />
                     <div className="hang-paper">
                       {h.image ? <Print image={h.image} width={160} aspect={4 / 3} develop reveal /> : null}

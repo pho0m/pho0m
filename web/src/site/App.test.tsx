@@ -79,6 +79,25 @@ describe("public site", () => {
     expect([...top.querySelectorAll(".skill-name")].map((n) => n.textContent)).toEqual(["Go", "NestJS", "AI"]);
   });
 
+  it("puts a decorative darkroom bench beside the project list and marks each card's progress", () => {
+    const { container } = render(<App initial={seed} />);
+    const bench = container.querySelector("#projects .bench")!;
+    expect(bench.getAttribute("aria-hidden")).toBe("true");
+    expect(bench.querySelector("canvas")).not.toBeNull();
+    expect([...bench.querySelectorAll(".bench-tray")].map((x) => x.textContent)).toEqual(["DEV", "STOP", "FIX"]);
+    const cards = [...container.querySelectorAll<HTMLElement>("#projects .pcard")];
+    expect(cards.length).toBe(seed.projects.filter((p) => p.published).length);
+    // jsdom has no layout: every card sits above the gate line, so every print is dry
+    for (const c of cards) {
+      expect(c.dataset.state).toBe("dry");
+      expect(c.dataset.stage).toBe("dry");
+      expect([...c.querySelectorAll(".stg")].map((x) => x.textContent)).toEqual(["DEV", "STOP", "FIX", "DRY"]);
+    }
+    // the other sections start their one-off darkroom animations once on screen
+    for (const sel of ["#skills .tiers", "#diary .duties", "#documents .slides"])
+      expect(container.querySelector(sel)!.classList.contains("is-in"), sel).toBe(true);
+  });
+
   it("only shows the profile phone when it is marked visible", () => {
     const { container } = render(<App initial={seed} />);
     const footer = container.ownerDocument.getElementById("contact")!;

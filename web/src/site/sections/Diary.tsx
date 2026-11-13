@@ -1,12 +1,16 @@
-import { useId } from "react";
+import { useId, useRef, type CSSProperties } from "react";
 import type { Diary as DiaryT, Profile } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { LinkRow, SectionHead } from "../ui/bits.tsx";
 import { hostOf } from "../util.ts";
+import { useNearViewport } from "../hooks.ts";
 
 export function Diary({ diary: d, profile }: { diary: DiaryT; profile: Profile }) {
   const { lang, t } = useLang();
   const base = useId();
+  const dutiesRef = useRef<HTMLDivElement>(null);
+  // the darkroom timer runs once and lights the duties one by one when they come into view
+  const dutiesSeen = useNearViewport(dutiesRef, "0px 0px -20% 0px");
   const co = d.company;
   const dream = t(profile.dream);
 
@@ -68,11 +72,16 @@ export function Diary({ diary: d, profile }: { diary: DiaryT; profile: Profile }
           </article>
 
           {d.duties.length ? (
-            <div className="duties">
-              <h3 className="sub-title">{ui(lang, "หน้าที่ที่ได้รับ", "My duties")}</h3>
+            <div ref={dutiesRef} className={`duties ${dutiesSeen ? "is-in" : "is-out"}`}>
+              <h3 className="sub-title duties-title">
+                {ui(lang, "หน้าที่ที่ได้รับ", "My duties")}
+                <span className="duty-dial" aria-hidden="true">
+                  <i />
+                </span>
+              </h3>
               <ol className="duty-list" role="list">
                 {d.duties.map((x, i) => (
-                  <li key={i} className="duty">
+                  <li key={i} className="duty" style={{ "--i": i } as CSSProperties}>
                     <span className="duty-no lcd" aria-hidden="true">
                       {String(i + 1).padStart(2, "0")}
                     </span>

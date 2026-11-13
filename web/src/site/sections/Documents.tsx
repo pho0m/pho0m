@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { canvaEmbedUrl, type DocumentItem } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { A, LinkRow, SectionHead } from "../ui/bits.tsx";
+import { useNearViewport } from "../hooks.ts";
 
 /**
  * Canva designs among the documents are shown in place (Canva's embed player) like a slide projector;
@@ -30,26 +32,7 @@ export function Documents({ documents }: { documents: DocumentItem[] }) {
           lead={first ? t(first.description) : undefined}
         />
         {slides.map(({ doc, embed }, i) => (
-          <figure key={doc.id} className="slides">
-            {i > 0 ? <h3 className="sub-title">{t(doc.title)}</h3> : null}
-            <div className="slides-screen px">
-              <iframe
-                className="slides-frame"
-                src={embed}
-                title={t(doc.title)}
-                loading="lazy"
-                allow="fullscreen"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            </div>
-            <figcaption className="slides-cap lcd">
-              <span aria-hidden="true">▸ SLIDE {String(i + 1).padStart(2, "0")}</span>
-              <A href={doc.url} className="tlink">
-                {ui(lang, "เปิดใน Canva", "Open in Canva")} <span className="sr-only">{t(doc.title)}</span> ↗
-              </A>
-            </figcaption>
-          </figure>
+          <Slide key={doc.id} doc={doc} embed={embed} index={i} />
         ))}
         {others.length ? (
           <div className="slides-more">
@@ -58,5 +41,34 @@ export function Documents({ documents }: { documents: DocumentItem[] }) {
         ) : null}
       </div>
     </section>
+  );
+}
+
+/** One Canva design under the enlarger: the lamp comes on and the slide comes into focus once it is on screen. */
+function Slide({ doc, embed, index }: { doc: DocumentItem; embed: string; index: number }) {
+  const { lang, t } = useLang();
+  const ref = useRef<HTMLElement>(null);
+  const seen = useNearViewport(ref, "0px 0px -20% 0px");
+  return (
+    <figure ref={ref} className={`slides ${seen ? "is-in" : "is-out"}`}>
+      {index > 0 ? <h3 className="sub-title">{t(doc.title)}</h3> : null}
+      <div className="slides-screen px">
+        <span className="slides-lamp" aria-hidden="true" />
+        <iframe
+          className="slides-frame"
+          src={embed}
+          title={t(doc.title)}
+          loading="lazy"
+          allow="fullscreen"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      </div>
+      <figcaption className="slides-cap lcd">
+        <span aria-hidden="true">▸ SLIDE {String(index + 1).padStart(2, "0")}</span>
+        <A href={doc.url} className="tlink">
+          {ui(lang, "เปิดใน Canva", "Open in Canva")} <span className="sr-only">{t(doc.title)}</span> ↗
+        </A>
+      </figcaption>
+    </figure>
   );
 }
