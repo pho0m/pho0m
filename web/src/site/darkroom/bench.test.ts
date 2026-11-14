@@ -148,3 +148,20 @@ describe("cards", () => {
     expect(timerText(1)).toBe("DRY 00:89");
   });
 });
+
+describe("bench boundaries", () => {
+  it("switches stage exactly at the STAGE_AT marks", () => {
+    const marks = [STAGE_AT.stop, STAGE_AT.fix, STAGE_AT.dry];
+    expect(marks.map(stageAt)).toEqual([1, 2, 3]);
+    expect(marks.map((t) => stageAt(t - 1e-9))).toEqual([0, 1, 2]);
+  });
+  it("keeps the line still until the print leaves FIX", () => {
+    for (let t = 0; t < STAGE_AT.dry; t += 0.01) expect(hungPrints(2 + t, 6, 5).hung.map((h) => h.slot), String(t)).toEqual([0, 1]);
+  });
+  it("hops up between trays, never below the resting height, and stays a dither until FIX", () => {
+    for (const l of layouts) {
+      for (let t = 0.08; t < STAGE_AT.dry; t += 0.005) expect(printPhase(l, t).y, String(t)).toBeLessThanOrEqual(l.printY);
+      expect(printPhase(l, 0.6).clear).toBe(0);
+    }
+  });
+});

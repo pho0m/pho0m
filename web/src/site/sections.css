@@ -134,7 +134,8 @@
   padding: 10px;
   transition: box-shadow 0.3s ease;
 }
-/* fresh prints still drip: two drops under each one (the prints themselves hang straight, see .hang) */
+/* fresh prints still drip: two drops under each one, once, when the line comes into view
+   (the prints themselves hang straight, see .hang) */
 .hanger .hang-paper::before,
 .hanger .hang-paper::after {
   content: "";
@@ -145,33 +146,38 @@
   background: var(--led);
   box-shadow: 0 0 6px rgba(255, 138, 118, 0.6);
   opacity: 0;
-  animation: drip 3.8s ease-in infinite;
   pointer-events: none;
 }
 .hanger .hang-paper::before {
   left: 32%;
-  animation-delay: calc(var(--i, 0) * -1.3s);
 }
 .hanger .hang-paper::after {
   left: 71%;
-  animation-delay: calc(var(--i, 0) * -1.3s - 2.1s);
+}
+.hangers.is-in .hang-paper::before {
+  animation: drip 1.9s ease-in both;
+  animation-delay: calc(0.3s + var(--i, 0) * 0.5s);
+}
+.hangers.is-in .hang-paper::after {
+  animation: drip 1.9s ease-in both;
+  animation-delay: calc(1.2s + var(--i, 0) * 0.5s);
 }
 @keyframes drip {
   0% {
     opacity: 0;
     transform: translateY(-3px) scaleY(0.5);
   }
-  14% {
+  18% {
     opacity: 0.95;
     transform: translateY(0) scaleY(1);
   }
-  52% {
+  55% {
     opacity: 0.95;
     transform: translateY(1px) scaleY(1.35);
   }
   100% {
     opacity: 0;
-    transform: translateY(34px) scaleY(1);
+    transform: translateY(11px) scaleY(1);
   }
 }
 .hanger:hover .hang-paper,
@@ -577,6 +583,19 @@
   .bench-now {
     display: none;
   }
+  /* the strip never takes more than about a quarter of the screen (landscape phones, tablets) */
+  .bench--compact .bench-stage {
+    width: min(100%, calc(min(150px, 24vh) * 320 / 116));
+    width: min(100%, calc(min(150px, 24svh) * 320 / 116));
+    margin-inline: auto;
+  }
+  .bench--compact .bench-pile {
+    font-size: 12px;
+  }
+  /* keyboard focus and jumps inside the list stop below the strip (--bench-h is set by Bench.tsx) */
+  .pgrid--darkroom :is(a, button) {
+    scroll-margin-top: calc(var(--bench-h, 0px) + 8px);
+  }
 }
 
 /* ---- skills tier list ---------------------------------------------------------------------- */
@@ -629,14 +648,9 @@
 .dot.on::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100%;
+  inset: 0;
   background: var(--tier-ink);
-}
-.tiers.is-out .dot.on::after {
-  height: 0;
+  transform-origin: 50% 100%;
 }
 .tiers.is-in .dot.on::after {
   animation: vial-fill 0.5s cubic-bezier(0.3, 0.7, 0.4, 1) both;
@@ -644,10 +658,10 @@
 }
 @keyframes vial-fill {
   from {
-    height: 0;
+    transform: scaleY(0);
   }
   to {
-    height: 100%;
+    transform: scaleY(1);
   }
 }
 .tier-title {
@@ -848,38 +862,43 @@
     transform: rotate(360deg);
   }
 }
-.duties.is-out .duty {
-  opacity: 0.5;
+/* each duty lights up in turn: it comes up to full strength and a red frame flashes round it */
+.duty {
+  position: relative;
+}
+.duty::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--red);
+  box-shadow: 0 0 22px rgba(255, 74, 50, 0.2);
+  opacity: 0;
+  pointer-events: none;
 }
 .duties.is-in .duty {
   animation: duty-on 0.9s ease both;
   animation-delay: calc(0.4s + var(--i, 0) * 0.85s);
 }
-.duties.is-in .duty-no {
-  animation: duty-led 0.9s ease both;
+.duties.is-in .duty::after {
+  animation: duty-flash 0.9s ease both;
   animation-delay: calc(0.4s + var(--i, 0) * 0.85s);
 }
 @keyframes duty-on {
   0% {
     opacity: 0.5;
   }
-  35% {
-    opacity: 1;
-    border-color: var(--red);
-    box-shadow: 0 0 22px rgba(255, 74, 50, 0.2);
-  }
+  35%,
   100% {
     opacity: 1;
   }
 }
-@keyframes duty-led {
-  0% {
-    color: var(--muted);
-    text-shadow: none;
-  }
+@keyframes duty-flash {
+  0%,
   100% {
-    color: var(--led);
-    text-shadow: var(--led-glow);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
   }
 }
 .duty-list {
@@ -933,6 +952,9 @@
 .slides {
   margin: 22px 0 28px;
 }
+.slides-rig {
+  position: relative;
+}
 /* the enlarger head over the screen; its lamp warms up and the slide comes into focus once */
 .slides-lamp {
   position: absolute;
@@ -947,11 +969,6 @@
     inset 0 -3px 0 var(--led),
     0 0 0 1px var(--line-2),
     0 6px 18px rgba(255, 138, 118, 0.35);
-}
-.slides.is-out .slides-lamp {
-  box-shadow:
-    inset 0 -3px 0 #5a1a12,
-    0 0 0 1px var(--line-2);
 }
 .slides.is-in .slides-lamp {
   animation: lamp-head 1.3s ease-out both;
@@ -976,14 +993,8 @@
       0 6px 18px rgba(255, 138, 118, 0.35);
   }
 }
-.slides.is-out .slides-screen::before {
-  opacity: 0;
-}
 .slides.is-in .slides-screen::before {
   animation: lamp-on 1.3s ease-out both;
-}
-.slides.is-out .slides-frame {
-  filter: blur(6px) brightness(0.35);
 }
 .slides.is-in .slides-frame {
   animation: enlarger-focus 1.6s ease-out both 0.25s;
@@ -1130,43 +1141,51 @@
   color: var(--led);
 }
 
+/* Before a darkroom touch has run: only on screens that allow motion, so print and reduced motion
+   always show the finished state. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .tiers.is-out .dot.on::after {
+    transform: scaleY(0);
+  }
+  .duties.is-out .duty {
+    opacity: 0.5;
+  }
+  .slides.is-out .slides-lamp {
+    box-shadow:
+      inset 0 -3px 0 #5a1a12,
+      0 0 0 1px var(--line-2);
+  }
+  .slides.is-out .slides-screen::before {
+    opacity: 0;
+  }
+  .slides.is-out .slides-frame {
+    filter: blur(6px) brightness(0.35);
+  }
+}
+
 /* Reduced motion: every darkroom touch rests in its finished state. Last in the file so it wins the cascade. */
 @media (prefers-reduced-motion: reduce) {
   .pgrid--darkroom .pcard {
     transition: none;
   }
-  .tiers.is-out .dot.on::after,
   .tiers.is-in .dot.on::after {
-    height: 100%;
     animation: none;
   }
-  .hanger .hang-paper::before,
-  .hanger .hang-paper::after {
+  .hangers.is-in .hang-paper::before,
+  .hangers.is-in .hang-paper::after {
     animation: none;
   }
-  .duties.is-out .duty,
   .duties.is-in .duty,
-  .duties.is-in .duty-no,
   .duties.is-in .duty-dial i {
-    opacity: 1;
     animation: none;
   }
-  .slides.is-out .slides-screen::before,
-  .slides.is-in .slides-screen::before {
-    opacity: 1;
+  .duties.is-in .duty::after {
+    opacity: 0;
     animation: none;
   }
-  .slides.is-out .slides-frame,
-  .slides.is-in .slides-frame {
-    filter: none;
-    animation: none;
-  }
-  .slides.is-out .slides-lamp,
+  .slides.is-in .slides-screen::before,
+  .slides.is-in .slides-frame,
   .slides.is-in .slides-lamp {
-    box-shadow:
-      inset 0 -3px 0 var(--led),
-      0 0 0 1px var(--line-2),
-      0 6px 18px rgba(255, 138, 118, 0.35);
     animation: none;
   }
 }

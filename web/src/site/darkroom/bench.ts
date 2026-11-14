@@ -62,7 +62,7 @@ export function benchLayout(compact: boolean): BenchLayout {
       pegX0: 10,
       pegX1: W - 10 - 34 - 40,
       pegs: 5,
-      pile: { x: W - 44, y: 26 },
+      pile: { x: W - 44, y: 22 },
       benchY: 104,
       clock: null,
       shelf: null,

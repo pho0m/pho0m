@@ -52,16 +52,19 @@ function Slide({ doc, embed, index }: { doc: DocumentItem; embed: string; index:
   return (
     <figure ref={ref} className={`slides ${seen ? "is-in" : "is-out"}`}>
       {index > 0 ? <h3 className="sub-title">{t(doc.title)}</h3> : null}
-      <div className="slides-screen px">
+      {/* the lamp sits outside the screen: .px clips everything outside its box */}
+      <div className="slides-rig">
         <span className="slides-lamp" aria-hidden="true" />
-        <iframe
-          className="slides-frame"
-          src={embed}
-          title={t(doc.title)}
-          loading="lazy"
-          allow="fullscreen"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        <div className="slides-screen px">
+          <iframe
+            className="slides-frame"
+            src={embed}
+            title={t(doc.title)}
+            loading="lazy"
+            allow="fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
       </div>
       <figcaption className="slides-cap lcd">
         <span aria-hidden="true">▸ SLIDE {String(index + 1).padStart(2, "0")}</span>

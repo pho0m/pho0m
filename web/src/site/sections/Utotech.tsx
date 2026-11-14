@@ -1,13 +1,17 @@
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import type { Company, Profile } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
 import { LinkRow, SectionHead } from "../ui/bits.tsx";
 import { Print } from "../ui/Print.tsx";
 import { paragraphs, telHref } from "../util.ts";
+import { useNearViewport } from "../hooks.ts";
 
 export function Utotech({ company: c, profile }: { company: Company; profile: Profile }) {
   const { lang, t } = useLang();
   const projects = c.projects.filter((p) => p.published);
+  const hangersRef = useRef<HTMLUListElement>(null);
+  // the fresh prints drip a couple of times when the line comes into view, then hang still
+  const hangersSeen = useNearViewport(hangersRef, "0px 0px -20% 0px");
 
   const facts: { k: string; v: string; note?: string }[] = [];
   if (c.founded) facts.push({ k: ui(lang, "ก่อตั้ง", "FOUNDED"), v: c.founded, note: t(c.foundedNote) });
@@ -98,7 +102,7 @@ export function Utotech({ company: c, profile }: { company: Company; profile: Pr
             <p className="sub-hint lcd">{ui(lang, "ชี้หรือแตะภาพเพื่อดูสีจริง", "Hover or tap a print to see the colour photo")}</p>
             <div className="line-wrap">
               <span className="hang-line" aria-hidden="true" />
-              <ul className="hangers" role="list">
+              <ul ref={hangersRef} className={`hangers ${hangersSeen ? "is-in" : "is-out"}`} role="list">
                 {c.highlights.map((h, i) => (
                   <li key={i} className="hanger" style={{ "--i": i } as CSSProperties}>
                     <span className="peg" aria-hidden="true" />
