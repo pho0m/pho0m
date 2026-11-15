@@ -44,9 +44,9 @@ describe("urlError (images and the site address)", () => {
     }
   });
   it("requires https:// for the site address (as the schema does)", () => {
-    expect(urlError("https://kiattiphoom-pho0m.pages.dev", { kind: "https", required: true })).toBeUndefined();
-    expect(urlError("http://kiattiphoom-pho0m.pages.dev", { kind: "https" })).toBe(
-      `${HTTPS_ERROR} · เช่น https://kiattiphoom-pho0m.pages.dev`,
+    expect(urlError("https://pho0m.kiattiphoom.workers.dev", { kind: "https", required: true })).toBeUndefined();
+    expect(urlError("http://pho0m.kiattiphoom.workers.dev", { kind: "https" })).toBe(
+      `${HTTPS_ERROR} · เช่น https://pho0m.kiattiphoom.workers.dev`,
     );
     expect(urlError("/", { kind: "https" })).toBe(HTTPS_ERROR);
     expect(urlError("", { kind: "https", required: true })).toBe(REQUIRED_URL);

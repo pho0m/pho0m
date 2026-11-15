@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PROJECT_GROUPS } from "@pho0m/content";
 import { seed } from "@pho0m/content/seed";
-import { badgeTint, groupLabel, hostOf, imgRatio, imgSize, linkCode, linkLabel, monogram, paragraphs, PROJECT_GROUP_LABEL, projectGroups, telHref } from "./util.ts";
+import { badgeTint, groupLabel, hostOf, imgSize, linkCode, linkLabel, monogram, paragraphs, PROJECT_GROUP_LABEL, projectGroups, telHref } from "./util.ts";
 
 describe("monogram", () => {
   it("uses initials, camel capitals or the first two letters", () => {
@@ -80,7 +80,5 @@ describe("image sizes", () => {
     expect(imgSize({ width: 1600, height: 1200 })).toEqual({ width: 1600, height: 1200 });
     expect(imgSize({ width: 1600 })).toEqual({});
     expect(imgSize({})).toEqual({});
-    expect(imgRatio({ width: 400, height: 900 }, "4 / 3")).toBe("400 / 900");
-    expect(imgRatio({}, "4 / 3")).toBe("4 / 3");
   });
 });

@@ -21,7 +21,6 @@ import {
   NO_FLASH_CSS,
   NO_FLASH_SCRIPT,
   pageTitle,
-  parsePrice,
   projectGroups,
 } from "./build.ts";
 
@@ -85,24 +84,22 @@ describe("sitemap.xml", () => {
     expect(s).toContain(`<loc>${seed.site.url}/</loc>`);
     expect(s).toContain('hreflang="en"');
     expect(s).toContain('hreflang="x-default"');
-    expect(s).toContain("<lastmod>2026-11-04</lastmod>");
+    expect(s).toContain(`<lastmod>${seed.updatedAt.slice(0, 10)}</lastmod>`);
   });
 });
 
 describe("JSON-LD", () => {
   const ld = buildJsonLd(seed) as { "@graph": Record<string, unknown>[] };
   const byType = (t: string) => ld["@graph"].find((n) => n["@type"] === t)!;
-  it("describes the person, Utotech, services with prices and projects", () => {
+  it("describes the person, Utotech and the projects (no price list or client list)", () => {
     expect(byType("Person").name).toBe("Kiattiphoom Poonketkit");
     expect(byType("Person").worksFor).toEqual({ "@id": `${seed.site.url}/#utotech` });
     const org = byType("Organization");
     expect(org.name).toBe("Utotech Co., Ltd.");
     expect(org.taxID).toBe("0105565119323");
-    const offers = org.makesOffer as { priceSpecification?: { minPrice: number } }[];
-    expect(offers).toHaveLength(seed.company.services.length);
-    expect(offers[0]!.priceSpecification?.minPrice).toBe(20000);
+    expect(org.makesOffer).toBeUndefined();
     const lists = ld["@graph"].filter((n) => n["@type"] === "ItemList");
-    expect(lists).toHaveLength(2);
+    expect(lists.map((l) => l["@id"])).toEqual([`${seed.site.url}/#projects`]);
   });
   it("never leaks hidden contact details", () => {
     const json = JSON.stringify(ld);
@@ -255,7 +252,9 @@ describe("head + snapshot", () => {
     expect(real).toContain("Utotech Co., Ltd.");
     expect(real).toContain('lang="th"');
     expect(real).toContain("SEYES");
-    expect(real).toContain("Package from 20,000 THB");
+    // the sections taken off the page are not in the snapshot either
+    for (const gone of ["Package from 20,000 THB", "Services and prices", "Working with us", "Customers · ลูกค้า", seed.diary.entries[0]!.body.en.slice(0, 40)])
+      expect(real).not.toContain(gone);
     expect(real).toContain(esc(seed.profile.education[0]!.school.en));
   });
   it("snapshot groups projects like the site, client work included", () => {
@@ -301,29 +300,22 @@ describe("llms.txt", () => {
     expect(s).toContain("- Clinic Dashboard (Client work): A clinic dashboard\n");
     expect(s).toContain("- [Bot Kit](https://github.com/example/bot) (Personal, 2022): A bot\n");
     expect(s).not.toContain("Hidden Draft");
-    expect(buildLlmsTxt(seed)).toContain(`monthly notes, ${diaryRange(seed)}`);
+    expect(buildLlmsTxt(seed)).toContain(`co-op internship, ${diaryRange(seed)}`);
   });
   it("llms-full.txt includes every section, diary text and both languages", () => {
     const s = buildLlmsFull(seed);
-    for (const h of ["## Profile", "## Timeline", "## Projects", "### Client work · งานลูกค้า", "## Skills", "### Services and prices", "### Portfolio"]) expect(s).toContain(h);
+    for (const h of ["## Profile", "## Timeline", "## Projects", "### Client work · งานลูกค้า", "## Skills"]) expect(s).toContain(h);
+    for (const h of ["### Services and prices", "### Portfolio", "### Customers", "### Working with us"]) expect(s).not.toContain(h);
     for (const x of seed.projects.filter((p) => p.published)) expect(s).toContain(`#### ${x.name}`);
     for (const a of awardsOf(seed)) expect(s).toContain(`- Award: ${a}`);
-    expect(s).toContain(seed.diary.entries[0]!.body.en.slice(0, 40));
-    expect(s).toContain(seed.diary.entries[0]!.body.th.slice(0, 20));
+    expect(s).toContain(`**${seed.diary.duties[0]!.title.en}**`);
+    expect(s).not.toContain(seed.diary.entries[0]!.body.en.slice(0, 40));
     expect(s).not.toMatch(/\n{3,}/);
   });
   it("llms-full.txt states the content's updatedAt in the form deploy.yml reads", () => {
     const s = buildLlmsFull(withContent((x) => void (x.updatedAt = "2026-12-01T08:09:10.000Z")));
     // Same pattern as the sed in .github/workflows/deploy.yml ("Is the live site behind the content?").
     expect(s.match(/Last updated: ([^ ]*) /)?.[1]).toBe("2026-12-01T08:09:10.000Z");
-  });
-});
-
-describe("parsePrice", () => {
-  it("reads THB amounts", () => {
-    expect(parsePrice("Package from 20,000 THB")).toBe(20000);
-    expect(parsePrice("Start from 45,000")).toBe(45000);
-    expect(parsePrice("Price upon request")).toBeNull();
   });
 });
 
@@ -580,7 +572,6 @@ describe("unsafe link targets are dropped", () => {
   const bad = (() => {
     const c = withContent((x) => {
       x.projects = PROJECTS;
-      x.company.customers = [{ name: "Acme Customer" }, { name: "Good Customer", url: "https://good.example/" }];
     });
     const js = "javascript:alert(document.domain)";
     c.profile.links = [
@@ -589,11 +580,11 @@ describe("unsafe link targets are dropped", () => {
       { kind: "website", label: "Home", url: "https://ok.example/" },
     ];
     c.profile.avatar = { url: "javascript:alert(2)", alt: { th: "", en: "" } };
-    c.company.customers[0]!.url = "data:text/html,<script>alert(3)</script>";
-    c.company.links = [{ kind: "website", label: "Utotech", url: "vbscript:msgbox(4)" }];
+    c.company.links = [
+      { kind: "website", label: "Utotech", url: "vbscript:msgbox(4)" },
+      { kind: "other", label: "Good", url: "https://good.example/" },
+    ];
     c.company.logo = { url: "data:image/svg+xml,<svg onload=alert(5)>", alt: { th: "", en: "" } };
-    c.company.projects[0]!.url = " javascript:alert(6)";
-    c.company.projects[0]!.cover = { url: "javascript:alert(7)", alt: { th: "", en: "" } };
     c.projects[2]!.repo = "javascript:alert(8)";
     c.projects[0]!.url = "//evil.example/x";
     c.timeline[0]!.links = [{ kind: "demo", label: "Demo", url: "javascript:alert(9)" }];
@@ -620,7 +611,7 @@ describe("unsafe link targets are dropped", () => {
       }
       // The names are still listed, without a link.
       const text = doc.querySelector("#root")!.textContent!;
-      for (const name of ["Acme Customer", "GitHub", "Facebook", bad.company.projects[0]!.name]) expect(text).toContain(name);
+      for (const name of ["GitHub", "Facebook", "Utotech"]) expect(text).toContain(name);
       expect(doc.querySelector('a[href="https://good.example/"]')).not.toBeNull();
       expect(doc.querySelector('a[href="https://ok.example/"]')).not.toBeNull();
     }
@@ -649,9 +640,6 @@ describe("unsafe link targets are dropped", () => {
       expect(UNSAFE.test(text), path).toBe(false);
       for (const m of text.matchAll(/\]\(([^)]*)\)/g)) expect(isSafeUrl(m[1]!), m[1]).toBe(true);
     }
-    expect(files["llms.txt"]).toContain("- Project · ");
-    expect(files["llms-full.txt"]).toContain("- Acme Customer\n");
-    expect(files["llms-full.txt"]).toContain("- Good Customer (https://good.example/)");
     expect(files["llms-full.txt"]).not.toContain("## Documents");
   });
 
@@ -664,7 +652,7 @@ describe("content with $ patterns is inserted literally", () => {
   const PATTERNS = ["$&", "$'", "$`", "$$", "$1", "$<x>"];
   const marked = PATTERNS.map((p, i) => `[${i}]${p}[/${i}]`).join(" ");
   const c = withContent((x) => {
-    x.company.services![0]!.price = { th: `ราคา ${marked}`, en: `from 5,000 THB (${marked} approx)` };
+    x.company.slogan = { th: `สโลแกน ${marked}`, en: `Slogan (${marked} approx)` };
     x.profile.bio.en = `Bio ${marked}`;
     x.profile.name.en = `Kiattiphoom ${marked}`;
     x.site.title = { th: `ชื่อ ${marked}`, en: `Title ${marked}` };
@@ -679,14 +667,14 @@ describe("content with $ patterns is inserted literally", () => {
     expect(p.moduleScripts).toBe(1);
     expect(p.roots).toBe(1);
     expect(strayBodyText(p.doc)).toBe("");
-    // JSON-LD: one block, parseable, price text intact.
+    // JSON-LD: one block, parseable, slogan text intact.
     expect(p.ld).toHaveLength(1);
-    const org = p.graph!["@graph"].find((n) => n["@type"] === "Organization") as { makesOffer: { description: string }[] };
-    expect(org.makesOffer[0]!.description).toBe(c.company.services[0]!.price.en);
+    const org = p.graph!["@graph"].find((n) => n["@type"] === "Organization") as { slogan: string };
+    expect(org.slogan).toBe(c.company.slogan.en);
     // Snapshot text and embedded content intact.
     expect(p.snapshot!.textContent).toContain(`Bio ${marked}`);
-    expect(p.snapshot!.textContent).toContain(c.company.services[0]!.price.en);
-    expect((p.content as Content).company.services[0]!.price).toEqual(c.company.services[0]!.price);
+    expect(p.snapshot!.textContent).toContain(c.company.slogan.en);
+    expect((p.content as Content).company.slogan).toEqual(c.company.slogan);
     expect(parseContent(p.content).ok).toBe(true);
     // Idempotent with these patterns too.
     expect(injectIntoHtml(html, c, lang)).toBe(html);
@@ -694,7 +682,7 @@ describe("content with $ patterns is inserted literally", () => {
 });
 
 describe("no doubled full stops in generated text", () => {
-  it("llms-full.txt and JSON-LD service descriptions never contain '..' after a word", () => {
+  it("llms-full.txt and JSON-LD descriptions never contain '..' after a word", () => {
     const full = buildLlmsFull(seed);
     expect(full).not.toMatch(/[A-Za-z)]\.\.(?!\.)/);
     const ld = JSON.stringify(buildJsonLd(seed));

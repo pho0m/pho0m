@@ -77,3 +77,12 @@ export function slugify(input: string): string {
 }
 
 export const emptyLocalized = (): Localized => ({ th: "", en: "" });
+
+/**
+ * Canva design link → its embed URL (Canva's "Embed" share option), or null when the URL is not
+ * a public Canva design link. https://www.canva.com/design/<id>/<token>/view(?…) → …/view?embed
+ */
+export function canvaEmbedUrl(url: string): string | null {
+  const m = /^https:\/\/(?:www\.)?canva\.com\/design\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)\/(?:view|watch)(?:[/?#].*)?$/.exec(url.trim());
+  return m ? `https://www.canva.com/design/${m[1]}/${m[2]}/view?embed` : null;
+}

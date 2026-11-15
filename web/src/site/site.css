@@ -387,11 +387,6 @@ p {
   font-weight: 600;
   color: var(--red);
 }
-.hero-edu {
-  margin: 0 0 14px;
-  font-size: 18px;
-  color: var(--muted);
-}
 .hero-headline {
   margin: 0 0 10px;
   font-family: var(--font-pixel);
@@ -715,11 +710,6 @@ p {
   font-size: clamp(22px, 2.6vw, 28px);
   line-height: 1.2;
   color: var(--paper);
-}
-.sub-count {
-  font-size: 22px;
-  color: var(--led);
-  vertical-align: 2px;
 }
 .sub-hint {
   margin: -10px 0 18px;

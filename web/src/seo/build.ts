@@ -5,6 +5,7 @@ import {
   isSafeImageUrl,
   isSafeUrl,
   PROJECT_GROUPS,
+  SKILL_LEVEL_MAX,
   publicProjection,
   t,
   timelineFrames,
@@ -204,12 +205,6 @@ export function diaryRange(c: Content): string {
   return `${m1}${y1 && y1 !== y2 ? ` ${y1}` : ""} to ${m2}${y2 ? ` ${y2}` : ""}`;
 }
 
-/** Parse "Package from 20,000 THB" → 20000 (null when no number). */
-export function parsePrice(text: string): number | null {
-  const m = text.replace(/,/g, "").match(/(\d{3,})/);
-  return m ? Number(m[1]) : null;
-}
-
 /* ------------------------------------------------------------------ robots / sitemap */
 
 export function buildRobots(c: Content): string {
@@ -322,7 +317,7 @@ export function buildJsonLd(c: Content, lang: Lang = "th"): Record<string, unkno
   const occupationName = t(co.role, "en") || t(p.role, "en");
   if (occupationName) {
     const roleText = t(p.role, "en");
-    const workReady = c.skills.filter((g) => g.level === 3).flatMap((g) => g.items.map((i) => i.name));
+    const workReady = c.skills.filter((g) => g.level >= 3).flatMap((g) => g.items.map((i) => i.name));
     person.hasOccupation = {
       "@type": "Occupation",
       name: occupationName,
@@ -332,23 +327,6 @@ export function buildJsonLd(c: Content, lang: Lang = "th"): Record<string, unkno
     };
   }
   if (location) person.homeLocation = { "@type": "Country", name: location };
-
-  const offers = co.services.map((s) => {
-    const priceText = t(s.price, "en");
-    const price = parsePrice(priceText);
-    const offer: Record<string, unknown> = {
-      "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: t(s.title, "en"),
-        description: sentences(t(s.subtitle, "en"), t(s.description, "en")),
-        provider: { "@id": orgId },
-      },
-      description: priceText,
-    };
-    if (price !== null) offer.priceSpecification = { "@type": "PriceSpecification", minPrice: price, priceCurrency: "THB" };
-    return offer;
-  });
 
   const org: Record<string, unknown> = {
     "@type": "Organization",
@@ -368,31 +346,9 @@ export function buildJsonLd(c: Content, lang: Lang = "th"): Record<string, unkno
       ? { "@type": "PostalAddress", streetAddress: t(co.contact.officeAddress, "en"), addressCountry: "TH" }
       : undefined,
     employee: { "@id": personId },
-    makesOffer: offers,
   };
   const logo = safeImage(c, co.logo?.url);
   if (logo) org.logo = logo;
-
-  const coProjects = co.projects.filter((x) => x.published);
-  const portfolio = {
-    "@type": "ItemList",
-    "@id": `${base}/#utotech-projects`,
-    name: `${t(co.name, "en")} projects`,
-    numberOfItems: coProjects.length,
-    itemListElement: coProjects.map((x, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "CreativeWork",
-        name: x.name,
-        genre: x.category,
-        description: oneLine(t(x.description, "en") || t(x.summary, "en")),
-        creator: { "@id": orgId },
-        url: safeHref(c, x.url) || undefined,
-        image: safeImage(c, x.cover?.url) || undefined,
-      },
-    })),
-  };
 
   // Every published project, grouped like the site. Code with a public repository is
   // SoftwareSourceCode; everything else (client work, products) is a plain CreativeWork.
@@ -433,7 +389,6 @@ export function buildJsonLd(c: Content, lang: Lang = "th"): Record<string, unkno
     mainEntity: { "@id": personId },
     about: [{ "@id": personId }, { "@id": orgId }],
     hasPart: [
-      ...(coProjects.length ? [{ "@id": `${base}/#utotech-projects` }] : []),
       ...(own.length ? [{ "@id": `${base}/#projects` }] : []),
     ],
     primaryImageOfPage: ogImageUrl(c),
@@ -449,7 +404,7 @@ export function buildJsonLd(c: Content, lang: Lang = "th"): Record<string, unkno
     publisher: { "@id": personId },
   };
 
-  const graph = [website, page, person, org, ...(coProjects.length ? [portfolio] : []), ...(own.length ? [projects] : [])];
+  const graph = [website, page, person, org, ...(own.length ? [projects] : [])];
   // Round-trip drops the `undefined` fields left by optional values.
   return JSON.parse(JSON.stringify({ "@context": "https://schema.org", "@graph": graph })) as Record<string, unknown>;
 }
@@ -477,7 +432,7 @@ export function buildHead(c: Content, lang: Lang = "th"): string {
     t(c.company.name, "en"),
     t(c.company.name, "th"),
     "software house Thailand",
-    ...c.skills.filter((g) => g.level === 3).flatMap((g) => g.items.map((i) => i.name)),
+    ...c.skills.filter((g) => g.level >= 3).flatMap((g) => g.items.map((i) => i.name)),
   ];
   const m = (name: string, content: string) => `<meta name="${name}" content="${esc(content)}" />`;
   const pr = (property: string, content: string) => `<meta property="${property}" content="${esc(content)}" />`;
@@ -581,25 +536,6 @@ export function buildSnapshot(c: Content, lang: Lang = "th"): string {
   out.push(`<p>${facts.join(" · ")}</p>`);
   out.push(`<h3>About · เกี่ยวกับเรา</h3>${P(co.about)}<h3>Mission · ภารกิจ</h3>${P(co.mission)}<h3>Vision · วิสัยทัศน์</h3>${P(co.vision)}<h3>Story · เรื่องราว</h3>${P(co.story)}`);
   if (co.highlights.length) out.push(`<ul>${co.highlights.map((h) => `<li><strong>${T(h.title)}</strong> ${T(h.description)}</li>`).join("")}</ul>`);
-  if (co.workWithUs.length) {
-    out.push(`<h3>Working with us · ทำงานกับเรา</h3>`);
-    for (const w of co.workWithUs) out.push(`<h4>${T(w.title)}</h4><p><strong>${T(w.heading)}</strong></p>${P(w.description)}`);
-  }
-  if (co.services.length) {
-    out.push(`<h3>Services and prices · บริการและราคา</h3><table><thead><tr><th>Service</th><th>Scope</th><th>Description</th><th>Price</th></tr></thead><tbody>`);
-    for (const s of co.services) out.push(`<tr><td>${T(s.title)}</td><td>${T(s.subtitle)}</td><td>${T(s.description)}</td><td>${T(s.price)}</td></tr>`);
-    out.push(`</tbody></table>`);
-  }
-  const ups = co.projects.filter((x) => x.published);
-  if (ups.length) {
-    out.push(`<h3>Projects · ผลงาน</h3>`);
-    for (const x of ups) {
-      out.push(`<article><h4>${link(x.url, x.name)}</h4><p>${esc(x.category)} · ${T(x.summary)}</p>${P(x.description)}`);
-      if (x.features.length) out.push(`<ul>${x.features.map((f) => `<li><strong>${T(f.title)}</strong>: ${T(f.description)}</li>`).join("")}</ul>`);
-      out.push(`</article>`);
-    }
-  }
-  if (co.customers.length) out.push(`<h3>Customers · ลูกค้า</h3><ul>${co.customers.map((x) => `<li>${link(x.url, x.name)}</li>`).join("")}</ul>`);
   const ct = co.contact;
   out.push(`<h3>Contact · ติดต่อ</h3><address>`);
   if (ct.email) out.push(`<p>Email: ${link(`mailto:${ct.email}`, ct.email)}</p>`);
@@ -634,7 +570,7 @@ export function buildSnapshot(c: Content, lang: Lang = "th"): string {
   if (c.skills.length) {
     out.push(`<section id="skills"><h2>Skills · ทักษะ</h2>`);
     for (const g of [...c.skills].sort((a, b) => b.level - a.level)) {
-      out.push(`<h3>${T(g.title)} (${"■".repeat(g.level)}${"□".repeat(3 - g.level)})</h3>${P(g.description)}<p>${esc(g.items.map((i) => i.name).join(", "))}</p>`);
+      out.push(`<h3>${T(g.title)} (${"■".repeat(g.level)}${"□".repeat(Math.max(0, SKILL_LEVEL_MAX - g.level))})</h3>${P(g.description)}<p>${esc(g.items.map((i) => i.name).join(", "))}</p>`);
     }
     out.push(`</section>`);
   }
@@ -646,7 +582,6 @@ export function buildSnapshot(c: Content, lang: Lang = "th"): string {
   if (d.company.address.en || d.company.address.th) out.push(`<p>${T(d.company.address)}</p>`);
   if (d.company.website) out.push(`<p>${link(d.company.website, d.company.website)}</p>`);
   if (d.duties.length) out.push(`<ul>${d.duties.map((x) => `<li><strong>${T(x.title)}</strong>: ${T(x.description)}</li>`).join("")}</ul>`);
-  for (const e of d.entries) out.push(`<article><h4>${T(e.month)} · ${esc(e.period)}</h4><p>${T(e.title)}</p>${P(e.body)}</article>`);
   out.push(`</section>`);
 
   // Documents
@@ -706,10 +641,6 @@ export function buildLlmsTxt(c: Content): string {
   L.push(`## ${t(co.name, "en")}`);
   const web = safeHref(c, co.links.find((l) => l.kind === "website")?.url);
   if (web) L.push(`- [${t(co.name, "en")} website](${web}): ${oneLine(t(co.about, "en"))}`);
-  for (const s of co.services) L.push(`- Service · ${t(s.title, "en")}: ${t(s.subtitle, "en")} (${t(s.price, "en")})`);
-  for (const x of co.projects.filter((y) => y.published)) {
-    L.push(`- ${mdLink(c, `Project · ${x.name}`, x.url)}: ${t(x.summary, "en")}`);
-  }
   if (co.contact.email) L.push(`- Contact: ${co.contact.email}${co.contact.phone ? `, ${co.contact.phone}` : ""}`);
   L.push("");
   L.push("## Projects");
@@ -723,7 +654,7 @@ export function buildLlmsTxt(c: Content): string {
   L.push("");
   L.push("## Optional");
   const range = diaryRange(c);
-  L.push(`- [Co-op diary at ${t(c.diary.company.name, "en")}](${base}/#diary): monthly notes${range ? `, ${range}` : ""}`);
+  L.push(`- [Co-op diary at ${t(c.diary.company.name, "en")}](${base}/#diary): co-op internship${range ? `, ${range}` : ""}`);
   for (const l of p.links) {
     const href = safeHref(c, l.url);
     if (href) L.push(`- [${l.label || l.kind}](${href})`);
@@ -814,37 +745,6 @@ export function buildLlmsFull(c: Content): string {
     h(3, "Highlights");
     para(co.highlights.map((x) => `- ${t(x.title, "en")}: ${oneLine(t(x.description, "en"))}`).join("\n"));
   }
-  if (co.workWithUs.length) {
-    h(3, "Working with us");
-    for (const w of co.workWithUs) para(`**${t(w.title, "en")} · ${t(w.heading, "en")}**\n\n${md(w.description)}`);
-  }
-  if (co.services.length) {
-    h(3, "Services and prices");
-    para(
-      [
-        "| Service | Scope | Description | Price |",
-        "| --- | --- | --- | --- |",
-        ...co.services.map((s) =>
-          `| ${t(s.title, "en")} | ${t(s.subtitle, "en")} | ${oneLine(t(s.description, "en"))} | ${t(s.price, "en")} |`.replace(/\n/g, " "),
-        ),
-      ].join("\n"),
-    );
-  }
-  const ups = co.projects.filter((x) => x.published);
-  if (ups.length) {
-    h(3, "Portfolio");
-    for (const x of ups) {
-      h(4, `${x.name} (${x.category})`);
-      para(md(x.summary));
-      para(md(x.description));
-      if (safeHref(c, x.url)) para(`Demo: ${safeHref(c, x.url)}`);
-      if (x.features.length) para(x.features.map((f) => `- ${t(f.title, "en")}: ${oneLine(t(f.description, "en"))}`).join("\n"));
-    }
-  }
-  if (co.customers.length) {
-    h(3, "Customers");
-    para(co.customers.map((x) => `- ${x.name}${safeHref(c, x.url) ? ` (${safeHref(c, x.url)})` : ""}`).join("\n"));
-  }
   h(3, "Contact");
   const ct = co.contact;
   para(
@@ -878,7 +778,7 @@ export function buildLlmsFull(c: Content): string {
 
   h(2, "Skills");
   for (const g of [...c.skills].sort((a, b) => b.level - a.level)) {
-    h(3, `${t(g.title, "en")} (level ${g.level} of 3)`);
+    h(3, `${t(g.title, "en")} (level ${g.level} of ${SKILL_LEVEL_MAX})`);
     para(md(g.description));
     para(g.items.map((i) => i.name).join(", "));
   }
@@ -897,12 +797,6 @@ export function buildLlmsFull(c: Content): string {
   );
   para(md(d.company.about));
   for (const x of d.duties) para(`**${t(x.title, "en")}**: ${t(x.description, "en")}`);
-  for (const e of d.entries) {
-    h(3, `${t(e.month, "en")} · ${e.period}`);
-    para(md(e.title));
-    para(md(e.body));
-  }
-
   const docs = urlList(c, c.documents.map((x) => [t(x.title, "en"), x.url]));
   if (docs) {
     h(2, "Documents");

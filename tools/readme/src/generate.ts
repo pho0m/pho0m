@@ -1,4 +1,4 @@
-import { publicProjection, timelineFrames, type Content, type IconName } from "@pho0m/content";
+import { SKILL_LEVEL_MAX, publicProjection, timelineFrames, type Content, type IconName } from "@pho0m/content";
 import { subsetSvgFonts } from "./font/subset.ts";
 import { GIF_BUDGET, filmGif } from "./gif/film.ts";
 import { bitsDataUri, grayDataUri, portraitPrints } from "./image/print.ts";
@@ -217,7 +217,7 @@ export async function generate(raw: GenerateInput): Promise<Output> {
   // skills ------------------------------------------------------------------------------------
   md.push(band("skills", 2, "Skills", bands.skills, "star", "skills"));
   for (const g of skillGroups(content)) {
-    const alt = `${en(g.title)} (level ${g.level} of 3): ${g.items.map((i) => i.name).join(", ")}`;
+    const alt = `${en(g.title)} (level ${g.level} of ${SKILL_LEVEL_MAX}): ${g.items.map((i) => i.name).join(", ")}`;
     md.push(picture({ ...render(`skills-${g.id}`, (t) => skillsCard(g, t)), alt }));
   }
 

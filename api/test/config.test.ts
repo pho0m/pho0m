@@ -33,7 +33,7 @@ describe("loadConfig defaults", () => {
     expect(c.adminPassword).toBeNull();
     expect(c.allowedOrigins).toEqual([...DEFAULT_ALLOWED_ORIGINS]);
     expect(c.allowedOrigins).toEqual([
-      "https://kiattiphoom-pho0m.pages.dev",
+      "https://pho0m.kiattiphoom.workers.dev",
       "http://localhost:5173",
       "http://localhost:4173",
     ]);

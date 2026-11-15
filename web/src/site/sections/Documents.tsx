@@ -1,39 +1,77 @@
-import type { DocumentItem } from "@pho0m/content";
+import { useRef } from "react";
+import { canvaEmbedUrl, type DocumentItem } from "@pho0m/content";
 import { ui, useLang } from "../../lib/i18n.tsx";
-import { A, SectionHead } from "../ui/bits.tsx";
-import { Print } from "../ui/Print.tsx";
-import { hostOf } from "../util.ts";
+import { A, LinkRow, SectionHead } from "../ui/bits.tsx";
+import { useNearViewport } from "../hooks.ts";
 
-/** Documents that have a file/link; the section is hidden when none do. */
+/**
+ * Canva designs among the documents are shown in place (Canva's embed player) like a slide projector;
+ * any other document with a link is a plain button under it. Hidden when no document has a link.
+ */
 export function Documents({ documents }: { documents: DocumentItem[] }) {
   const { lang, t } = useLang();
   const docs = documents.filter((d) => d.url.trim());
+  const slides = docs.flatMap((d) => {
+    const embed = canvaEmbedUrl(d.url);
+    return embed ? [{ doc: d, embed }] : [];
+  });
+  const others = docs
+    .filter((d) => !canvaEmbedUrl(d.url))
+    .map((d) => ({ kind: "document" as const, label: t(d.title), url: d.url }));
   if (docs.length === 0) return null;
+  const first = slides[0]?.doc;
+
   return (
     <section id="documents" className="sec documents" aria-labelledby="documents-title">
       <div className="wrap">
         <SectionHead
           no="06"
-          kicker={ui(lang, "ไฟล์และลิงก์", "FILES & LINKS")}
-          title={ui(lang, "เอกสาร", "Documents")}
+          kicker={ui(lang, "ฉายสไลด์ · CANVA", "SLIDE SHOW · CANVA")}
+          title={first ? t(first.title) : ui(lang, "เอกสาร", "Documents")}
           id="documents-title"
+          lead={first ? t(first.description) : undefined}
         />
-        <ul className="docs" role="list">
-          {docs.map((d, i) => (
-            <li key={d.id} className="doc px">
-              {d.image ? <Print image={d.image} width={160} aspect={4 / 3} /> : null}
-              <p className="doc-no lcd" aria-hidden="true">
-                DOC {String(i + 1).padStart(2, "0")} · {hostOf(d.url)}
-              </p>
-              <h3 className="doc-title">{t(d.title)}</h3>
-              {t(d.description) ? <p className="doc-desc">{t(d.description)}</p> : null}
-              <A href={d.url} className="tlink doc-link">
-                {ui(lang, "เปิด", "Open")} <span className="sr-only">{t(d.title)}</span> ↗
-              </A>
-            </li>
-          ))}
-        </ul>
+        {slides.map(({ doc, embed }, i) => (
+          <Slide key={doc.id} doc={doc} embed={embed} index={i} />
+        ))}
+        {others.length ? (
+          <div className="slides-more">
+            <LinkRow links={others} />
+          </div>
+        ) : null}
       </div>
     </section>
+  );
+}
+
+/** One Canva design under the enlarger: the lamp comes on and the slide comes into focus once it is on screen. */
+function Slide({ doc, embed, index }: { doc: DocumentItem; embed: string; index: number }) {
+  const { lang, t } = useLang();
+  const ref = useRef<HTMLElement>(null);
+  const seen = useNearViewport(ref, "0px 0px -20% 0px");
+  return (
+    <figure ref={ref} className={`slides ${seen ? "is-in" : "is-out"}`}>
+      {index > 0 ? <h3 className="sub-title">{t(doc.title)}</h3> : null}
+      {/* the lamp sits outside the screen: .px clips everything outside its box */}
+      <div className="slides-rig">
+        <span className="slides-lamp" aria-hidden="true" />
+        <div className="slides-screen px">
+          <iframe
+            className="slides-frame"
+            src={embed}
+            title={t(doc.title)}
+            loading="lazy"
+            allow="fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </div>
+      <figcaption className="slides-cap lcd">
+        <span aria-hidden="true">▸ SLIDE {String(index + 1).padStart(2, "0")}</span>
+        <A href={doc.url} className="tlink">
+          {ui(lang, "เปิดใน Canva", "Open in Canva")} <span className="sr-only">{t(doc.title)}</span> ↗
+        </A>
+      </figcaption>
+    </figure>
   );
 }

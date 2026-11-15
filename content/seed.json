@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-04T00:00:00.000Z",
+  "updatedAt": "2026-11-13T00:00:00.000Z",
   "site": {
     "defaultLang": "th",
-    "url": "https://kiattiphoom-pho0m.pages.dev",
+    "url": "https://pho0m.kiattiphoom.workers.dev",
     "title": {
       "th": "pho0m · เกียรติภูมิ",
       "en": "pho0m · Kiattiphoom Poonketkit"
@@ -25,16 +25,16 @@
       "en": "CEO, Utotech Co., Ltd."
     },
     "headline": {
-      "th": "Backend developer สาย Go มากกว่า 4 ปี เริ่มจากเด็กฝึกงาน จนวันนี้นำทีมซอฟต์แวร์เฮาส์ของตัวเอง",
-      "en": "Backend developer (Go) with 4+ years of experience. From co-op intern to running a software house."
+      "th": "Backend engineer สาย Go และ NestJS ผู้เชี่ยวชาญด้าน AI จากเด็กฝึกงานสหกิจ สู่การบริหารซอฟต์แวร์เฮาส์ของตัวเอง",
+      "en": "Go & NestJS backend engineer and AI expert. From co-op intern to running my own software house."
     },
     "bio": {
-      "th": "ผมเป็น backend developer ประสบการณ์มากกว่า 4 ปี เริ่มต้นจากการฝึกงานที่ Studio Twist ซอฟต์แวร์เฮาส์เล็ก ๆ ที่จุดไฟให้ผมรักการเขียนโค้ด ถนัด backend เป็นหลัก ทำ frontend, mobile, IoT และ AI ได้ (ยังเรียนรู้อยู่เรื่อย ๆ) และเคยทำ CI/CD บน GCP และ AWS เรียนรู้ไว ทำงานเป็นทีมได้ ยืดหยุ่นสุด ๆ ทำงานมาแล้วทั้ง WFH 100%, hybrid และเข้าออฟฟิศเต็มเวลา ชอบฟังเพลง เล่นเกม และทุกอย่างที่เกี่ยวกับเทคโนโลยี 50% charming, 50% trouble. 100% worth it.",
-      "en": "I'm a backend developer with 4+ years of experience. I started my dev journey as an intern at Studio Twist Co., Ltd, a small software house that sparked my passion for coding. I'm strong in backend, familiar with frontend, mobile, IoT and AI (still learning!), and have done some CI/CD on GCP and AWS. I'm a fast learner, a team player and flexible as heck, and I've worked 100% WFH, hybrid and full-on WFO. Outside work: music, games and anything tech. 50% charming, 50% trouble. 100% worth it."
+      "th": "กว่า 4 ปีที่ผมออกแบบและพัฒนาระบบ backend และ API ด้วย Go และ NestJS พร้อมนำ AI มาใช้ในผลิตภัณฑ์ที่คนใช้งานจริง เริ่มต้นเส้นทางจากการฝึกงานที่ Studio Twist ซอฟต์แวร์เฮาส์เล็ก ๆ ที่ทำให้ผมหลงรักการเขียนโค้ด วันนี้ผมนำทีม Utotech พัฒนาระบบเว็บ โมบายล์ และ AI ให้ลูกค้า พร้อมวาง CI/CD บน Google Cloud และ AWS",
+      "en": "For 4+ years I've designed and built backend systems and APIs in Go and NestJS, and brought AI into products people use every day. My journey started as an intern at Studio Twist, a small software house that got me hooked on code. Today I lead Utotech, building web, mobile and AI systems for clients, with CI/CD on Google Cloud and AWS."
     },
     "dream": {
-      "th": "หลังฝึกงานผมเริ่มคิดว่า \"อยากเป็นผู้ประกอบการแบบพี่ ๆ\" และอยากเห็นซอฟต์แวร์ของบริษัทตัวเองเป็นยูนิคอร์นของไทย",
-      "en": "After my internship I started to think, \"I want to be an entrepreneur just like my seniors.\" I see myself as the owner of a company whose software product becomes a unicorn in Thailand."
+      "th": "หลังจบสหกิจ ผมตั้งใจว่าจะสร้างบริษัทของตัวเอง และอยากเห็นซอฟต์แวร์ของเราเติบโตเป็นยูนิคอร์นของไทย",
+      "en": "After my internship I knew I wanted to build a company of my own, one whose software could grow into a Thai unicorn."
     },
     "location": {
       "th": "ประเทศไทย",
@@ -171,8 +171,8 @@
         "en": "Bachelor's degree in Computer Technology, Faculty of Technical Education. Graduated with First Class Honors, GPA 3.63."
       },
       "body": {
-        "th": "ปริญญานิพนธ์: ระบบตรวจสอบคอมพิวเตอร์ที่ทำงานเมื่อไม่มีคนอยู่ในห้องเรียน ผ่านกล้อง IP ด้วย Faster R-CNN (SEYES) ส่วนโค้ดตรวจจับของ SEYES ที่เผยแพร่บน GitHub ใช้ YOLOv5 งานวิจัยสหกิจ: ระบบจัดการคิวด้วยสถาปัตยกรรม microservices และได้ใบรับรองภาษาอังกฤษ CEFR ระดับ A2 (มกราคม 2023)",
-        "en": "Thesis: a computer-monitoring system that activates when nobody is in the classroom, using IP cameras and Faster R-CNN (SEYES); the SEYES detection code published on GitHub uses YOLOv5. Co-op research project: a queue management system built on a microservices architecture. Also earned an English CEFR A2 certificate (January 2023)."
+        "th": "ปริญญานิพนธ์: ระบบตรวจสอบคอมพิวเตอร์ที่ทำงานเมื่อไม่มีคนอยู่ในห้องเรียน ผ่านกล้อง IP ด้วย Faster R-CNN (SEYES) ส่วนโค้ดตรวจจับของ SEYES ที่เผยแพร่บน GitHub ใช้ YOLOv5 งานวิจัยสหกิจ: ระบบจัดการคิวด้วยสถาปัตยกรรม microservices",
+        "en": "Thesis: a computer-monitoring system that activates when nobody is in the classroom, using IP cameras and Faster R-CNN (SEYES); the SEYES detection code published on GitHub uses YOLOv5. Co-op research project: a queue management system built on a microservices architecture."
       },
       "icon": "cap",
       "tags": [
@@ -2736,6 +2736,32 @@
   ],
   "skills": [
     {
+      "id": "expert",
+      "level": 4,
+      "title": {
+        "th": "เชี่ยวชาญ",
+        "en": "Expert"
+      },
+      "description": {
+        "th": "ถนัดที่สุด ใช้ออกแบบและส่งมอบระบบจริงทุกวัน",
+        "en": "My strongest tools: what I design and ship production systems with every day."
+      },
+      "items": [
+        {
+          "name": "Go",
+          "slug": "go"
+        },
+        {
+          "name": "NestJS",
+          "slug": "nestjs"
+        },
+        {
+          "name": "AI",
+          "slug": ""
+        }
+      ]
+    },
+    {
       "id": "work-ready",
       "level": 3,
       "title": {
@@ -2747,10 +2773,6 @@
         "en": "Used in real work at Utotech and on client projects."
       },
       "items": [
-        {
-          "name": "Go",
-          "slug": "go"
-        },
         {
           "name": "TypeScript",
           "slug": "typescript"
@@ -2833,10 +2855,6 @@
         "en": "Can ship working things in side projects."
       },
       "items": [
-        {
-          "name": "NestJS",
-          "slug": "nestjs"
-        },
         {
           "name": "Express",
           "slug": "express"

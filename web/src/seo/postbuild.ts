@@ -6,7 +6,7 @@
  * otherwise content/seed.json — so CI builds bake in the latest edits. Only the public projection
  * of that content is baked (buildSiteFiles applies publicProjection).
  *
- * SITE_URL (e.g. https://kiattiphoom-pho0m.pages.dev or a custom domain) overrides content.site.url, so
+ * SITE_URL (e.g. https://pho0m.kiattiphoom.workers.dev or a custom domain) overrides content.site.url, so
  * canonical, hreflang, Open Graph, sitemap.xml and llms.txt point at where the site is deployed.
  *
  * SEO_REQUIRE_LIVE_CONTENT=1 (set by deploy.yml for content refreshes) turns "could not read the

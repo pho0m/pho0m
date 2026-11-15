@@ -40,7 +40,7 @@ jobs:
     env:
       # Read by both "npm run readme" calls below (Generate and the retry in Commit and push).
       README_REQUIRE_LIVE_CONTENT: "1"
-      SITE_URL: ${{ vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://pho0m.kiattiphoom.workers.dev' }}
     steps:
       - uses: actions/checkout@v5
 

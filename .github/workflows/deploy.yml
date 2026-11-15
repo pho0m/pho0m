@@ -52,7 +52,7 @@ permissions:
 env:
   # Public URL of the site (the Worker's workers.dev address or a custom domain). Set the SITE_URL
   # repository variable; it feeds the SEO files and the API's allowed origins.
-  SITE_URL: ${{ vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://pho0m.kiattiphoom.workers.dev' }}
   # Pinned, called with npx only where it deploys (keeps npm ci small everywhere else).
   WRANGLER_VERSION: 4.154.0
   GCP_REGION: asia-southeast1
@@ -60,7 +60,7 @@ env:
   API_SERVICE: pho0m-api
   # Origins allowed to call the admin API (comma list). Defaults to SITE_URL; set the API_ORIGINS
   # variable to add more (e.g. both the workers.dev address and a custom domain).
-  SITE_ORIGINS: ${{ vars.API_ORIGINS || vars.SITE_URL || 'https://kiattiphoom-pho0m.pages.dev' }}
+  SITE_ORIGINS: ${{ vars.API_ORIGINS || vars.SITE_URL || 'https://pho0m.kiattiphoom.workers.dev' }}
   # "true" for content refreshes (repository_dispatch, schedule); job-level `if`s cannot read env,
   # so they spell out the same test on github.event_name.
   REFRESH_ONLY: ${{ (github.event_name == 'repository_dispatch' || github.event_name == 'schedule') && 'true' || 'false' }}

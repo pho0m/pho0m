@@ -21,7 +21,6 @@ export function Hero({ content, frameCount }: { content: Content; frameCount: nu
   if (p.codingSince)
     stats.push({ value: String(p.codingSince), label: ui(lang, "เริ่มเขียนโค้ดปี", "Coding since") });
 
-  const edu = p.education[0];
   const location = t(p.location);
 
   return (
@@ -41,13 +40,6 @@ export function Hero({ content, frameCount }: { content: Content; frameCount: nu
             {t(p.name)}
           </h1>
           <p className="hero-role">{t(p.role)}</p>
-          {edu ? (
-            <p className="hero-edu lcd">
-              {t(edu.school)}
-              {t(edu.program) ? ` · ${t(edu.program)}` : ""}
-              {edu.period ? ` · ${edu.period}` : ""}
-            </p>
-          ) : null}
           <p className="hero-headline">{t(p.headline)}</p>
           <p className="hero-bio">{t(p.bio)}</p>
           {stats.length > 0 ? (
